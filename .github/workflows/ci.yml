@@ -1,0 +1,119 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Continuous Integration
+#
+# Runs on every push to `main` and on every pull request targeting `main`.
+#
+# Jobs
+# ────
+# test               Full pytest suite across the supported Python x Matplotlib
+#                    version matrix.  Coverage XML is uploaded as an artifact
+#                    from the canonical matrix cell (Python 3.11 + mpl 3.10).
+#
+# spec-validation    Validates all TOML journal specs and runs the import-time
+#                    benchmark to catch regressions before they reach `main`.
+#
+# Job dependencies
+# ────────────────
+# All jobs are independent and run in parallel.  There is no `needs:` chain
+# here; the release workflow enforces sequencing (validate → publish).
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+# Cancel in-progress runs for the same branch/PR when a new commit is pushed,
+# saving runner minutes on superseded work.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Default to read-only token for all jobs.
+permissions:
+  contents: read
+
+env:
+  # Single source of truth for the canonical Python version used in jobs
+  # that do not need a matrix (spec-validation).
+  CANONICAL_PYTHON: "3.11"
+  # Matplotlib version paired with the canonical Python for single-version jobs.
+  CANONICAL_MPL: "3.10"
+  # pip install extras used consistently across every job.
+  DEV_EXTRAS: ".[dev]"
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  # Test matrix — Python 3.10-3.13 x Matplotlib 3.9-3.10
+  # ───────────────────────────────────────────────────────────────────────────
+  test:
+    name: "Test · Python ${{ matrix.python-version }} · mpl ${{ matrix.matplotlib-version }}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false   # report all failing cells, not just the first
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        matplotlib-version: ["3.9", "3.10"]
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install package with dev extras
+        run: pip install ${{ env.DEV_EXTRAS }}
+
+      - name: Pin Matplotlib ${{ matrix.matplotlib-version }}
+        # Install after the package so pip resolves the rest of the dep tree
+        # before the override, reducing resolver backtracking.
+        run: pip install "matplotlib~=${{ matrix.matplotlib-version }}.0"
+
+      - name: Run test suite
+        run: pytest --tb=short -q --cov=plotstyle --cov-report=xml
+
+      - name: Upload coverage report
+        # Upload once from the canonical cell to avoid 8 redundant artifacts.
+        if: |
+          matrix.python-version == env.CANONICAL_PYTHON &&
+          matrix.matplotlib-version == env.CANONICAL_MPL
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 14   # keep for two weeks; older reports are stale
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Spec validation and import benchmark
+  # Validates all TOML specs and enforces the <200 ms cold-import target.
+  # Kept as a separate job so a spec error is reported with a distinct job
+  # name rather than buried inside the test matrix output.
+  # ───────────────────────────────────────────────────────────────────────────
+  spec-validation:
+    name: Spec validation + import benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.CANONICAL_PYTHON }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.CANONICAL_PYTHON }}
+          cache: pip
+
+      - name: Install package with dev extras
+        run: pip install ${{ env.DEV_EXTRAS }}
+
+      - name: Validate all journal specs
+        run: python scripts/validate_all_specs.py
+
+      - name: Benchmark cold import time
+        run: python scripts/benchmark_import.py --trials 10 --target-ms 1000

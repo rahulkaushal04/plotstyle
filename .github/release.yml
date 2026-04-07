@@ -1,0 +1,105 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Automatic release notes configuration
+#
+# Controls how GitHub groups and formats pull request titles in the
+# auto-generated release notes produced by the Release workflow.
+#
+# GitHub reads this file when `generate_release_notes: true` is set in
+# softprops/action-gh-release (or the equivalent GitHub API call).
+#
+# Documentation:
+#   https://docs.github.com/en/repositories/releasing-projects-on-github/
+#   automatically-generated-release-notes
+#
+# Convention:
+#   Pull requests are categorised by their labels.  A PR with no matching
+#   label falls into the catch-all "Other Changes" category.
+#   PRs labelled "release-skip" or "dependencies" (routine bumps) are
+#   excluded from the notes entirely to reduce noise.
+# ─────────────────────────────────────────────────────────────────────────────
+
+changelog:
+  # ── Exclusions ─────────────────────────────────────────────────────────────
+  # PRs matching any of these labels are omitted from release notes entirely.
+  exclude:
+    labels:
+      - release-skip       # maintenance commits not relevant to users
+      - skip-changelog     # alternative convention used by some bots
+    authors:
+      - dependabot         # routine dependency bumps generate too much noise;
+      - renovate           #   review them separately in the dependency log
+
+  # ── Category definitions ───────────────────────────────────────────────────
+  # Categories are evaluated top to bottom; a PR is placed in the first
+  # category whose label list contains one of its labels.
+  # The final catch-all has no `labels` key and captures every remaining PR.
+  categories:
+
+    - title: "💥 Breaking Changes"
+      labels:
+        - breaking-change
+        - breaking
+
+    - title: "✨ New Features"
+      labels:
+        - enhancement
+        - feature
+        - new-journal          # new journal spec added
+
+    - title: "🐛 Bug Fixes"
+      labels:
+        - bug
+        - fix
+        - regression
+
+    - title: "📓 Journal Specifications"
+      labels:
+        - journal-spec         # new or updated TOML spec file
+        - spec-update
+        - spec-correction
+
+    - title: "♿ Accessibility & Color"
+      labels:
+        - accessibility
+        - color
+        - colorblind
+
+    - title: "⚡ Performance"
+      labels:
+        - performance
+        - perf
+        - optimization
+
+    - title: "🔒 Security"
+      labels:
+        - security
+        - vulnerability
+
+    - title: "📚 Documentation"
+      labels:
+        - documentation
+        - docs
+
+    - title: "🧪 Tests"
+      labels:
+        - test
+        - tests
+        - testing
+
+    - title: "♻️ Internal / Refactoring"
+      labels:
+        - refactor
+        - refactoring
+        - internal
+        - cleanup
+        - technical-debt
+        - ci                   # CI/CD workflow changes
+
+    - title: "📦 Dependencies"
+      labels:
+        - dependency
+        - dependencies         # manually triaged dependency bumps only;
+                               # automated bumps are excluded above
+
+    - title: "🔀 Other Changes"
+      # Catch-all: no `labels` key means every PR not matched above lands here.

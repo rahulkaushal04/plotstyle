@@ -1,0 +1,48 @@
+# PlotStyle Journal Spec Template
+# ================================
+# Copy this file to <journal_name>.toml and fill in the values
+# from the journal's official author guidelines.
+#
+# All numeric dimensions are in millimetres unless noted otherwise.
+# Font sizes are in points (pt).
+
+[metadata]
+name = ""                  # e.g. "Nature"
+publisher = ""             # e.g. "Springer Nature"
+source_url = ""            # URL to the journal's figure/author guidelines
+last_verified = ""         # ISO date: "2026-01-15"
+verified_by = ""           # GitHub username of the person who verified
+
+[dimensions]
+single_column_mm = 0.0     # Width of a single-column figure in mm
+double_column_mm = 0.0     # Width of a double-column (full-width) figure in mm
+max_height_mm = 0.0        # Maximum figure height in mm
+
+[typography]
+font_family = []           # e.g. ["Helvetica", "Arial"]  — in order of preference
+font_fallback = ""         # Generic CSS family: "sans-serif" or "serif"
+min_font_pt = 0.0          # Minimum allowed font size in points
+max_font_pt = 0.0          # Maximum / recommended font size in points
+panel_label_pt = 0.0       # Font size for panel labels (a, b, c, …)
+panel_label_weight = ""    # "bold" or "normal"
+# Accepted values:
+#   "lower"        → a, b, c      (Nature, ACS)
+#   "upper"        → A, B, C      (Cell, Elsevier)
+#   "parens_lower" → (a), (b), (c) (IEEE)
+#   "parens_upper" → (A), (B), (C)
+panel_label_case   = ""
+
+[export]
+preferred_formats = []     # e.g. ["pdf", "eps", "tiff"]
+min_dpi = 300              # Minimum resolution for raster output
+color_space = "RGB"        # "RGB" or "CMYK"
+font_embedding = true      # Whether fonts must be embedded
+editable_text = false      # Whether vector output must keep text as editable glyphs
+
+[color]
+avoid_combinations = []    # e.g. [["red", "green"]]
+colorblind_required = false
+grayscale_required = false
+
+[line]
+min_weight_pt = 0.5        # Minimum line weight in points
