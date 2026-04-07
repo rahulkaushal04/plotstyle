@@ -1,0 +1,35 @@
+[metadata]
+name = "PLOS ONE"
+publisher = "Public Library of Science"
+source_url = "https://journals.plos.org/plosone/s/figures"
+last_verified = "2026-04-02"
+verified_by = "plotstyle"
+
+[dimensions]
+single_column_mm = 132.0
+double_column_mm = 190.5
+max_height_mm = 222.3
+
+[typography]
+font_family = ["Arial", "Helvetica"]
+font_fallback = "sans-serif"
+min_font_pt = 8.0
+max_font_pt = 12.0
+panel_label_pt = 10.0
+panel_label_weight = "bold"
+panel_label_case = "upper"
+
+[export]
+preferred_formats = ["tiff", "eps", "pdf"]
+min_dpi = 300
+color_space = "RGB"
+font_embedding = true
+editable_text = false
+
+[color]
+avoid_combinations = [["red", "green"]]
+colorblind_required = true
+grayscale_required = false
+
+[line]
+min_weight_pt = 0.5

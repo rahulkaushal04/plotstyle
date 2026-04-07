@@ -1,0 +1,35 @@
+[metadata]
+name = "Nature"
+publisher = "Springer Nature"
+source_url = "https://www.nature.com/nature/for-authors/final-submission"
+last_verified = "2026-04-02"
+verified_by = "plotstyle"
+
+[dimensions]
+single_column_mm = 89.0
+double_column_mm = 183.0
+max_height_mm = 247.0
+
+[typography]
+font_family = ["Helvetica", "Arial"]
+font_fallback = "sans-serif"
+min_font_pt = 5.0
+max_font_pt = 7.0
+panel_label_pt = 8.0
+panel_label_weight = "bold"
+panel_label_case = "lower"
+
+[export]
+preferred_formats = ["tiff", "pdf", "eps"]
+min_dpi = 300
+color_space = "RGB"
+font_embedding = true
+editable_text = true
+
+[color]
+avoid_combinations = [["red", "green"]]
+colorblind_required = true
+grayscale_required = false
+
+[line]
+min_weight_pt = 0.25

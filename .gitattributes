@@ -1,0 +1,25 @@
+# =========================
+# Enforce LF everywhere
+# =========================
+* text=auto eol=lf
+
+# =========================
+# Binary files (never modify)
+# =========================
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.ico binary
+
+# =========================
+# Python cache / compiled
+# =========================
+*.pyc binary
+
+# =========================
+# Jupyter notebooks
+# (avoid noisy diffs)
+# =========================
+*.ipynb text eol=lf
