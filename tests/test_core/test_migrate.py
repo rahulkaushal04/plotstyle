@@ -767,6 +767,7 @@ class TestMigrate:
         with pytest.raises(KeyError):
             migrate(nature_fig, from_journal="nature", to_journal="nonexistent_xyz")
 
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
     def test_migrate_same_journal_no_resize(self, nature_fig: plt.Figure) -> None:
         """
         Description: Migrating to the same journal should not change width.

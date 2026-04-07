@@ -57,9 +57,14 @@ def all_fonts_present(mock_findfont):
     Description: Simulates a system with all requested fonts installed.
     Scenario: findfont never raises; returns deterministic fake path.
     Expectation: detect_available / select_best treat every family as found.
+
+    FontProperties is also patched so that matplotlib does not emit its own
+    "findfont: Font family not found" warnings on hosts that lack the fonts,
+    which would pollute warning-capture assertions in tests.
     """
     mock_findfont.return_value = FAKE_PATH_HELVETICA
-    return mock_findfont
+    with patch(FINDPROPS_PATH, return_value=MagicMock()):
+        yield mock_findfont
 
 
 @pytest.fixture()
