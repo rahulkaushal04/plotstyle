@@ -88,7 +88,9 @@ __all__: list[str] = [
 # ---------------------------------------------------------------------------
 
 #: Supported export format identifiers (lowercase, without leading dot).
-_KNOWN_FORMATS: Final[frozenset[str]] = frozenset({"pdf", "eps", "svg", "tiff", "png", "emf"})
+_KNOWN_FORMATS: Final[frozenset[str]] = frozenset(
+    {"pdf", "eps", "svg", "tiff", "tif", "png", "emf", "jpg", "jpeg", "ps"}
+)
 
 #: Supported colour-space identifiers.
 _KNOWN_COLOR_SPACES: Final[frozenset[str]] = frozenset({"rgb", "cmyk", "grayscale"})

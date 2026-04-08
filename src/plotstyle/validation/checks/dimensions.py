@@ -126,7 +126,7 @@ def check_dimensions(fig: Figure, spec: JournalSpec) -> list[CheckResult]:
                     f"or double-column ({double_mm}mm) specifications."
                 ),
                 fix_suggestion=(
-                    f'Use plotstyle.figure("{spec.metadata.name.lower()}", columns=1) '
+                    f'Use plotstyle.figure("<journal_key>", columns=1) '
                     f"or set figsize to {single_mm}mm or {double_mm}mm width."
                 ),
             )
