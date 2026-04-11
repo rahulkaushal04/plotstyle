@@ -48,10 +48,8 @@ __all__: list[str] = [
 # Module-level constants
 # ---------------------------------------------------------------------------
 
-# Maps canonical format names to their standard file extensions.  Kept as a
-# module-level constant so callers can introspect supported formats without
-# instantiating any objects.  The dict is typed Final to signal that it must
-# not be mutated at runtime.
+#: Maps canonical format names to their standard file extensions.
+#: The dict is typed ``Final`` to signal that it must not be mutated at runtime.
 FORMAT_EXTENSIONS: Final[dict[str, str]] = {
     "pdf": ".pdf",
     "eps": ".eps",

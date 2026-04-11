@@ -36,7 +36,5 @@ First public alpha release.
 - **Dynamic versioning** — version derived from git tags via `hatch-vcs` and `importlib.metadata`.
 - **CI/CD pipeline** — GitHub Actions workflows for lint, type-check, test matrix, and automated PyPI release via OIDC Trusted Publishing.
 
----
-
 [Unreleased]: https://github.com/rahulkaushal04/plotstyle/compare/v0.1.0a1...HEAD
 [0.1.0a1]: https://github.com/rahulkaushal04/plotstyle/releases/tag/v0.1.0a1

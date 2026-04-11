@@ -8,13 +8,12 @@ against a journal's publication requirements:
 
 Typical usage
 -------------
-    >>> import matplotlib.pyplot as plt
     >>> import plotstyle
-    >>> plotstyle.use("nature")
-    >>> fig, ax = plt.subplots()
-    >>> ax.plot([0, 1, 2], [0, 1, 0])
-    >>>
     >>> from plotstyle.validation import validate
+    >>>
+    >>> with plotstyle.use("nature"):
+    ...     fig, ax = plotstyle.figure("nature", columns=1)
+    ...     ax.plot([0, 1, 2], [0, 1, 0])
     >>> report = validate(fig, journal="nature")
     >>> print(report)
     >>> if not report.passed:

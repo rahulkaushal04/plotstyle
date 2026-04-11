@@ -15,7 +15,9 @@
 
 ---
 
-**PlotStyle** configures [Matplotlib](https://matplotlib.org/) (and optionally [Seaborn](https://seaborn.pydata.org/)) so your figures match the typographic, dimensional, and export requirements of major scientific journals — out of the box.
+**PlotStyle** configures [Matplotlib](https://matplotlib.org/) (and optionally [Seaborn](https://seaborn.pydata.org/)) so your figures match the exact typographic, dimensional, and export requirements of major academic journals — out of the box.
+
+Getting a figure accepted often means matching a journal's precise column width, font size range, line weight, DPI, and export format. PlotStyle encodes those requirements as TOML specs and applies them automatically, so you spend time on your science rather than your figure settings.
 
 > **Current release:** `v0.1.0a1` (alpha)
 
@@ -37,16 +39,16 @@
 
 ## Features
 
-- **One-line journal presets** — `plotstyle.use("nature")` sets fonts, sizes, line widths, and export parameters via Matplotlib's `rcParams`.
-- **Correctly-sized figures** — `plotstyle.figure()` / `plotstyle.subplots()` create figures at the exact column width and max height specified by each journal.
-- **Auto panel labels** — multi-panel figures get **(a)**, **(b)**, **(c)**, … labels placed according to the journal's style rules.
-- **Colorblind-safe palettes** — built-in Okabe–Ito, Tol Bright/Vibrant/Muted, and grayscale-safe palettes with optional markers and linestyles.
+- **One-line journal presets** — `plotstyle.use("nature")` sets fonts, sizes, line widths, and export parameters in Matplotlib's `rcParams`. Wrap it in a `with` block and everything is restored automatically when the block exits.
+- **Correctly-sized figures** — `plotstyle.figure()` and `plotstyle.subplots()` create figures at the exact column width and maximum height specified by each journal.
+- **Auto panel labels** — multi-panel figures get **(a)**, **(b)**, **(c)**, … labels placed and styled according to each journal's conventions.
+- **Colorblind-safe palettes** — built-in Okabe–Ito, Tol Bright/Vibrant/Muted, and grayscale-safe palettes via `plotstyle.palette()`.
 - **Accessibility previews** — simulate deuteranopia, protanopia, and tritanopia; preview grayscale rendering.
-- **Pre-submission validation** — check figure dimensions, font sizes, line weights, color accessibility, and export settings against the target journal's spec.
-- **Submission-ready export** — batch-export to all formats a journal accepts (PDF, EPS, TIFF, …) with font embedding and DPI enforcement.
-- **Spec diffing & migration** — compare two journal specs side-by-side; migrate a figure from one journal to another.
-- **Seaborn compatibility** — a monkey-patch layer ensures PlotStyle's `rcParams` survive `sns.set_theme()` calls.
-- **Typed, schema-validated specs** — journal requirements are stored as TOML files validated by immutable dataclasses.
+- **Pre-submission validation** — check figure dimensions, font sizes, line weights, color accessibility, and export settings against the target journal's spec before you submit.
+- **Submission-ready export** — `plotstyle.savefig()` enforces TrueType font embedding and minimum DPI; `plotstyle.export_submission()` batch-exports to every format the journal requires.
+- **Spec diffing & migration** — compare two journal specs side-by-side; re-target a figure from one journal to another with `plotstyle.migrate()`.
+- **Seaborn compatibility** — a patch layer ensures PlotStyle's `rcParams` survive `sns.set_theme()` calls.
+- **Typed, schema-validated specs** — journal requirements are stored as TOML files validated by immutable typed dataclasses.
 - **CLI** — `plotstyle list`, `plotstyle info`, `plotstyle validate`, and more — no Python script needed.
 
 ---
@@ -72,13 +74,13 @@
 
 ## Installation
 
-Requires **Python 3.10+**.
+Requires **Python 3.10+** and **Matplotlib ≥ 3.9**.
 
 ```bash
 pip install plotstyle
 ```
 
-### Extras
+### Optional extras
 
 ```bash
 # Colorblind / grayscale preview (needs Pillow)
@@ -110,7 +112,11 @@ pip install -e ".[dev]"
 import numpy as np
 import plotstyle
 
+# plotstyle.use() applies the journal's rcParams (fonts, sizes, line widths).
+# The `with` block ensures they are restored automatically when plotting is done.
 with plotstyle.use("nature"):
+    # Creates a figure at Nature's exact single-column width (89 mm).
+    # Use columns=2 for double-column (full text width).
     fig, ax = plotstyle.figure("nature", columns=1)
 
     x = np.linspace(0, 2 * np.pi, 200)
@@ -120,54 +126,124 @@ with plotstyle.use("nature"):
     ax.set_ylabel("Amplitude (a.u.)")
     ax.legend()
 
+    # Enforces Nature's minimum DPI (300) and embeds TrueType fonts.
     plotstyle.savefig(fig, "quickstart_nature.pdf", journal="nature")
 ```
 
-`plotstyle.use()` also works as a context manager — `rcParams` are automatically restored on exit:
+The `with` block is the recommended pattern — `rcParams` are always restored on exit, even if an exception occurs inside the block.
+
+If you need to manage the style manually:
 
 ```python
-with plotstyle.use("ieee"):
+style = plotstyle.use("ieee")
+try:
     fig, ax = plotstyle.figure("ieee", columns=1)
     ax.plot([1, 2, 3])
     plotstyle.savefig(fig, "fig_ieee.eps", journal="ieee")
-# rcParams are back to normal here
+finally:
+    style.restore()  # always restore, even on error
 ```
 
 ---
 
 ## Usage
 
-**Multi-panel figures** with auto labels:
+### Multi-panel figures
+
+`plotstyle.subplots()` works like `plt.subplots()` but sizes the figure to the journal spec and adds panel labels automatically.
+
+> **Note:** Unlike `plt.subplots()`, `plotstyle.subplots()` **always** returns a 2-D NumPy array of axes — even for a single panel. Use `axes[0, 0]` to access a single axes, or `axes.flat` to iterate over all panels.
 
 ```python
-fig, axes = plotstyle.subplots("science", nrows=2, ncols=2, columns=2)
-# Axes get (a), (b), (c), (d) labels per journal style
+import plotstyle
+
+with plotstyle.use("science"):
+    fig, axes = plotstyle.subplots("science", nrows=2, ncols=2, columns=2)
+    # axes has shape (2, 2); each panel is labelled (a), (b), (c), (d)
+    for ax in axes.flat:
+        ax.plot([1, 2, 3])
+    plotstyle.savefig(fig, "multipanel.pdf", journal="science")
 ```
 
-**Colorblind-safe palettes** (Okabe–Ito, Tol Bright/Vibrant/Muted, Safe Grayscale):
+Pass `panels=False` to suppress the automatic labels.
+
+### Color palettes
 
 ```python
+# A list of 4 hex color strings from Nature's recommended palette
 colors = plotstyle.palette("nature", n=4)
-styled = plotstyle.palette("ieee", n=3, with_markers=True)  # [(color, linestyle, marker), ...]
+
+# With linestyles and markers — useful for accessible line plots
+styled = plotstyle.palette("ieee", n=3, with_markers=True)
+# styled is a list of (color, linestyle, marker) tuples
+for color, ls, marker in styled:
+    ax.plot(x, y, color=color, linestyle=ls, marker=marker)
 ```
 
-**Validation** — check dimensions, fonts, line weights, colors, and export settings:
+### Validation
 
 ```python
 report = plotstyle.validate(fig, journal="nature")
-print(report.passed)    # True / False
-print(report.failures)  # with fix suggestions
+print(report)           # formatted table of all checks
+print(report.passed)    # True if no checks failed
+
+for failure in report.failures:
+    print(failure.message)          # what failed
+    print(failure.fix_suggestion)   # how to fix it
 ```
 
-**Submission export** — batch-export to all formats a journal accepts:
+### Submission export
+
+`export_submission()` writes the figure in every format the journal requires (PDF, TIFF, EPS, etc.) and applies journal-specific naming conventions.
 
 ```python
-plotstyle.export_submission(fig, "figure1", journal="ieee",
-                            author_surname="Kaushal",
-                            output_dir="submission_ieee")
+paths = plotstyle.export_submission(
+    fig,
+    "figure1",
+    journal="ieee",
+    author_surname="Kaushal",   # IEEE prepends the first 5 chars of the surname
+    output_dir="submission_ieee",
+)
+# Produces: submission_ieee/kaush_figure1.pdf (and any other IEEE-required formats)
 ```
 
-**Accessibility previews**, **spec diffing & migration**, and **Seaborn integration** are also available — see the [`examples/`](examples/) directory for full usage.
+### Spec diffing and migration
+
+```python
+# Compare two journals — useful when retargeting a figure
+result = plotstyle.diff("nature", "science")
+print(result)           # aligned two-column table of differences
+
+# Re-target a figure to a different journal in place
+plotstyle.migrate(fig, from_journal="nature", to_journal="science")
+plotstyle.savefig(fig, "figure_science.pdf", journal="science")
+```
+
+### Accessibility previews
+
+```python
+# Simulate how a figure looks under three types of color blindness
+comp = plotstyle.preview_colorblind(fig)
+comp.savefig("colorblind_check.png", dpi=150)
+
+# Preview grayscale rendering
+gs = plotstyle.preview_grayscale(fig)
+gs.savefig("grayscale_check.png", dpi=150)
+```
+
+### Seaborn integration
+
+`sns.set_theme()` normally overwrites the rcParams that PlotStyle set. Pass `seaborn_compatible=True` to prevent that:
+
+```python
+import seaborn as sns
+import plotstyle
+
+with plotstyle.use("nature", seaborn_compatible=True):
+    fig, ax = plotstyle.figure("nature", columns=1)
+    sns.lineplot(x=[1, 2, 3], y=[4, 5, 6], ax=ax)
+    plotstyle.savefig(fig, "seaborn_figure.pdf", journal="nature")
+```
 
 ---
 

@@ -44,13 +44,12 @@ from typing import Any
 class CheckStatus(enum.Enum):
     """Outcome of a single validation check.
 
-    Members:
-        PASS: The check criterion was met; no action required.
-        FAIL: The check criterion was *not* met; the figure is likely to be
-            rejected or require revision by the journal.
-        WARN: The check could not be verified conclusively, or the criterion
-            is advisory rather than mandatory.  The figure may still be
-            accepted, but the author should review the flagged item.
+    - ``PASS`` -- The check criterion was met; no action required.
+    - ``FAIL`` -- The check criterion was *not* met; the figure is likely
+      to be rejected or require revision by the journal.
+    - ``WARN`` -- The check could not be verified conclusively, or the
+      criterion is advisory rather than mandatory.  The figure may still
+      be accepted, but the author should review the flagged item.
     """
 
     PASS = "PASS"

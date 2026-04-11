@@ -90,8 +90,8 @@ dev = [
 # ── Documentation build ───────────────────────────────────────────────────────
 docs = [
     "sphinx>=9.0,<10",
-    "furo>=2025.9.19",
-    "myst-parser>=4.0,<5",
+    "furo>=2025.12.19",
+    "myst-parser>=5.0,<6",
     "sphinx-autodoc-typehints>=3.0,<4",
     "sphinx-copybutton>=0.5,<1",
 ]

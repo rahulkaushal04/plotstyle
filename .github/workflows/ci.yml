@@ -12,6 +12,11 @@
 # spec-validation    Validates all TOML journal specs and runs the import-time
 #                    benchmark to catch regressions before they reach `main`.
 #
+# docs               Builds the Sphinx documentation with -W (warnings as
+#                    errors).  The generated HTML is uploaded as an artifact
+#                    so reviewers can inspect rendered output without a local
+#                    build.
+#
 # Job dependencies
 # ────────────────
 # All jobs are independent and run in parallel.  There is no `needs:` chain
@@ -117,3 +122,45 @@ jobs:
 
       - name: Benchmark cold import time
         run: python scripts/benchmark_import.py --trials 10 --target-ms 1000
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Docs build — Sphinx with warnings-as-errors
+  # Catches broken autodoc references, bad cross-links, and rst/md syntax
+  # errors before they reach `main`.  Built HTML is uploaded as an artifact
+  # so reviewers can inspect rendered output without a local build.
+  # ───────────────────────────────────────────────────────────────────────────
+  docs:
+    name: Docs build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.CANONICAL_PYTHON }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.CANONICAL_PYTHON }}
+          cache: pip
+
+      - name: Install package with docs extras
+        # .[docs] installs sphinx, furo, myst-parser, and the package itself
+        # so autodoc can import every module it documents.
+        run: pip install ".[docs]"
+
+      - name: Build documentation
+        # -W turns every Sphinx warning into a build error.
+        # -n (nitpick) flags references to undefined labels or missing members.
+        # --keep-going reports all errors rather than stopping on the first.
+        # READTHEDOCS enables the full intersphinx mapping (matplotlib, numpy,
+        # seaborn) so CI catches broken cross-links before they reach RTD.
+        env:
+          READTHEDOCS: "true"
+        run: sphinx-build -W -n --keep-going -b html docs docs/_build/html
+
+      - name: Upload HTML documentation
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-html
+          path: docs/_build/html/
+          retention-days: 14
