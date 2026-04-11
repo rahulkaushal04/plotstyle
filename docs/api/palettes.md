@@ -84,3 +84,11 @@ colors = load_palette("tol_bright")
   journal key is not in `JOURNAL_PALETTE_MAP`.
 - {class}`~plotstyle.color.palettes.PaletteNotFoundError` — raised when the
   JSON file for a palette does not exist.
+
+```{eval-rst}
+.. autoclass:: plotstyle.color.palettes.UnknownJournalError
+```
+
+```{eval-rst}
+.. autoclass:: plotstyle.color.palettes.PaletteNotFoundError
+```

@@ -63,16 +63,19 @@ def validate(fig: Figure, *, journal: str) -> ValidationReport:
     Returns
     -------
         A :class:`~plotstyle.validation.report.ValidationReport` summarising
-        the outcome of every check.  Call :meth:`~ValidationReport.passed` for
-        a single boolean result, iterate :meth:`~ValidationReport.failures` for
-        actionable errors, or use :meth:`~ValidationReport.to_dict` for
+        the outcome of every check.  Call
+        :meth:`~plotstyle.validation.report.ValidationReport.passed` for
+        a single boolean result, iterate
+        :meth:`~plotstyle.validation.report.ValidationReport.failures` for
+        actionable errors, or use
+        :meth:`~plotstyle.validation.report.ValidationReport.to_dict` for
         programmatic access.
 
     Raises
     ------
         KeyError: If *journal* does not match any registered journal
             specification (propagated from
-            :func:`~plotstyle.specs.registry.get`).
+            :meth:`~plotstyle.specs.SpecRegistry.get`).
 
     Example:
         >>> from plotstyle.validation import validate

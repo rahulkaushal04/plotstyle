@@ -402,6 +402,7 @@ class TestUse:
         finally:
             style.restore()
 
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
     def test_use_applies_journal_dpi(self) -> None:
         """
         Description: savefig.dpi must match the journal spec.

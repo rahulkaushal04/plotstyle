@@ -210,13 +210,17 @@ class SpecDifference:
 
     Attributes
     ----------
-        field: Dotted attribute path on
-            :class:`~plotstyle.specs.schema.JournalSpec`
-            (e.g. ``"dimensions.single_column_mm"``).
-        label: Human-readable description of the field
-            (e.g. ``"Column Width (single)"``).
-        value_a: Formatted string value from the first journal spec.
-        value_b: Formatted string value from the second journal spec.
+    field : str
+        Dotted attribute path on
+        :class:`~plotstyle.specs.schema.JournalSpec`
+        (e.g. ``"dimensions.single_column_mm"``).
+    label : str
+        Human-readable description of the field
+        (e.g. ``"Column Width (single)"``).
+    value_a : str
+        Formatted string value from the first journal spec.
+    value_b : str
+        Formatted string value from the second journal spec.
     """
 
     field: str
@@ -240,11 +244,14 @@ class SpecDiff:
 
     Attributes
     ----------
-        journal_a: Display name of the first journal (from spec metadata).
-        journal_b: Display name of the second journal (from spec metadata).
-        differences: Ordered list of :class:`SpecDifference` records for each
-            field where the two specs disagree.  Empty when the specs are
-            identical across all tracked fields.
+    journal_a : str
+        Display name of the first journal (from spec metadata).
+    journal_b : str
+        Display name of the second journal (from spec metadata).
+    differences : list[SpecDifference]
+        Ordered list of :class:`SpecDifference` records for each
+        field where the two specs disagree.  Empty when the specs are
+        identical across all tracked fields.
 
     Example::
 

@@ -79,8 +79,8 @@ class JournalStyle:
 
     Attributes
     ----------
-        spec: The :class:`~plotstyle.specs.schema.JournalSpec` that was
-            applied to ``mpl.rcParams``.
+    spec : ~plotstyle.specs.schema.JournalSpec
+        The journal specification that was applied to ``mpl.rcParams``.
 
     Notes
     -----
