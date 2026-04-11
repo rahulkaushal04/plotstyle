@@ -1,0 +1,112 @@
+version: 2
+
+updates:
+  # ───────────────────────────────────────────────────────────────────────────
+  # Python dependencies (pip)
+  #
+  # Scope
+  # ─────
+  # - Monitors dependencies from pyproject.toml
+  # - Runs weekly with controlled PR volume
+  #
+  # Strategy
+  # ────────
+  # - Dev tools grouped → avoid version mismatch issues
+  # - Optional deps grouped → reduce CI matrix explosion
+  # - Docs isolated → prevent noise in runtime validation
+  # - Core deps left ungrouped → strict CI validation per change
+  #
+  # Schedule: Weekly (Monday, 09:00 IST)
+  # ───────────────────────────────────────────────────────────────────────────
+  - package-ecosystem: pip
+    directory: "/"
+
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: "Asia/Kolkata"
+
+    # Limit concurrent PRs to keep CI + reviews manageable
+    open-pull-requests-limit: 10
+
+    # All updates target main branch
+    target-branch: main
+
+    # Labels applied to all PRs from this block
+    labels:
+      - dependencies
+      - python
+
+    groups:
+      # Dev toolchain (linting, typing, testing)
+      # Updated together to avoid inter-tool incompatibilities
+      dev-toolchain:
+        patterns:
+          - "pytest*"
+          - "ruff"
+          - "mypy"
+          - "pre-commit"
+
+      # Optional runtime dependencies
+      # Grouped to reduce CI permutations and test overhead
+      optional-extras:
+        patterns:
+          - "Pillow"
+          - "fonttools"
+          - "seaborn"
+          - "pandas"
+
+      # Documentation stack
+      # Isolated so doc failures don't affect runtime updates
+      docs:
+        patterns:
+          - "sphinx*"
+          - "furo"
+          - "myst-parser"
+          - "sphinx-*"
+
+    # Ignore risky upgrades
+    # - matplotlib major versions may introduce breaking changes
+    ignore:
+      - dependency-name: "matplotlib"
+        update-types:
+          - "version-update:semver-major"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # GitHub Actions
+  #
+  # Scope
+  # ─────
+  # - Updates workflow actions under .github/workflows
+  #
+  # Strategy
+  # ────────
+  # - All updates grouped into a single PR
+  # - Keeps review simple and avoids fragmented updates
+  #
+  # Schedule: Weekly (Monday, 09:00 IST)
+  # ───────────────────────────────────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: "/"
+
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: "Asia/Kolkata"
+
+    # Fewer PRs needed for actions
+    open-pull-requests-limit: 5
+
+    target-branch: main
+
+    labels:
+      - dependencies
+      - github-actions
+
+    groups:
+      # All GitHub Actions updates in one PR
+      github-actions:
+        patterns:
+          - "*"

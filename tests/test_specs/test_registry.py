@@ -1005,9 +1005,13 @@ class TestRepr:
         """
         Description: Validates that repr includes the path to the specs directory.
         Scenario: Call repr() on a registry.
-        Expectation: The specs_dir path string appears in repr.
+        Expectation: The specs_dir path string appears in repr (accounting for
+        backslash escaping in repr output on Windows).
         """
-        assert str(reg._specs_dir) in repr(reg)
+        r = repr(reg)
+        path_str = str(reg._specs_dir)
+        # repr() may escape backslashes (e.g. on Windows: \ → \\)
+        assert path_str in r or path_str.replace("\\", "\\\\") in r
 
     def test_repr_contains_cached_key(self, reg):
         """
