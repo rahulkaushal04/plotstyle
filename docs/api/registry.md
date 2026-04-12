@@ -29,6 +29,18 @@ Lazy-loading journal specification registry.
    :members:
 ```
 
+## Parse exceptions
+
+```{eval-rst}
+.. autoexception:: plotstyle.specs.schema.JournalSpecError
+
+.. autoexception:: plotstyle.specs.schema.MissingFieldError
+
+.. autoexception:: plotstyle.specs.schema.FieldTypeError
+
+.. autoexception:: plotstyle.specs.schema.FieldValueError
+```
+
 ## Sub-spec classes
 
 ```{eval-rst}

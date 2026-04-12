@@ -14,6 +14,12 @@ Colorblind simulation engine using Machado et al. (2009) matrices.
 .. autofunction:: plotstyle.color.accessibility.simulate_cvd
 ```
 
+## `CVDSimulationError`
+
+```{eval-rst}
+.. autoexception:: plotstyle.color.accessibility.CVDSimulationError
+```
+
 ## `CVDType`
 
 ```{eval-rst}
