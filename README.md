@@ -7,10 +7,14 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/plotstyle/"><img alt="PyPI" src="https://img.shields.io/pypi/v/plotstyle?color=blue"></a>
-  <a href="https://pypi.org/project/plotstyle/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/plotstyle"></a>
-  <a href="https://github.com/rahulkaushal04/plotstyle/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/rahulkaushal04/plotstyle"></a>
+  <a href="https://pypi.org/project/plotstyle/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/plotstyle?color=blue"></a>
+  <a href="https://pypi.org/project/plotstyle/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/plotstyle"></a>
+  <a href="https://pypi.org/project/plotstyle/"><img alt="Downloads" src="https://img.shields.io/pypi/dm/plotstyle?color=green"></a>
+  <a href="https://github.com/rahulkaushal04/plotstyle/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/github/license/rahulkaushal04/plotstyle"></a>
   <a href="https://github.com/rahulkaushal04/plotstyle/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/rahulkaushal04/plotstyle/ci.yml?label=CI"></a>
+  <a href="https://plotstyle.readthedocs.io"><img alt="Docs" src="https://img.shields.io/readthedocs/plotstyle?label=docs"></a>
+  <a href="https://github.com/rahulkaushal04/plotstyle"><img alt="Code style: Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json"></a>
+  <a href="https://github.com/rahulkaushal04/plotstyle"><img alt="Typed: mypy" src="https://img.shields.io/badge/typed-mypy-blue"></a>
 </p>
 
 ---
@@ -19,12 +23,13 @@
 
 Getting a figure accepted often means matching a journal's precise column width, font size range, line weight, DPI, and export format. PlotStyle encodes those requirements as TOML specs and applies them automatically, so you spend time on your science rather than your figure settings.
 
-> **Current release:** `v0.1.0a1` (alpha)
+> **Current release:** `v1.0.0` (stable)
 
 ---
 
 ## Table of Contents
 
+- [Why PlotStyle?](#why-plotstyle)
 - [Features](#features)
 - [Supported Journals](#supported-journals)
 - [Installation](#installation)
@@ -32,8 +37,18 @@ Getting a figure accepted often means matching a journal's precise column width,
 - [Usage](#usage)
 - [CLI](#cli)
 - [Examples](#examples)
+- [Documentation](#documentation)
 - [Contributing](#contributing)
+- [Citation](#citation)
 - [License](#license)
+
+---
+
+## Why PlotStyle?
+
+Most journals reject figures that don't meet their formatting requirements — wrong column width, incorrect font sizes, missing font embedding, insufficient DPI, or incompatible file formats. Fixing these manually is tedious and error-prone, especially when targeting multiple journals.
+
+PlotStyle solves this by encoding each journal's exact requirements into machine-readable specs and applying them automatically. You focus on your data; PlotStyle handles the formatting.
 
 ---
 
@@ -279,9 +294,38 @@ Working examples are in the [`examples/`](examples/) directory:
 
 ---
 
+## Documentation
+
+Full documentation is available at **[plotstyle.readthedocs.io](https://plotstyle.readthedocs.io)**:
+
+- [Installation guide](https://plotstyle.readthedocs.io/en/latest/installation.html)
+- [Quick start tutorial](https://plotstyle.readthedocs.io/en/latest/quickstart.html)
+- [API reference](https://plotstyle.readthedocs.io/en/latest/api/index.html)
+- [How-to guides](https://plotstyle.readthedocs.io/en/latest/guides/index.html)
+- [CLI reference](https://plotstyle.readthedocs.io/en/latest/cli.html)
+- [FAQ](https://plotstyle.readthedocs.io/en/latest/faq.html)
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, adding journal specs, code style, and pull request guidelines.
+
+---
+
+## Citation
+
+If PlotStyle helps your research, a citation or star is appreciated:
+
+```bibtex
+@software{plotstyle,
+  author  = {Kaushal, Rahul},
+  title   = {PlotStyle: Publication-ready scientific figure presets for Matplotlib},
+  year    = {2026},
+  url     = {https://github.com/rahulkaushal04/plotstyle},
+  license = {MIT},
+}
+```
 
 ---
 
