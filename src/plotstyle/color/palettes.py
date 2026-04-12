@@ -200,9 +200,9 @@ def palette(
 
     Returns
     -------
-        A :data:`ColorList` (``list[str]``) of hex colour strings when
-        *with_markers* is ``False``, or a :data:`StyledColorList`
-        (``list[tuple[str, str, str]]``) of ``(colour, linestyle, marker)``
+        A ``list[str]`` of hex colour strings when
+        *with_markers* is ``False``, or a ``list[tuple[str, str, str]]``
+        of ``(colour, linestyle, marker)``
         tuples when *with_markers* is ``True``.
 
     Raises

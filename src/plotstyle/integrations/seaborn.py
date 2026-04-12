@@ -253,7 +253,7 @@ def plotstyle_theme(
 
     Args:
         journal: Journal preset name recognised by
-            :func:`~plotstyle.specs.registry.get` (e.g. ``"nature"`` or
+            :meth:`~plotstyle.specs.SpecRegistry.get` (e.g. ``"nature"`` or
             ``"ieee"``).
         seaborn_style: Seaborn aesthetic style forwarded to
             ``sns.set_theme(style=...)``.  Accepted values are

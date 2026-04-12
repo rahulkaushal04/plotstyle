@@ -146,7 +146,7 @@ class ValidationReport:
     journal : str
         Display name of the journal that was validated against
         (e.g., ``"Nature"`` or ``"IEEE Transactions"``).
-    checks : list[CheckResult]
+    checks : list
         Ordered list of :class:`CheckResult` objects, one per check
         executed.  Ordering follows the registration order of checks in
         ``plotstyle.validation.checks``.

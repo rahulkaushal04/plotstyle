@@ -769,12 +769,13 @@ class JournalSpec:
 
         Raises
         ------
-            MissingFieldError: If a required TOML field is absent.
-            FieldTypeError:    If a field value cannot be cast to the
-                               expected Python type.
-            FieldValueError:   If a field value violates a domain constraint
-                               (e.g. ``min_dpi < 72`` or an unrecognised
-                               ``color_space``).
+            plotstyle.specs.schema.MissingFieldError: If a required TOML
+                field is absent.
+            plotstyle.specs.schema.FieldTypeError: If a field value cannot
+                be cast to the expected Python type.
+            plotstyle.specs.schema.FieldValueError: If a field value
+                violates a domain constraint (e.g. ``min_dpi < 72`` or an
+                unrecognised ``color_space``).
 
         Notes
         -----

@@ -26,7 +26,7 @@ Supporting types
 Design notes
 ------------
 **Field manifest** — the set of spec fields included in a diff is defined
-in :data:`_DIFF_FIELDS`, a module-level list of ``(dotted_path, label,
+in ``_DIFF_FIELDS``, a module-level list of ``(dotted_path, label,
 formatter)`` triples.  Adding or removing tracked fields requires only a
 one-line change to that list; no function bodies need to be modified.
 
@@ -235,7 +235,7 @@ class SpecDiff:
 
     Returned by :func:`diff`.  Provides three access patterns:
 
-    - **Human-readable** — pass the instance to :func:`str` or :func:`print`
+    - **Human-readable** — pass the instance to :class:`str` or :func:`print`
       to get an aligned two-column table.
     - **Programmatic** — iterate over :attr:`differences`, test ``len()``, or
       use the instance directly in a boolean context (falsy when identical).
@@ -248,7 +248,7 @@ class SpecDiff:
         Display name of the first journal (from spec metadata).
     journal_b : str
         Display name of the second journal (from spec metadata).
-    differences : list[SpecDifference]
+    differences : list
         Ordered list of :class:`SpecDifference` records for each
         field where the two specs disagree.  Empty when the specs are
         identical across all tracked fields.
@@ -365,7 +365,7 @@ def _emit_migration_warnings(
     from_spec: JournalSpec,
     to_spec: JournalSpec,
 ) -> None:
-    """Emit :class:`~plotstyle._utils.warnings.PlotStyleWarning` for notable spec changes.
+    """Emit ``PlotStyleWarning`` for notable spec changes.
 
     Issues warnings for the three categories of change most likely to require
     author action: font family change, newly required grayscale safety, and
@@ -419,8 +419,8 @@ def _emit_migration_warnings(
 def diff(journal_a: str, journal_b: str) -> SpecDiff:
     """Return a structured comparison of two journal specifications.
 
-    Evaluates every field declared in :data:`_DIFF_FIELDS` against both
-    specs and collects those where the raw (pre-formatting) values differ.
+    Evaluates every field declared in the ``_DIFF_FIELDS`` manifest against
+    both specs and collects those where the raw (pre-formatting) values differ.
     This is a pure function with no side effects.
 
     Args:
@@ -444,7 +444,7 @@ def diff(journal_a: str, journal_b: str) -> SpecDiff:
         Journal names are normalised to lower-case by the registry, so
         ``"Nature"`` and ``"nature"`` are treated as equivalent inputs.
 
-        The :attr:`~SpecDiff.journal_a` and :attr:`~SpecDiff.journal_b`
+        The ``journal_a`` and ``journal_b``
         fields in the returned object use the *display names* from the
         specs' metadata (e.g. ``"Nature"``), not the raw input strings.
 
@@ -516,7 +516,7 @@ def migrate(
         ``from_spec.max_font_pt`` is zero (a degenerate spec), the scale
         factor defaults to ``1.0`` to avoid division by zero.
 
-        **Warnings** — a :class:`~plotstyle._utils.warnings.PlotStyleWarning`
+        **Warnings** — a ``PlotStyleWarning``
         is emitted for each of the following significant changes:
 
         - The font family differs between source and target journals.
