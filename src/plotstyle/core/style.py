@@ -79,8 +79,8 @@ class JournalStyle:
 
     Attributes
     ----------
-        spec: The :class:`~plotstyle.specs.schema.JournalSpec` that was
-            applied to ``mpl.rcParams``.
+    spec : ~plotstyle.specs.schema.JournalSpec
+        The journal specification that was applied to ``mpl.rcParams``.
 
     Notes
     -----
@@ -308,9 +308,8 @@ def use(
     """Apply a journal-specific Matplotlib style preset.
 
     Looks up the journal specification from the built-in registry, builds the
-    corresponding rcParams dict via
-    :func:`~plotstyle.engine.rcparams.build_rcparams`, snapshots the current
-    values for all keys about to be changed, and applies the new params.
+    corresponding rcParams dict, snapshots the current values for all keys
+    about to be changed, and applies the new params.
 
     Args:
         journal: Journal preset name (e.g. ``"nature"``, ``"ieee"``).

@@ -88,7 +88,9 @@ __all__: list[str] = [
 # ---------------------------------------------------------------------------
 
 #: Supported export format identifiers (lowercase, without leading dot).
-_KNOWN_FORMATS: Final[frozenset[str]] = frozenset({"pdf", "eps", "svg", "tiff", "png", "emf"})
+_KNOWN_FORMATS: Final[frozenset[str]] = frozenset(
+    {"pdf", "eps", "svg", "tiff", "tif", "png", "emf", "jpg", "jpeg", "ps"}
+)
 
 #: Supported colour-space identifiers.
 _KNOWN_COLOR_SPACES: Final[frozenset[str]] = frozenset({"rgb", "cmyk", "grayscale"})
@@ -767,12 +769,13 @@ class JournalSpec:
 
         Raises
         ------
-            MissingFieldError: If a required TOML field is absent.
-            FieldTypeError:    If a field value cannot be cast to the
-                               expected Python type.
-            FieldValueError:   If a field value violates a domain constraint
-                               (e.g. ``min_dpi < 72`` or an unrecognised
-                               ``color_space``).
+            plotstyle.specs.schema.MissingFieldError: If a required TOML
+                field is absent.
+            plotstyle.specs.schema.FieldTypeError: If a field value cannot
+                be cast to the expected Python type.
+            plotstyle.specs.schema.FieldValueError: If a field value
+                violates a domain constraint (e.g. ``min_dpi < 72`` or an
+                unrecognised ``color_space``).
 
         Notes
         -----

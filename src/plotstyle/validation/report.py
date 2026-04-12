@@ -44,13 +44,12 @@ from typing import Any
 class CheckStatus(enum.Enum):
     """Outcome of a single validation check.
 
-    Members:
-        PASS: The check criterion was met; no action required.
-        FAIL: The check criterion was *not* met; the figure is likely to be
-            rejected or require revision by the journal.
-        WARN: The check could not be verified conclusively, or the criterion
-            is advisory rather than mandatory.  The figure may still be
-            accepted, but the author should review the flagged item.
+    - ``PASS`` -- The check criterion was met; no action required.
+    - ``FAIL`` -- The check criterion was *not* met; the figure is likely
+      to be rejected or require revision by the journal.
+    - ``WARN`` -- The check could not be verified conclusively, or the
+      criterion is advisory rather than mandatory.  The figure may still
+      be accepted, but the author should review the flagged item.
     """
 
     PASS = "PASS"
@@ -68,20 +67,24 @@ class CheckResult:
     """Immutable record describing the outcome of one validation check.
 
     Instances are produced exclusively by check functions registered via the
-    :func:`~plotstyle.validation.checks._base.check` decorator and should not
-    normally be constructed by user code.
+    ``check`` decorator in ``plotstyle.validation.checks._base`` and should
+    not normally be constructed by user code.
 
     Attributes
     ----------
-        status: The :class:`CheckStatus` outcome of the check.
-        check_name: Dot-namespaced identifier for the check, e.g.
-            ``"dimensions.width"`` or ``"color.grayscale"``.  Used as a
-            stable key for programmatic filtering.
-        message: Human-readable description of the outcome.  For ``PASS``
-            results this summarises what was verified; for ``FAIL`` / ``WARN``
-            results it describes the specific problem found.
-        fix_suggestion: Optional actionable guidance for resolving a ``FAIL``
-            or ``WARN`` result.  ``None`` for ``PASS`` results.
+    status : CheckStatus
+        The outcome of the check.
+    check_name : str
+        Dot-namespaced identifier for the check, e.g.
+        ``"dimensions.width"`` or ``"color.grayscale"``.  Used as a
+        stable key for programmatic filtering.
+    message : str
+        Human-readable description of the outcome.  For ``PASS``
+        results this summarises what was verified; for ``FAIL`` / ``WARN``
+        results it describes the specific problem found.
+    fix_suggestion : str or None
+        Optional actionable guidance for resolving a ``FAIL``
+        or ``WARN`` result.  ``None`` for ``PASS`` results.
 
     Example:
         >>> result = CheckResult(
@@ -140,11 +143,13 @@ class ValidationReport:
 
     Attributes
     ----------
-        journal: Display name of the journal that was validated against
-            (e.g., ``"Nature"`` or ``"IEEE Transactions"``).
-        checks: Ordered list of :class:`CheckResult` objects, one per check
-            executed.  Ordering follows the registration order of checks in
-            :mod:`plotstyle.validation.checks`.
+    journal : str
+        Display name of the journal that was validated against
+        (e.g., ``"Nature"`` or ``"IEEE Transactions"``).
+    checks : list
+        Ordered list of :class:`CheckResult` objects, one per check
+        executed.  Ordering follows the registration order of checks in
+        ``plotstyle.validation.checks``.
 
     Example:
         >>> report = ValidationReport(journal="Nature", checks=[...])
@@ -205,6 +210,7 @@ class ValidationReport:
 
         Returns
         -------
+        dict
             A dictionary with the following keys:
 
             - ``"journal"`` (:class:`str`) — the journal display name.
@@ -213,7 +219,8 @@ class ValidationReport:
               with keys ``status``, ``check_name``, ``message``, and
               ``fix_suggestion``.
 
-        Example:
+        Examples
+        --------
             >>> import json
             >>> print(json.dumps(report.to_dict(), indent=2))
         """

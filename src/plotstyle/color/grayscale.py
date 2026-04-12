@@ -79,7 +79,8 @@ def rgb_to_luminance(r: float, g: float, b: float) -> float:
     -------
         Relative luminance in ``[0, 1]``.
 
-    Example:
+    Examples
+    --------
         >>> rgb_to_luminance(1.0, 0.0, 0.0)  # pure red
         0.2126
         >>> rgb_to_luminance(1.0, 1.0, 1.0)  # white

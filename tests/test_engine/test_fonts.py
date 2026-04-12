@@ -747,7 +747,13 @@ class TestVerifyEmbedded:
         real = tmp_path / "real.pdf"
         real.write_bytes(b"%PDF-1.4\n%%EOF\n")
         link = tmp_path / "link.pdf"
-        link.symlink_to(real)
+        try:
+            link.symlink_to(real)
+        except OSError:
+            pytest.skip(
+                "Symlink creation not supported on this OS/configuration "
+                "(Windows requires Developer Mode or elevated privileges)"
+            )
 
         result = verify_embedded(link)
 

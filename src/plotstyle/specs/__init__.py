@@ -175,7 +175,7 @@ class SpecRegistry:
     def list_available(self) -> list[str]:
         """List the identifiers of every discoverable journal specification.
 
-        Scans :attr:`_specs_dir` for ``*.toml`` files whose names do **not**
+        Scans the specs directory for ``*.toml`` files whose names do **not**
         start with an underscore (private or internal specs are excluded).
 
         Returns

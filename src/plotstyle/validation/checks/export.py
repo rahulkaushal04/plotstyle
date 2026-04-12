@@ -182,6 +182,23 @@ def check_export_settings(fig: Figure, spec: JournalSpec) -> list[CheckResult]:
                 ),
             )
         )
+    elif isinstance(savefig_dpi, (int, float)):
+        # Numeric but below the journal minimum — provably insufficient DPI.
+        results.append(
+            CheckResult(
+                status=CheckStatus.FAIL,
+                check_name="export.dpi",
+                message=(
+                    f"savefig.dpi = {savefig_dpi}; "
+                    f"{spec.metadata.name} requires ≥ {required_dpi} DPI. "
+                    "The figure will be saved at insufficient resolution."
+                ),
+                fix_suggestion=(
+                    f"Use plotstyle.savefig() which enforces {required_dpi} DPI, "
+                    f"or set mpl.rcParams['savefig.dpi'] = {int(required_dpi)}."
+                ),
+            )
+        )
     else:
         # A non-numeric value (e.g., "figure") is a warning rather than a
         # hard failure because the actual DPI is resolved at save time and

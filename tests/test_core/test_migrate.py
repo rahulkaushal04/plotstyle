@@ -6,11 +6,15 @@ _rescale_text_artists, _emit_migration_warnings, and all edge cases.
 
 from __future__ import annotations
 
+import json
 import warnings
 
+import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pytest
+
+matplotlib.use("Agg")
 
 from plotstyle._utils.warnings import PlotStyleWarning
 from plotstyle.core.migrate import (
@@ -98,6 +102,30 @@ class TestFormatHelpers:
         """
         assert _format_list(42) == "42"
 
+    def test_format_list_with_string(self) -> None:
+        """
+        Description: Plain strings are passed through str() directly.
+        Scenario: _format_list('hello').
+        Expectation: 'hello'.
+        """
+        assert _format_list("hello") == "hello"
+
+    def test_format_list_with_three_items(self) -> None:
+        """
+        Description: Three-item lists produce two commas.
+        Scenario: _format_list(['a', 'b', 'c']).
+        Expectation: 'a, b, c'.
+        """
+        assert _format_list(["a", "b", "c"]) == "a, b, c"
+
+    def test_format_list_with_numeric_items(self) -> None:
+        """
+        Description: Numeric list items are converted to strings.
+        Scenario: _format_list([1, 2, 3]).
+        Expectation: '1, 2, 3'.
+        """
+        assert _format_list([1, 2, 3]) == "1, 2, 3"
+
     def test_format_mm(self) -> None:
         """
         Description: _format_mm appends 'mm' suffix.
@@ -106,6 +134,14 @@ class TestFormatHelpers:
         """
         assert _format_mm(89.0) == "89.0mm"
 
+    def test_format_mm_integer(self) -> None:
+        """
+        Description: Integer values are formatted correctly.
+        Scenario: _format_mm(100).
+        Expectation: '100mm'.
+        """
+        assert _format_mm(100) == "100mm"
+
     def test_format_pt(self) -> None:
         """
         Description: _format_pt appends 'pt' suffix.
@@ -113,6 +149,14 @@ class TestFormatHelpers:
         Expectation: '7.0pt'.
         """
         assert _format_pt(7.0) == "7.0pt"
+
+    def test_format_pt_integer(self) -> None:
+        """
+        Description: Integer values are formatted correctly.
+        Scenario: _format_pt(12).
+        Expectation: '12pt'.
+        """
+        assert _format_pt(12) == "12pt"
 
     def test_format_bool_true(self) -> None:
         """
@@ -145,6 +189,30 @@ class TestFormatHelpers:
         Expectation: 'No'.
         """
         assert _format_bool(0) == "No"
+
+    def test_format_bool_none(self) -> None:
+        """
+        Description: None is falsy and must produce 'No'.
+        Scenario: _format_bool(None).
+        Expectation: 'No'.
+        """
+        assert _format_bool(None) == "No"
+
+    def test_format_bool_nonempty_string(self) -> None:
+        """
+        Description: Non-empty strings are truthy and must produce 'Yes'.
+        Scenario: _format_bool('yes').
+        Expectation: 'Yes'.
+        """
+        assert _format_bool("yes") == "Yes"
+
+    def test_format_bool_empty_string(self) -> None:
+        """
+        Description: Empty strings are falsy and must produce 'No'.
+        Scenario: _format_bool('').
+        Expectation: 'No'.
+        """
+        assert _format_bool("") == "No"
 
 
 # ---------------------------------------------------------------------------
@@ -183,6 +251,26 @@ class TestResolveAttr:
         spec = registry.get("nature")
         with pytest.raises(AttributeError):
             _resolve_attr(spec, "nonexistent.field")
+
+    def test_deeply_nested_attr(self) -> None:
+        """
+        Description: Three-level paths must resolve correctly.
+        Scenario: Resolve 'typography.font_family' on a spec.
+        Expectation: Returns the font_family list.
+        """
+        spec = registry.get("nature")
+        result = _resolve_attr(spec, "typography.font_family")
+        assert result == spec.typography.font_family
+
+    def test_partially_invalid_path_raises(self) -> None:
+        """
+        Description: Paths with a valid prefix but invalid tail must raise.
+        Scenario: Resolve 'dimensions.nonexistent' on a spec.
+        Expectation: AttributeError raised.
+        """
+        spec = registry.get("nature")
+        with pytest.raises(AttributeError):
+            _resolve_attr(spec, "dimensions.nonexistent")
 
 
 # ---------------------------------------------------------------------------
@@ -233,6 +321,25 @@ class TestSpecDifference:
         d1 = SpecDifference(field="a", label="A", value_a="1", value_b="2")
         d2 = SpecDifference(field="a", label="A", value_a="1", value_b="2")
         assert d1 == d2
+
+    def test_unequal_instances(self) -> None:
+        """
+        Description: SpecDifference with different fields must not be equal.
+        Scenario: Compare two different instances.
+        Expectation: Equality is False.
+        """
+        d1 = SpecDifference(field="a", label="A", value_a="1", value_b="2")
+        d2 = SpecDifference(field="b", label="B", value_a="3", value_b="4")
+        assert d1 != d2
+
+    def test_no_instance_dict(self) -> None:
+        """
+        Description: slots=True should prevent per-instance __dict__.
+        Scenario: Access __dict__ on an instance.
+        Expectation: No __dict__ attribute.
+        """
+        d = SpecDifference(field="a", label="A", value_a="1", value_b="2")
+        assert not hasattr(d, "__dict__")
 
 
 # ---------------------------------------------------------------------------
@@ -324,6 +431,28 @@ class TestSpecDiff:
         sd = SpecDiff(journal_a="A", journal_b="B", differences=[d])
         assert "→" in str(sd)
 
+    def test_str_contains_values(self) -> None:
+        """
+        Description: Diff rows must include both values.
+        Scenario: Create SpecDiff with known values.
+        Expectation: Both value_a and value_b appear.
+        """
+        d = SpecDifference(field="a", label="L", value_a="OLD", value_b="NEW")
+        sd = SpecDiff(journal_a="A", journal_b="B", differences=[d])
+        s = str(sd)
+        assert "OLD" in s
+        assert "NEW" in s
+
+    def test_str_separator_line(self) -> None:
+        """
+        Description: Non-empty diffs must include a separator line.
+        Scenario: Create SpecDiff with one difference.
+        Expectation: '─' appears in str().
+        """
+        d = SpecDifference(field="a", label="L", value_a="1", value_b="2")
+        sd = SpecDiff(journal_a="A", journal_b="B", differences=[d])
+        assert "─" in str(sd)
+
     def test_to_dict_structure(self) -> None:
         """
         Description: to_dict must return a JSON-serialisable dict.
@@ -363,6 +492,25 @@ class TestSpecDiff:
         d = sd.to_dict()
         assert d["journal_a"] == "Nature"
         assert d["journal_b"] == "Science"
+
+    def test_to_dict_is_json_serialisable(self) -> None:
+        """
+        Description: to_dict output must be serialisable via json.dumps.
+        Scenario: Create SpecDiff with differences and serialize.
+        Expectation: json.dumps does not raise.
+        """
+        diff_item = SpecDifference(field="f", label="L", value_a="1", value_b="2")
+        sd = SpecDiff(journal_a="A", journal_b="B", differences=[diff_item])
+        json.dumps(sd.to_dict())  # Should not raise
+
+    def test_default_differences_is_empty_list(self) -> None:
+        """
+        Description: The differences attribute defaults to an empty list.
+        Scenario: Create SpecDiff without differences kwarg.
+        Expectation: differences is [].
+        """
+        sd = SpecDiff(journal_a="A", journal_b="B")
+        assert sd.differences == []
 
 
 # ---------------------------------------------------------------------------
@@ -420,6 +568,16 @@ class TestDiffFieldsManifest:
         assert "dimensions.single_column_mm" in paths
         assert "typography.font_family" in paths
         assert "export.min_dpi" in paths
+
+    def test_manifest_labels_are_nonempty_strings(self) -> None:
+        """
+        Description: Every label must be a non-empty string.
+        Scenario: Check each label.
+        Expectation: All are non-empty strings.
+        """
+        for _, label, _ in _DIFF_FIELDS:
+            assert isinstance(label, str)
+            assert len(label) > 0
 
 
 # ---------------------------------------------------------------------------
@@ -522,10 +680,35 @@ class TestDiff:
         Scenario: diff('nature', 'ieee').to_dict().
         Expectation: Can import json and dumps without error.
         """
-        import json
-
         result = diff("nature", "ieee").to_dict()
         json.dumps(result)  # Should not raise
+
+    @pytest.mark.parametrize(
+        "a,b",
+        [
+            ("nature", "ieee"),
+            ("nature", "science"),
+            ("ieee", "science"),
+        ],
+    )
+    def test_diff_various_journal_pairs(self, a: str, b: str) -> None:
+        """
+        Description: diff must work for all pairs of known journals.
+        Scenario: Parametric sweep of journal pairs.
+        Expectation: No exception; SpecDiff returned.
+        """
+        result = diff(a, b)
+        assert isinstance(result, SpecDiff)
+
+    def test_diff_str_printable(self) -> None:
+        """
+        Description: str(diff_result) must produce a printable string.
+        Scenario: diff('nature', 'ieee') printed.
+        Expectation: Non-empty string.
+        """
+        result = diff("nature", "ieee")
+        s = str(result)
+        assert len(s) > 0
 
 
 # ---------------------------------------------------------------------------
@@ -592,6 +775,43 @@ class TestRescaleTextArtists:
         _rescale_text_artists(fig, scale=1.5, min_pt=5.0, max_pt=30.0)
         assert t1.get_fontsize() == pytest.approx(15.0)
         assert t2.get_fontsize() == pytest.approx(12.0)
+
+    def test_scale_factor_zero_clamps_to_min(self) -> None:
+        """
+        Description: Scale factor 0 results in 0 which is clamped to min_pt.
+        Scenario: 10pt text scaled by 0.0, clamp [5, 20].
+        Expectation: Clamped to 5pt.
+        """
+        fig, ax = plt.subplots()
+        text = ax.text(0.5, 0.5, "Hello", fontsize=10)
+        _rescale_text_artists(fig, scale=0.0, min_pt=5.0, max_pt=20.0)
+        assert text.get_fontsize() == pytest.approx(5.0)
+
+    def test_scale_with_tight_clamp_range(self) -> None:
+        """
+        Description: When min_pt == max_pt, all sizes clamp to that value.
+        Scenario: 10pt text scaled by 1.5, clamp [8, 8].
+        Expectation: All text becomes 8pt.
+        """
+        fig, ax = plt.subplots()
+        text = ax.text(0.5, 0.5, "Hello", fontsize=10)
+        _rescale_text_artists(fig, scale=1.5, min_pt=8.0, max_pt=8.0)
+        assert text.get_fontsize() == pytest.approx(8.0)
+
+    def test_title_and_labels_are_rescaled(self) -> None:
+        """
+        Description: Titles, xlabels, and ylabels must also be rescaled.
+        Scenario: Figure with title and axis labels.
+        Expectation: All text artists are affected.
+        """
+        fig, ax = plt.subplots()
+        ax.set_title("Title", fontsize=14)
+        ax.set_xlabel("X", fontsize=10)
+        ax.set_ylabel("Y", fontsize=10)
+        _rescale_text_artists(fig, scale=0.5, min_pt=3.0, max_pt=20.0)
+        # Title: 14 * 0.5 = 7; xlabel/ylabel: 10 * 0.5 = 5
+        title_obj = ax.title
+        assert title_obj.get_fontsize() == pytest.approx(7.0)
 
 
 # ---------------------------------------------------------------------------
@@ -685,6 +905,18 @@ class TestEmitMigrationWarnings:
         for warning in w:
             assert issubclass(warning.category, PlotStyleWarning)
 
+    def test_same_spec_no_warnings(self) -> None:
+        """
+        Description: Migrating between identical specs must emit no warnings.
+        Scenario: _emit_migration_warnings(spec, spec).
+        Expectation: Zero warnings.
+        """
+        spec = registry.get("ieee")
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            _emit_migration_warnings(spec, spec)
+        assert len(w) == 0
+
 
 # ---------------------------------------------------------------------------
 # migrate
@@ -694,58 +926,60 @@ class TestEmitMigrationWarnings:
 class TestMigrate:
     """Validate the public migrate function."""
 
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.PlotStyleWarning")
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
     def test_migrate_returns_same_figure(self, nature_fig: plt.Figure) -> None:
         """
         Description: migrate must return the same figure object (mutated in-place).
         Scenario: Migrate a Nature figure to IEEE.
         Expectation: Return value is the same object.
         """
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", PlotStyleWarning)
-            result = migrate(nature_fig, from_journal="nature", to_journal="ieee")
+        result = migrate(nature_fig, from_journal="nature", to_journal="ieee")
         assert result is nature_fig
 
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.PlotStyleWarning")
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
     def test_migrate_resizes_figure_width(self, nature_fig: plt.Figure) -> None:
         """
         Description: Figure width must match the target journal's single-column width.
         Scenario: Migrate from Nature to Science.
         Expectation: New width equals Dimension(57, 'mm').to_inches() within 0.5%.
         """
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", PlotStyleWarning)
-            migrate(nature_fig, from_journal="nature", to_journal="science")
-        expected_w = Dimension(57.0, "mm").to_inches()
+        migrate(nature_fig, from_journal="nature", to_journal="science")
+        expected_w = Dimension(
+            registry.get("science").dimensions.single_column_mm, "mm"
+        ).to_inches()
         actual_w = nature_fig.get_size_inches()[0]
         assert actual_w == pytest.approx(expected_w, rel=0.005)
 
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.PlotStyleWarning")
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
     def test_migrate_preserves_aspect_ratio(self, nature_fig: plt.Figure) -> None:
         """
         Description: Aspect ratio must be preserved after migration.
         Scenario: Migrate from Nature to Science.
-        Expectation: height/width ratio is unchanged within 0.5% (pixel rounding tolerance).
+        Expectation: height/width ratio is unchanged within 0.5%.
         """
         old_w, old_h = nature_fig.get_size_inches()
         old_aspect = old_h / old_w
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", PlotStyleWarning)
-            migrate(nature_fig, from_journal="nature", to_journal="science")
+        migrate(nature_fig, from_journal="nature", to_journal="science")
         new_w, new_h = nature_fig.get_size_inches()
         new_aspect = new_h / new_w
         assert new_aspect == pytest.approx(old_aspect, rel=0.005)
 
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.PlotStyleWarning")
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
     def test_migrate_rescales_text(self, nature_fig: plt.Figure) -> None:
         """
         Description: Text artists must be rescaled to the target's font range.
-        Scenario: Migrate from Nature (5-7pt) to IEEE (8-10pt).
+        Scenario: Migrate from Nature to IEEE.
         Expectation: Text sizes are within IEEE's range.
         """
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", PlotStyleWarning)
-            migrate(nature_fig, from_journal="nature", to_journal="ieee")
+        migrate(nature_fig, from_journal="nature", to_journal="ieee")
         ieee_spec = registry.get("ieee")
         for text_artist in nature_fig.findobj(mpl.text.Text):
             size = text_artist.get_fontsize()
-            if text_artist.get_text():  # Only check non-empty text
+            if text_artist.get_text():
                 assert size >= ieee_spec.typography.min_font_pt - 0.01
                 assert size <= ieee_spec.typography.max_font_pt + 0.01
 
@@ -779,6 +1013,7 @@ class TestMigrate:
         actual_w = nature_fig.get_size_inches()[0]
         assert actual_w == pytest.approx(expected_w)
 
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
     def test_migrate_emits_warnings_for_changes(self, nature_fig: plt.Figure) -> None:
         """
         Description: Migration from Nature to IEEE must emit warnings.
@@ -791,6 +1026,8 @@ class TestMigrate:
         plotstyle_warnings = [x for x in w if issubclass(x.category, PlotStyleWarning)]
         assert len(plotstyle_warnings) >= 1
 
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.PlotStyleWarning")
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
     @pytest.mark.parametrize(
         "src,tgt",
         [
@@ -811,21 +1048,31 @@ class TestMigrate:
         fig, ax = plt.subplots()
         ax.plot([0, 1], [0, 1])
         ax.set_title("T")
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", PlotStyleWarning)
-            migrate(fig, from_journal=src, to_journal=tgt)
+        migrate(fig, from_journal=src, to_journal=tgt)
 
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.PlotStyleWarning")
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
     def test_migrate_updates_rcparams(self, nature_fig: plt.Figure) -> None:
         """
         Description: migrate must update mpl.rcParams with target journal's params.
         Scenario: Check a known rcParam after migration.
         Expectation: savefig.dpi matches target journal's min_dpi.
         """
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", PlotStyleWarning)
-            migrate(nature_fig, from_journal="nature", to_journal="ieee")
+        migrate(nature_fig, from_journal="nature", to_journal="ieee")
         ieee_spec = registry.get("ieee")
         assert mpl.rcParams["savefig.dpi"] == ieee_spec.export.min_dpi
+
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.PlotStyleWarning")
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
+    def test_migrate_chaining(self, nature_fig: plt.Figure) -> None:
+        """
+        Description: migrate returns the figure for call chaining.
+        Scenario: Chain migrate(...).get_size_inches().
+        Expectation: No error; returns size tuple.
+        """
+        result = migrate(nature_fig, from_journal="nature", to_journal="ieee")
+        size = result.get_size_inches()
+        assert len(size) == 2
 
 
 # ---------------------------------------------------------------------------
@@ -844,3 +1091,60 @@ class TestSeparatorWidth:
         """
         assert isinstance(_SEPARATOR_WIDTH, int)
         assert _SEPARATOR_WIDTH > 0
+
+    def test_separator_width_value(self) -> None:
+        """
+        Description: _SEPARATOR_WIDTH must be 50 as defined.
+        Scenario: Check exact value.
+        Expectation: 50.
+        """
+        assert _SEPARATOR_WIDTH == 50
+
+
+# ---------------------------------------------------------------------------
+# __all__ exports
+# ---------------------------------------------------------------------------
+
+
+class TestPublicAPI:
+    """Validate the module's public API surface."""
+
+    def test_diff_is_exported(self) -> None:
+        """
+        Description: 'diff' must be in __all__.
+        Scenario: Import and check.
+        Expectation: Present.
+        """
+        import plotstyle.core.migrate as mod
+
+        assert "diff" in mod.__all__
+
+    def test_migrate_is_exported(self) -> None:
+        """
+        Description: 'migrate' must be in __all__.
+        Scenario: Import and check.
+        Expectation: Present.
+        """
+        import plotstyle.core.migrate as mod
+
+        assert "migrate" in mod.__all__
+
+    def test_spec_diff_is_exported(self) -> None:
+        """
+        Description: 'SpecDiff' must be in __all__.
+        Scenario: Import and check.
+        Expectation: Present.
+        """
+        import plotstyle.core.migrate as mod
+
+        assert "SpecDiff" in mod.__all__
+
+    def test_spec_difference_is_exported(self) -> None:
+        """
+        Description: 'SpecDifference' must be in __all__.
+        Scenario: Import and check.
+        Expectation: Present.
+        """
+        import plotstyle.core.migrate as mod
+
+        assert "SpecDifference" in mod.__all__

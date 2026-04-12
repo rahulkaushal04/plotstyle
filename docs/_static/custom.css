@@ -1,0 +1,233 @@
+/* =============================================================================
+   plotstyle docs — custom.css
+   Layered on top of the Furo theme. All overrides use CSS custom properties
+   where Furo exposes them; direct selectors elsewhere.
+   ============================================================================= */
+
+
+/* -----------------------------------------------------------------------------
+   Brand palette
+   Scientific blue (#2563eb) mapped to Furo's brand tokens.
+   ----------------------------------------------------------------------------- */
+
+:root {
+    --color-brand-primary:  #2563eb;
+    --color-brand-content:  #1d4ed8;
+
+    --color-sidebar-item-background--hover:   rgba(37, 99, 235, 0.12);
+    --color-sidebar-item-background--current: rgba(37, 99, 235, 0.18);
+}
+
+/* Dark mode — lighter blue so it reads on dark backgrounds */
+[data-theme="dark"] {
+    --color-brand-primary: #60a5fa;
+    --color-brand-content: #93c5fd;
+}
+
+
+/* -----------------------------------------------------------------------------
+   Typography
+   ----------------------------------------------------------------------------- */
+
+h1, h2, h3, h4 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.45rem; }
+h3 { font-size: 1.15rem; }
+
+hr {
+    border: none;
+    border-top: 1px solid var(--color-background-border);
+    margin: 2.5rem 0;
+}
+
+
+/* -----------------------------------------------------------------------------
+   Inline code and code blocks
+   ----------------------------------------------------------------------------- */
+
+/* Inline code — subtle pill */
+p code,
+li code,
+td code {
+    background: var(--color-code-background);
+    border: 1px solid color-mix(in srgb, var(--color-brand-primary) 20%, transparent);
+    border-radius: 4px;
+    font-size: 0.875em;
+    padding: 0.1em 0.35em;
+}
+
+/* Code blocks — thin left accent bar */
+div[class*="highlight"] {
+    border-left: 3px solid var(--color-brand-primary);
+    border-radius: 0 6px 6px 0;
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+/* sphinx-copybutton — match accent */
+.copybtn {
+    color: var(--color-brand-primary) !important;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+}
+.copybtn:hover { opacity: 1; }
+
+
+/* -----------------------------------------------------------------------------
+   API reference — autodoc signatures and field lists
+   ----------------------------------------------------------------------------- */
+
+/* Signature line */
+dl.py dt {
+    background: color-mix(in srgb, var(--color-brand-primary) 6%, var(--color-background-primary));
+    border-left: 3px solid var(--color-brand-primary);
+    border-radius: 0 4px 4px 0;
+    font-size: 0.95rem;
+    padding: 0.4rem 0.75rem;
+    margin-bottom: 0;
+}
+
+[data-theme="dark"] dl.py dt {
+    background: color-mix(in srgb, var(--color-brand-primary) 10%, var(--color-background-primary));
+}
+
+/* Parameters / Returns / Raises labels */
+dl.field-list > dt {
+    background: none;
+    border-left: none;
+    color: var(--color-brand-primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0;
+    text-transform: uppercase;
+}
+
+dl.field-list > dd {
+    margin-inline-start: 1.25rem;
+}
+
+/* Type annotations — de-emphasise */
+.sig-param .n,
+.sig-param .p {
+    opacity: 0.75;
+}
+
+/* Version notices */
+div.versionadded,
+div.versionchanged {
+    border-left: 3px solid var(--color-brand-primary);
+    border-radius: 0 4px 4px 0;
+    font-size: 0.875rem;
+    padding: 0.3rem 0.75rem;
+    margin: 0.75rem 0;
+}
+
+div.deprecated {
+    border-left: 3px solid #e6a817;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.875rem;
+    padding: 0.3rem 0.75rem;
+    margin: 0.75rem 0;
+}
+
+
+/* -----------------------------------------------------------------------------
+   Tables  (journal comparison, parameter tables)
+   ----------------------------------------------------------------------------- */
+
+table.docutils {
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+table.docutils th {
+    background: color-mix(in srgb, var(--color-brand-primary) 8%, var(--color-background-primary));
+    border-bottom: 2px solid var(--color-brand-primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.55rem 0.75rem;
+    text-transform: uppercase;
+}
+
+table.docutils td {
+    border-bottom: 1px solid var(--color-background-border);
+    padding: 0.45rem 0.75rem;
+    vertical-align: top;
+}
+
+table.docutils tr:last-child td {
+    border-bottom: none;
+}
+
+table.docutils tr:hover td {
+    background: color-mix(in srgb, var(--color-brand-primary) 4%, var(--color-background-primary));
+}
+
+
+/* -----------------------------------------------------------------------------
+   Admonition boxes
+   ----------------------------------------------------------------------------- */
+
+.admonition {
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+/* Note / seealso — use brand blue for title strip */
+.admonition.note > .admonition-title,
+.admonition.seealso > .admonition-title {
+    background: color-mix(in srgb, var(--color-brand-primary) 15%, transparent);
+}
+
+
+/* -----------------------------------------------------------------------------
+   Sidebar navigation
+   ----------------------------------------------------------------------------- */
+
+.sidebar-tree .reference {
+    font-size: 0.875rem;
+}
+
+.sidebar-tree .current-page > .reference {
+    font-weight: 700;
+}
+
+
+/* -----------------------------------------------------------------------------
+   Journal key badges  (.pub-badge role in rst/md)
+   Use with the :raw-html: or a custom role: ``:kbd:`nature``` or a span.
+   ----------------------------------------------------------------------------- */
+
+.pub-badge {
+    background: color-mix(in srgb, var(--color-brand-primary) 10%, var(--color-background-primary));
+    border: 1px solid color-mix(in srgb, var(--color-brand-primary) 30%, transparent);
+    border-radius: 3px;
+    font-family: var(--font-stack--monospace);
+    font-size: 0.78em;
+    padding: 0.1em 0.4em;
+}
+
+
+/* -----------------------------------------------------------------------------
+   Responsive
+   ----------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+    div[class*="highlight"] {
+        border-left: none;
+        border-radius: 4px;
+        font-size: 0.82rem;
+    }
+
+    table.docutils {
+        display: block;
+        overflow-x: auto;
+    }
+}

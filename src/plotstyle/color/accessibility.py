@@ -143,8 +143,9 @@ def simulate_cvd(
 
     Raises
     ------
-        CVDSimulationError: If *image* does not have exactly three channels
-            (last dimension != 3) or if its number of dimensions is not 3.
+        plotstyle.color.accessibility.CVDSimulationError: If *image* does not
+            have exactly three channels (last dimension != 3) or if its number
+            of dimensions is not 3.
 
     Example:
         >>> import numpy as np
@@ -224,8 +225,9 @@ def preview_colorblind(
 
     Raises
     ------
-        CVDSimulationError: Propagated from :func:`simulate_cvd` if the
-            rasterised image has an unexpected shape.
+        plotstyle.color.accessibility.CVDSimulationError: Propagated from
+            :func:`simulate_cvd` if the rasterised image has an unexpected
+            shape.
         AttributeError: If *fig*'s canvas does not support ``buffer_rgba``
             (non-Agg backends).
 

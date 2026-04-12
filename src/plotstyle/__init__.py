@@ -8,20 +8,19 @@ validation, and submission-ready export.
 
 Quick start
 -----------
-    >>> import matplotlib.pyplot as plt
     >>> import plotstyle
     >>>
-    >>> plotstyle.use("nature")
-    >>>
-    >>> fig, ax = plotstyle.subplots(columns=1)
-    >>> ax.plot([0, 1, 2], [0.2, 0.8, 0.4], color=plotstyle.palette("nature")[0])
-    >>> ax.set_xlabel("Time (s)")
-    >>> ax.set_ylabel("Signal (a.u.)")
-    >>>
-    >>> report = plotstyle.validate(fig, journal="nature")
-    >>> print(report)
-    >>>
-    >>> plotstyle.savefig(fig, "figure1.pdf")
+    >>> with plotstyle.use("nature") as style:
+    ...     fig, ax = plotstyle.figure("nature", columns=1)
+    ...     ax.plot([0, 1, 2], [0.2, 0.8, 0.4], color=plotstyle.palette("nature")[0])
+    ...     ax.set_xlabel("Time (s)")
+    ...     ax.set_ylabel("Signal (a.u.)")
+    ...
+    ...     report = plotstyle.validate(fig, journal="nature")
+    ...     print(report)
+    ...
+    ...     plotstyle.savefig(fig, "figure1.pdf", journal="nature")
+    ... # rcParams are restored automatically on exit
 
 Package layout
 --------------

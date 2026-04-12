@@ -271,7 +271,7 @@ def gallery(journal: str, *, columns: int = 1) -> Figure:
         Matplotlib state modified.
 
         **Determinism** — all synthetic data is generated from a fixed seed
-        (:data:`_DEFAULT_SEED`), so the figure is pixel-identical across
+        (``42`` by default), so the figure is pixel-identical across
         repeated calls with the same arguments.
 
         **Supra-title sizing** — the figure title is set one point above the

@@ -146,12 +146,17 @@ def _format_panel_label(index: int, spec: JournalSpec) -> str:
     Args:
         index: Zero-based panel index.  Index ``0`` maps to the letter
             ``"a"`` (or its styled equivalent), index ``1`` to ``"b"``,
-            and so on.
+            and so on.  Valid range is ``0`` to ``701`` inclusive.
         spec: Journal specification containing panel label formatting rules.
 
     Returns
     -------
         Formatted panel label string (e.g. ``"a"``, ``"(B)"``, ``"A"``).
+
+    Raises
+    ------
+        ValueError: If *index* is >= 702 (beyond the two-character ``"zz"``
+            label).
 
     Notes
     -----
@@ -171,13 +176,16 @@ def _format_panel_label(index: int, spec: JournalSpec) -> str:
         Any unrecognised value falls back to ``"lower"``.
     """
     # Derive the base lowercase letter(s) from the zero-based index.
-    # Indices 0-25 map to a-z; indices 26+ produce two-character labels
-    # (aa, ab, ..., az, ba, ...) to support figures with more than 26 panels.
+    # Indices 0-25 map to a-z; indices 26-701 produce two-character labels
+    # (aa, ab, ..., zz).  Index 702+ would overflow beyond 'z' in the first
+    # character, so we reject it explicitly.
     if index < 26:
         letter: str = chr(ord("a") + index)
-    else:
+    elif index < 702:
         i = index - 26
         letter = chr(ord("a") + i // 26) + chr(ord("a") + i % 26)
+    else:
+        raise ValueError(f"Panel index {index} exceeds the maximum supported label range (0-701).")
     case: str = spec.typography.panel_label_case
 
     match case:

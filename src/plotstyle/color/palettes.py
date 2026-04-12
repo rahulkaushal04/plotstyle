@@ -49,9 +49,9 @@ from pathlib import Path
 
 _DATA_DIR: Path = Path(__file__).parent / "data"
 
-# Maps lowercase journal identifiers to the palette name whose JSON file lives
-# in _DATA_DIR.  New journals can be added here without touching any other
-# logic in this module.
+#: Maps lowercase journal identifiers to the palette name whose JSON file
+#: lives in ``_DATA_DIR``.  New journals can be added here without touching
+#: any other logic in this module.
 JOURNAL_PALETTE_MAP: dict[str, str] = {
     "acs": "tol_bright",
     "cell": "okabe_ito",
@@ -200,9 +200,9 @@ def palette(
 
     Returns
     -------
-        A :data:`ColorList` (``list[str]``) of hex colour strings when
-        *with_markers* is ``False``, or a :data:`StyledColorList`
-        (``list[tuple[str, str, str]]``) of ``(colour, linestyle, marker)``
+        A ``list[str]`` of hex colour strings when
+        *with_markers* is ``False``, or a ``list[tuple[str, str, str]]``
+        of ``(colour, linestyle, marker)``
         tuples when *with_markers* is ``True``.
 
     Raises

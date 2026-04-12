@@ -48,10 +48,8 @@ __all__: list[str] = [
 # Module-level constants
 # ---------------------------------------------------------------------------
 
-# Maps canonical format names to their standard file extensions.  Kept as a
-# module-level constant so callers can introspect supported formats without
-# instantiating any objects.  The dict is typed Final to signal that it must
-# not be mutated at runtime.
+#: Maps canonical format names to their standard file extensions.
+#: The dict is typed ``Final`` to signal that it must not be mutated at runtime.
 FORMAT_EXTENSIONS: Final[dict[str, str]] = {
     "pdf": ".pdf",
     "eps": ".eps",
@@ -237,7 +235,7 @@ def savefig(
         path: Output file path.  The file extension determines the format
             unless *format* is also supplied via *kwargs*.
         journal: Optional journal preset name registered with
-            :mod:`plotstyle.specs`.  When given, the journal's ``min_dpi``
+            the spec registry.  When given, the journal's ``min_dpi``
             overrides ``savefig.dpi`` for this call.
         **kwargs: Additional keyword arguments forwarded verbatim to
             :meth:`~matplotlib.figure.Figure.savefig`.  ``bbox_inches``
@@ -335,7 +333,7 @@ def export_submission(
         formats: Explicit list of output format keys (e.g. ``["pdf", "tiff"]``).
             Overrides the journal spec's preferred formats when supplied.
         journal: Optional journal preset name registered with
-            :mod:`plotstyle.specs`.  Used to resolve default formats, apply
+            the spec registry.  Used to resolve default formats, apply
             DPI constraints, and select naming conventions.
         output_dir: Directory into which all output files are written.
             Created (including any missing parents) if it does not exist.
