@@ -31,10 +31,23 @@ keywords = [
     "publication",
     "figures",
     "style",
+    "visualization",
+    "academic",
+    "research",
+    "typesetting",
+    "colorblind",
+    "accessibility",
+    "export",
+    "validation",
+    "rcParams",
+    "nature",
+    "ieee",
+    "science",
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Operating System :: OS Independent",
@@ -43,8 +56,10 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Visualization",
     "Topic :: Multimedia :: Graphics",
+    "Framework :: Matplotlib",
     "Typing :: Typed",
 ]
 
@@ -120,6 +135,7 @@ Documentation = "https://plotstyle.readthedocs.io"
 Repository    = "https://github.com/rahulkaushal04/plotstyle"
 Issues        = "https://github.com/rahulkaushal04/plotstyle/issues"
 Changelog     = "https://github.com/rahulkaushal04/plotstyle/blob/main/CHANGELOG.md"
+Download      = "https://pypi.org/project/plotstyle/"
 
 
 # =============================================================================

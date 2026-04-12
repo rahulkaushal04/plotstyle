@@ -13,6 +13,19 @@ _Nothing yet._
 
 ---
 
+## [1.0.0] - 2026-04-12
+
+First stable release — production-ready for scientific publication workflows.
+
+### Changed
+
+- **Stable release** — promoted from alpha (`0.1.0a2`) to stable (`1.0.0`); all public APIs are now considered stable and subject to semantic versioning guarantees.
+- **PyPI classifiers** updated to `Development Status :: 5 - Production/Stable`.
+- **Enhanced project metadata** — expanded keywords, classifiers, and project URLs in `pyproject.toml` for better PyPI discoverability.
+- **README improvements** — added more badges (downloads, docs status, code style), expanded feature descriptions, and added star-history / citation section.
+
+---
+
 ## [0.1.0a2] - 2026-04-12
 
 Second alpha — full documentation suite, comprehensive test coverage, and hardened validation.
@@ -59,6 +72,7 @@ First public alpha release.
 - **Dynamic versioning** — version derived from git tags via `hatch-vcs` and `importlib.metadata`.
 - **CI/CD pipeline** — GitHub Actions workflows for lint, type-check, test matrix, and automated PyPI release via OIDC Trusted Publishing.
 
-[Unreleased]: https://github.com/rahulkaushal04/plotstyle/compare/v0.1.0a2...HEAD
+[Unreleased]: https://github.com/rahulkaushal04/plotstyle/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/rahulkaushal04/plotstyle/compare/v0.1.0a2...v1.0.0
 [0.1.0a2]: https://github.com/rahulkaushal04/plotstyle/compare/v0.1.0a1...v0.1.0a2
 [0.1.0a1]: https://github.com/rahulkaushal04/plotstyle/releases/tag/v0.1.0a1

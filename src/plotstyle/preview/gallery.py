@@ -317,7 +317,7 @@ def gallery(journal: str, *, columns: int = 1) -> Figure:
         # Dispatch each panel drawer to its corresponding axes in row-major
         # order.  axes.flat guarantees a consistent iteration order regardless
         # of the nrows/ncols layout.
-        for draw_panel, ax in zip(_PANEL_DRAWERS, axes.flat, strict=False):
+        for draw_panel, ax in zip(_PANEL_DRAWERS, axes.flat, strict=True):
             draw_panel(ax)
 
         # Title is set one point above max_font_pt to serve as a visual
