@@ -19,7 +19,7 @@
 
 Getting a figure accepted often means matching a journal's precise column width, font size range, line weight, DPI, and export format. PlotStyle encodes those requirements as TOML specs and applies them automatically, so you spend time on your science rather than your figure settings.
 
-> **Current release:** `v0.1.0a1` (alpha)
+> **Current release:** `v0.1.0a2` (alpha)
 
 ---
 
