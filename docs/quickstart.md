@@ -1,25 +1,23 @@
 # Quick Start
 
-This page walks through the essential PlotStyle workflow: apply a journal
-style, create a figure, validate it, and export for submission.
+Five minutes to your first publication-ready figure.
 
 ## 1. Apply a journal style
 
-`plotstyle.use()` configures Matplotlib's `rcParams` to match a journal's
-typographic requirements. Use it as a context manager so the original settings
-are restored automatically when the block exits:
+Call `plotstyle.use()` with a journal name. This sets the right fonts, sizes,
+and line widths for that journal. Use it as a context manager — the original
+Matplotlib settings are restored automatically when the block ends.
 
 ```python
 import plotstyle
 
-with plotstyle.use("nature"):
-    # Everything inside this block uses Nature's fonts, sizes, and line widths.
+with plotstyle.use("nature") as style:
+    # Matplotlib is now configured for Nature
     ...
-# rcParams are back to normal here.
+# Matplotlib is back to normal here
 ```
 
-`use()` returns a {class}`~plotstyle.core.style.JournalStyle` handle. You can
-also restore manually:
+You can also restore manually if a context manager doesn't fit your workflow:
 
 ```python
 style = plotstyle.use("nature")
@@ -29,16 +27,15 @@ style.restore()
 
 ## 2. Create a correctly-sized figure
 
-`plotstyle.figure()` creates a single-axis figure at the journal's exact
-column width. `plotstyle.subplots()` does the same for multi-panel layouts:
+`style.figure()` creates a single-axis figure at the journal's exact column
+width. No need to look up the measurements yourself.
 
 ```python
-import plotstyle
 import numpy as np
+import plotstyle
 
-with plotstyle.use("nature"):
-    # Single-column figure
-    fig, ax = plotstyle.figure("nature", columns=1)
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure(columns=1)   # single-column width (89 mm)
 
     x = np.linspace(0, 2 * np.pi, 200)
     ax.plot(x, np.sin(x), label="sin(x)")
@@ -48,87 +45,84 @@ with plotstyle.use("nature"):
     ax.legend()
 ```
 
-For a multi-panel figure with automatic **(a)**, **(b)**, **(c)**, … labels:
+For multi-panel layouts, use `style.subplots()`. Panel labels like **(a)**,
+**(b)** are added automatically in the journal's style:
 
 ```python
-with plotstyle.use("science"):
-    fig, axes = plotstyle.subplots("science", nrows=2, ncols=2, columns=2)
+with plotstyle.use("science") as style:
+    fig, axes = style.subplots(nrows=2, ncols=2, columns=2)
     for ax in axes.flat:
         ax.plot([1, 2, 3])
 ```
 
-## 3. Pick colorblind-safe colours
+## 3. Use colorblind-safe colours
 
-`plotstyle.palette()` returns colours from the journal's recommended palette:
+`style.palette()` returns colours from the journal's recommended palette:
 
 ```python
-colors = plotstyle.palette("nature", n=4)
-# ['#E69F00', '#56B4E9', '#009E73', '#F0E442']
+colors = style.palette(n=4)
+# e.g. ['#E69F00', '#56B4E9', '#009E73', '#F0E442']
 ```
 
-Add markers and linestyles for print-safe differentiation:
+For journals that require grayscale-safe figures (like IEEE), add markers and
+linestyles to tell series apart even in black-and-white print:
 
 ```python
-styled = plotstyle.palette("ieee", n=3, with_markers=True)
+styled = style.palette(n=3, with_markers=True)
 for color, linestyle, marker in styled:
     ax.plot(x, y, color=color, linestyle=linestyle, marker=marker)
 ```
 
-## 4. Validate before submission
+## 4. Validate before submitting
 
-`plotstyle.validate()` checks a figure against the target journal's spec —
-dimensions, font sizes, line weights, colours, and export settings:
+`style.validate()` checks your figure against the journal's requirements —
+dimensions, font sizes, line weights, and colour rules:
 
 ```python
-report = plotstyle.validate(fig, journal="nature")
+report = style.validate(fig)
 print(report.passed)    # True / False
-print(report.failures)  # list of CheckResult objects with fix suggestions
+print(report.failures)  # list of issues with fix suggestions
 print(report)           # formatted table
 ```
 
-## 5. Export for submission
+## 5. Save for submission
 
-`plotstyle.savefig()` saves with TrueType font embedding and journal DPI
-enforcement:
+`style.savefig()` saves with TrueType font embedding and the journal's
+required DPI — two things that journal submission portals often check:
 
 ```python
-plotstyle.savefig(fig, "figure1.pdf", journal="nature")
+style.savefig(fig, "figure1.pdf")
 ```
 
-`plotstyle.export_submission()` batch-exports in every format the journal
-accepts:
+To export in every format the journal accepts (PDF, TIFF, EPS, etc.):
 
 ```python
-plotstyle.export_submission(
-    fig, "figure1",
-    journal="ieee",
-    author_surname="Kaushal",
-    output_dir="submission_ieee",
-)
-# Creates: submission_ieee/kaush_figure1.pdf, kaush_figure1.eps, etc.
+style.export_submission(fig, "figure1", output_dir="submission/")
 ```
 
 ## Complete example
-
-Putting it all together:
 
 ```python
 import numpy as np
 import plotstyle
 
-with plotstyle.use("nature"):
-    fig, ax = plotstyle.figure("nature", columns=1)
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure(columns=1)
 
     x = np.linspace(0, 2 * np.pi, 200)
-    colors = plotstyle.palette("nature", n=2)
+    colors = style.palette(n=2)
     ax.plot(x, np.sin(x), color=colors[0], label="sin(x)")
     ax.plot(x, np.cos(x), color=colors[1], label="cos(x)")
     ax.set_xlabel("Phase (rad)")
     ax.set_ylabel("Amplitude (a.u.)")
     ax.legend()
 
-    report = plotstyle.validate(fig, journal="nature")
+    report = style.validate(fig)
     assert report.passed, report.failures
 
-    plotstyle.savefig(fig, "quickstart_nature.pdf", journal="nature")
+    style.savefig(fig, "quickstart_nature.pdf")
 ```
+
+**Output:**
+
+![Quickstart figure — sin and cos curves styled for Nature](images/quickstart_nature.png)

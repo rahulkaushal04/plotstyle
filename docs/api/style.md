@@ -25,7 +25,7 @@ import plotstyle
 
 with plotstyle.use("nature") as style:
     print(style.spec.metadata.name)  # "Nature"
-    fig, ax = plotstyle.figure("nature")
+    fig, ax = style.figure()
     ax.plot([1, 2, 3])
 # rcParams restored automatically
 ```
@@ -35,7 +35,7 @@ with plotstyle.use("nature") as style:
 ```python
 style = plotstyle.use("nature")
 try:
-    fig, ax = plotstyle.figure("nature")
+    fig, ax = style.figure()
     ax.plot([1, 2, 3])
 finally:
     style.restore()

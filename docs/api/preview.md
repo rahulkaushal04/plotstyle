@@ -28,36 +28,41 @@ fig = plotstyle.gallery("nature", columns=1)
 fig.savefig("nature_gallery.png", dpi=150)
 ```
 
+**Output (Nature):**
+
+![Gallery preview styled for Nature](../images/gallery_nature.png)
+
 For a double-column gallery:
 
 ```python
 fig = plotstyle.gallery("ieee", columns=2)
 ```
 
-The gallery uses deterministic synthetic data, so output is identical across
-repeated calls.
+**Output (IEEE):**
+
+![Gallery preview styled for IEEE](../images/gallery_ieee.png)
 
 ### Preview at physical print size
 
-`preview_print_size()` temporarily scales a figure's DPI so it appears at its
-actual physical column width on screen:
+`preview_print_size()` scales a figure's DPI so it appears at its actual
+physical size on screen:
 
 ```python
 import plotstyle
 
-with plotstyle.use("nature"):
-    fig, ax = plotstyle.figure("nature")
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure()
     ax.plot([1, 2, 3])
 
     plotstyle.preview_print_size(fig, journal="nature", columns=1)
 ```
 
-An annotation showing the target width in millimetres is added temporarily
-during the preview window.
+An annotation showing the target width in millimetres is added during the
+preview window.
 
 #### Monitor DPI
 
-Accuracy depends on the `monitor_dpi` parameter matching your display:
+Accuracy depends on `monitor_dpi` matching your display:
 
 | Display | Typical `monitor_dpi` |
 |---------|----------------------|
@@ -71,8 +76,6 @@ plotstyle.preview_print_size(fig, journal="nature", monitor_dpi=144)
 
 ## Notes
 
-- `gallery()` applies the journal style via `plotstyle.use()` internally and
-  restores rcParams in a `finally` block. It never permanently alters global
-  state.
-- `preview_print_size()` removes the transient annotation and restores the
-  original DPI after `plt.show()` returns.
+- `gallery()` applies the journal style internally and restores rcParams when
+  it returns. It never permanently alters global state.
+- `preview_print_size()` restores the original DPI after `plt.show()` returns.

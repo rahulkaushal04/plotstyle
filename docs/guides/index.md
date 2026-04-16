@@ -1,7 +1,7 @@
 # User Guides
 
-Step-by-step guides for common PlotStyle workflows. Each guide focuses on a
-single task and includes copy-paste-ready code.
+Step-by-step guides for common PlotStyle tasks. Each guide focuses on one
+topic and includes working code examples.
 
 ```{toctree}
 :maxdepth: 1

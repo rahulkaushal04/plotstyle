@@ -13,6 +13,29 @@ _Nothing yet._
 
 ---
 
+## [1.1.0] - 2026-04-16
+
+Minor feature release : ergonomics improvements, hardened error handling, and spec updates.
+
+### Added
+
+- **`quiet` parameter on `JournalStyle.export()`** : suppresses compliance summaries and manifest output for scripting workflows.
+- **Pre-computed Type 3 font checks** : compliance summary now accepts a pre-computed result for Type 3 font detection, improving performance when the check has already been run by the caller.
+- **`JournalSpec` key access** : `JournalSpec` now supports key-style access, and the dimension check message has been updated for clarity.
+
+### Fixed
+
+- **`SpecNotFoundError` base classes** : now inherits from both `ValueError` and `KeyError` so existing `except ValueError` and `except KeyError` handlers catch it correctly; a custom `__str__` produces clearer diagnostic messages.
+
+### Changed
+
+- **IEEE Transactions spec updated** : column widths, max height, font family, panel-label properties, and preferred output formats revised to match current IEEE author guidelines.
+- **CI documentation build** : Sphinx `docs` job (`sphinx-build -W -n`) added to the CI workflow; rendered HTML is uploaded as an artifact on every push.
+- **Module docstrings** : expanded and standardised across `__init__.py`, `_utils/`, `color/`, `core/`, and `validation/` for consistent Sphinx rendering.
+- **Context-manager examples** : all `plotstyle.use()` call sites in docs and examples updated to the `with plotstyle.use(...) as style:` form to ensure correct `rcParams` restoration.
+
+---
+
 ## [1.0.0] - 2026-04-12
 
 First stable release — production-ready for scientific publication workflows.
@@ -72,7 +95,8 @@ First public alpha release.
 - **Dynamic versioning** — version derived from git tags via `hatch-vcs` and `importlib.metadata`.
 - **CI/CD pipeline** — GitHub Actions workflows for lint, type-check, test matrix, and automated PyPI release via OIDC Trusted Publishing.
 
-[Unreleased]: https://github.com/rahulkaushal04/plotstyle/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/rahulkaushal04/plotstyle/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/rahulkaushal04/plotstyle/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/rahulkaushal04/plotstyle/compare/v0.1.0a2...v1.0.0
 [0.1.0a2]: https://github.com/rahulkaushal04/plotstyle/compare/v0.1.0a1...v0.1.0a2
 [0.1.0a1]: https://github.com/rahulkaushal04/plotstyle/releases/tag/v0.1.0a1

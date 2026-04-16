@@ -46,8 +46,8 @@ for d in result.differences:
 # ==============================================================================
 # 2. Create a figure styled for Nature
 # ==============================================================================
-with plotstyle.use("nature"):
-    fig, ax = plotstyle.figure("nature", columns=1)
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure(columns=1)
     x = np.linspace(0, 10, 100)
     ax.plot(x, np.sin(x), label="Data")
     ax.fill_between(x, np.sin(x) - 0.2, np.sin(x) + 0.2, alpha=0.3)
@@ -56,7 +56,7 @@ with plotstyle.use("nature"):
     ax.legend()
 
     # Save the pre-migration version for comparison
-    plotstyle.savefig(fig, OUTPUT_DIR / "before_migration_nature.pdf", journal="nature")
+    style.savefig(fig, OUTPUT_DIR / "before_migration_nature.pdf")
 
 # ==============================================================================
 # 3. Migrate the figure from Nature to Science

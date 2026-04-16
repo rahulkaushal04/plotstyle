@@ -24,9 +24,9 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 rng = np.random.default_rng(42)
 
 # Build a 2x2 panel figure for Science
-with plotstyle.use("science"):
+with plotstyle.use("science") as style:
     # columns=2 → full text width; panels=True adds (a), (b)... labels automatically
-    fig, axes = plotstyle.subplots("science", nrows=2, ncols=2, columns=2)
+    fig, axes = style.subplots(nrows=2, ncols=2, columns=2)
 
     # Panel (a) — line plot
     x = np.linspace(0, 10, 100)
@@ -53,6 +53,6 @@ with plotstyle.use("science"):
     axes[1, 1].set_xlabel("Value")
     axes[1, 1].set_ylabel("Frequency")
 
-    plotstyle.savefig(fig, OUTPUT_DIR / "multi_panel_science.pdf", journal="science")
+    style.savefig(fig, OUTPUT_DIR / "multi_panel_science.pdf")
 
 plt.close(fig)

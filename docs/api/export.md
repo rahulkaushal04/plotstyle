@@ -27,10 +27,10 @@ Export-safe figure saving and batch submission packaging.
 ```python
 import plotstyle
 
-with plotstyle.use("nature"):
-    fig, ax = plotstyle.figure("nature")
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure()
     ax.plot([1, 2, 3])
-    plotstyle.savefig(fig, "figure.pdf", journal="nature")
+    style.savefig(fig, "figure.pdf")
 ```
 
 `savefig()` forces TrueType font embedding (`pdf.fonttype=42`,

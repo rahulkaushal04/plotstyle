@@ -26,9 +26,9 @@ Journal-aware colour palettes with colorblind-safe defaults.
 |-------------|---------|-------------|
 | `okabe_ito` | 8 | Okabe & Ito (2002) — designed for colour vision deficiencies |
 | `tol_bright` | 7 | Paul Tol's bright qualitative scheme |
-| `tol_muted` | 7 | Paul Tol's muted qualitative scheme |
+| `tol_muted` | 10 | Paul Tol's muted qualitative scheme |
 | `tol_vibrant` | 7 | Paul Tol's vibrant qualitative scheme |
-| `safe_grayscale` | 5 | Luminance-separated for black-and-white print |
+| `safe_grayscale` | 6 | Luminance-separated for black-and-white print |
 
 ## Journal → palette mapping
 
@@ -80,14 +80,10 @@ colors = load_palette("tol_bright")
 
 ## Exceptions
 
-- {class}`~plotstyle.color.palettes.UnknownJournalError` — raised when a
-  journal key is not in `JOURNAL_PALETTE_MAP`.
+- {class}`~plotstyle.specs.SpecNotFoundError` — raised when a journal key is
+  not in `JOURNAL_PALETTE_MAP`.
 - {class}`~plotstyle.color.palettes.PaletteNotFoundError` — raised when the
   JSON file for a palette does not exist.
-
-```{eval-rst}
-.. autoclass:: plotstyle.color.palettes.UnknownJournalError
-```
 
 ```{eval-rst}
 .. autoclass:: plotstyle.color.palettes.PaletteNotFoundError

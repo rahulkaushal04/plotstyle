@@ -37,11 +37,11 @@ Pre-submission figure validation against journal specifications.
 ```python
 import plotstyle
 
-with plotstyle.use("nature"):
-    fig, ax = plotstyle.figure("nature")
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure()
     ax.plot([1, 2, 3])
 
-    report = plotstyle.validate(fig, journal="nature")
+    report = style.validate(fig)
     print(report.passed)  # True
 ```
 

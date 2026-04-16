@@ -1,72 +1,33 @@
 """Journal specification schema — typed dataclasses for TOML spec data.
 
-This module defines the complete schema for journal figure-submission
-specifications parsed from TOML configuration files.  Each sub-spec maps
-directly to a top-level TOML table (``[metadata]``, ``[dimensions]``, etc.),
-and the root :class:`JournalSpec` composes them into a single validated,
-immutable object.
+Defines frozen dataclasses representing a parsed journal specification,
+exception types raised during validation, and private parsing helpers
+that populate each dataclass from a raw TOML dictionary.
 
-Public types
-------------
-:class:`JournalSpec`
-    Root specification object.  Construct via :meth:`JournalSpec.from_toml`.
-
-:class:`MetadataSpec`
-    Provenance and verification metadata.
-
-:class:`DimensionSpec`
-    Physical column-width and height constraints (all values in mm).
-
-:class:`TypographySpec`
-    Font family, size range, and panel-label formatting rules.
-
-:class:`ExportSpec`
-    File-format, DPI, colour-space, and font-embedding requirements.
-
-:class:`ColorSpec`
-    Colour-combination restrictions and accessibility requirements.
-
-:class:`LineSpec`
-    Minimum stroke-weight constraint.
+Classes
+-------
+JournalSpec
+    Top-level specification combining all sub-specifications.
+MetadataSpec, DimensionSpec, TypographySpec, ExportSpec, ColorSpec, LineSpec
+    Sub-specifications covering each aspect of the journal requirements.
 
 Exceptions
 ----------
-:class:`JournalSpecError`
-    Base exception; all parse errors inherit from this class.
-
-:class:`MissingFieldError`, :class:`FieldTypeError`, :class:`FieldValueError`
-    Specific parse-error subtypes raised by :meth:`JournalSpec.from_toml`.
-
-Typical usage
--------------
-::
-
-    import tomllib
-    from plotstyle.specs.schema import JournalSpec
-
-    with open("nature.toml", "rb") as fh:
-        raw = tomllib.load(fh)
-
-    spec = JournalSpec.from_toml(raw)
-    print(spec.dimensions.single_column_mm)  # 89.0
-
-Design notes
-------------
-* Every dataclass is **frozen** (immutable) and uses **slots** for reduced
-  per-instance memory overhead — important when many specs are loaded at once.
-* Validation is centralised in private helper functions so that
-  :meth:`JournalSpec.from_toml` stays readable and each sub-spec constructor
-  stays simple.
-* All public exceptions inherit from :class:`JournalSpecError` so callers
-  can catch the entire family with a single ``except`` clause.
-* Inline TOML defaults are documented alongside each field so that the
-  schema is self-describing without needing to cross-reference external docs.
+JournalSpecError
+    Base exception for all schema parse errors.
+MissingFieldError
+    Raised when a required TOML field is absent.
+FieldTypeError
+    Raised when a field value cannot be cast to the expected type.
+FieldValueError
+    Raised when a field value fails a domain constraint.
 """
 
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from dataclasses import replace as _dc_replace
 from typing import Any, Final
 
 __all__: list[str] = [
@@ -83,19 +44,12 @@ __all__: list[str] = [
     "TypographySpec",
 ]
 
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-
-#: Supported export format identifiers (lowercase, without leading dot).
 _KNOWN_FORMATS: Final[frozenset[str]] = frozenset(
     {"pdf", "eps", "svg", "tiff", "tif", "png", "emf", "jpg", "jpeg", "ps"}
 )
 
-#: Supported colour-space identifiers.
 _KNOWN_COLOR_SPACES: Final[frozenset[str]] = frozenset({"rgb", "cmyk", "grayscale"})
 
-#: Accepted CSS-style font-weight keywords.
 _KNOWN_FONT_WEIGHTS: Final[frozenset[str]] = frozenset(
     {
         "thin",
@@ -110,54 +64,35 @@ _KNOWN_FONT_WEIGHTS: Final[frozenset[str]] = frozenset(
     }
 )
 
-#: Accepted text-transformation keywords for panel labels.
 _KNOWN_LABEL_CASES: Final[frozenset[str]] = frozenset(
     {"lower", "upper", "title", "sentence", "parens_lower", "parens_upper"}
 )
 
-#: Minimum physically meaningful resolution in DPI.
 _MIN_DPI_FLOOR: Final[int] = 72
 
-#: ISO 8601 date pattern (YYYY-MM-DD) for validating ``last_verified``.
 _ISO_DATE_RE: Final[re.Pattern[str]] = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
-# ---------------------------------------------------------------------------
-# Custom exceptions
-# ---------------------------------------------------------------------------
-
-
 class JournalSpecError(ValueError):
-    """Base exception for all errors raised by this module.
-
-    Inherits from :class:`ValueError` so that existing code catching the
-    built-in exception continues to work without modification.
-
-    All more specific parse errors (:class:`MissingFieldError`,
-    :class:`FieldTypeError`, :class:`FieldValueError`) are subclasses of
-    this class, so callers can catch the entire family with a single
-    ``except JournalSpecError`` clause.
-    """
+    """Base exception for all schema parse errors."""
 
 
 class MissingFieldError(JournalSpecError):
     """Raised when a required TOML field is absent.
 
-    Args:
-        table:      Top-level TOML table name (e.g. ``"metadata"``).
-        field_name: Missing key within *table*.
+    Parameters
+    ----------
+    table : str
+        TOML section name (e.g. ``"metadata"``, ``"dimensions"``).
+    field_name : str
+        Key that was expected but not found in *table*.
 
     Attributes
     ----------
-    table
-        The TOML table in which the field was expected.
-    field_name
-        The missing key name.
-
-    Example::
-
-        raise MissingFieldError("metadata", "publisher")
-        # MissingFieldError: [metadata] Missing required field 'publisher'.
+    table : str
+        TOML section name where the field was missing.
+    field_name : str
+        The key that was required but absent.
     """
 
     def __init__(self, table: str, field_name: str) -> None:
@@ -169,36 +104,30 @@ class MissingFieldError(JournalSpecError):
 class FieldTypeError(JournalSpecError):
     """Raised when a TOML field value cannot be cast to the expected type.
 
-    Args:
-        table:    Top-level TOML table name.
-        field_name: Key within *table*.
-        expected: Human-readable name of the expected type.
-        got:      The actual value that failed conversion.
+    Parameters
+    ----------
+    table : str
+        TOML section name (e.g. ``"typography"``).
+    field_name : str
+        Key whose value had the wrong type.
+    expected : str
+        Human-readable description of the expected type (e.g. ``"float"``).
+    got : object
+        The actual raw value that failed the cast.
 
     Attributes
     ----------
-    table
-        The TOML table containing the offending field.
-    field_name
-        The key whose value has the wrong type.
-    expected
-        Human-readable expected type (e.g. ``"float"``).
-    got
-        The actual value received.
-
-    Example::
-
-        raise FieldTypeError("dimensions", "single_column_mm", "float", "wide")
-        # FieldTypeError: [dimensions.single_column_mm] Expected float, got 'wide'.
+    table : str
+        TOML section name containing the offending field.
+    field_name : str
+        The key whose value had the wrong type.
+    expected : str
+        Human-readable expected type string.
+    got : object
+        The raw value that could not be cast.
     """
 
-    def __init__(
-        self,
-        table: str,
-        field_name: str,
-        expected: str,
-        got: object,
-    ) -> None:
+    def __init__(self, table: str, field_name: str, expected: str, got: object) -> None:
         super().__init__(f"[{table}.{field_name}] Expected {expected}, got {got!r}.")
         self.table: str = table
         self.field_name: str = field_name
@@ -209,24 +138,23 @@ class FieldTypeError(JournalSpecError):
 class FieldValueError(JournalSpecError):
     """Raised when a field has the right type but fails a domain constraint.
 
-    Args:
-        table:      Top-level TOML table name.
-        field_name: Key within *table*.
-        reason:     Human-readable explanation of why the value is invalid.
+    Parameters
+    ----------
+    table : str
+        TOML section name.
+    field_name : str
+        Key whose value violated the constraint.
+    reason : str
+        Human-readable explanation of the violation.
 
     Attributes
     ----------
-    table
-        The TOML table containing the offending field.
-    field_name
-        The key whose value violated a constraint.
-    reason
-        Human-readable description of the violated constraint.
-
-    Example::
-
-        raise FieldValueError("export", "min_dpi", "must be ≥ 72, got 0")
-        # FieldValueError: [export.min_dpi] must be ≥ 72, got 0
+    table : str
+        TOML section name containing the offending field.
+    field_name : str
+        The key whose value violated the domain constraint.
+    reason : str
+        Human-readable explanation of why the value was rejected.
     """
 
     def __init__(self, table: str, field_name: str, reason: str) -> None:
@@ -236,26 +164,27 @@ class FieldValueError(JournalSpecError):
         self.reason: str = reason
 
 
-# ---------------------------------------------------------------------------
-# Private parsing helpers
-# ---------------------------------------------------------------------------
-
-
 def _require(table: dict[str, Any], table_name: str, key: str) -> Any:  # noqa: ANN401
-    """Return ``table[key]``, raising :class:`MissingFieldError` if absent.
+    """Return ``table[key]``, raising `MissingFieldError` if absent.
 
-    Args:
-        table:      The TOML sub-table dict to look up.
-        table_name: Human-readable name used in error messages.
-        key:        The key to retrieve.
+    Parameters
+    ----------
+    table : dict[str, Any]
+        Raw TOML sub-table to look up.
+    table_name : str
+        Section name used in error messages (e.g. ``"metadata"``).
+    key : str
+        Dict key to retrieve.
 
     Returns
     -------
-        The raw value stored at ``table[key]``.
+    Any
+        The raw value at ``table[key]``.
 
     Raises
     ------
-        MissingFieldError: If *key* is not present in *table*.
+    MissingFieldError
+        If *key* is absent from *table*.
     """
     try:
         return table[key]
@@ -274,24 +203,34 @@ def _cast_float(
 ) -> float:
     """Extract and validate a float field from a TOML sub-table.
 
-    Args:
-        table:      Source dict (one TOML table).
-        table_name: Name used in error messages.
-        key:        Key to retrieve from *table*.
-        default:    Fallback when *key* is absent; if ``None`` the key is
-                    treated as required.
-        min_val:    Inclusive lower bound; ``None`` means no lower bound.
-        max_val:    Inclusive upper bound; ``None`` means no upper bound.
+    Parameters
+    ----------
+    table : dict[str, Any]
+        Raw TOML sub-table.
+    table_name : str
+        Section name for error messages.
+    key : str
+        Field key to extract.
+    default : float | None, optional
+        Fallback when *key* is absent. When ``None``, *key* is required.
+    min_val : float | None, optional
+        Inclusive lower bound.
+    max_val : float | None, optional
+        Inclusive upper bound.
 
     Returns
     -------
-        The validated ``float`` value.
+    float
+        The extracted and validated float.
 
     Raises
     ------
-        MissingFieldError: If *key* is absent and *default* is ``None``.
-        FieldTypeError:    If the value cannot be converted to ``float``.
-        FieldValueError:   If the value falls outside [*min_val*, *max_val*].
+    MissingFieldError
+        If *key* is absent and *default* is ``None``.
+    FieldTypeError
+        If the raw value cannot be cast to ``float``.
+    FieldValueError
+        If the value falls outside ``[min_val, max_val]``.
     """
     raw = table.get(key, default) if default is not None else _require(table, table_name, key)
     try:
@@ -317,22 +256,32 @@ def _cast_int(
 ) -> int:
     """Extract and validate an integer field from a TOML sub-table.
 
-    Args:
-        table:      Source dict.
-        table_name: Name used in error messages.
-        key:        Key to retrieve.
-        default:    Fallback when *key* is absent; ``None`` means required.
-        min_val:    Inclusive lower bound; ``None`` means no lower bound.
+    Parameters
+    ----------
+    table : dict[str, Any]
+        Raw TOML sub-table.
+    table_name : str
+        Section name for error messages.
+    key : str
+        Field key to extract.
+    default : int | None, optional
+        Fallback when *key* is absent. When ``None``, *key* is required.
+    min_val : int | None, optional
+        Inclusive lower bound.
 
     Returns
     -------
-        The validated ``int`` value.
+    int
+        The extracted and validated integer.
 
     Raises
     ------
-        MissingFieldError: If *key* is absent and *default* is ``None``.
-        FieldTypeError:    If the value cannot be converted to ``int``.
-        FieldValueError:   If the value is below *min_val*.
+    MissingFieldError
+        If *key* is absent and *default* is ``None``.
+    FieldTypeError
+        If the raw value cannot be cast to ``int``.
+    FieldValueError
+        If the value is below *min_val*.
     """
     raw = table.get(key, default) if default is not None else _require(table, table_name, key)
     try:
@@ -357,26 +306,36 @@ def _cast_str(
 ) -> str:
     """Extract and validate a string field from a TOML sub-table.
 
-    Args:
-        table:      Source dict.
-        table_name: Name used in error messages.
-        key:        Key to retrieve.
-        default:    Fallback when *key* is absent; ``None`` means required.
-        allowed:    If provided, the value must be a member (case-insensitive
-                    comparison is performed and the lower-cased value is
-                    returned).
-        non_empty:  If ``True``, the empty string is rejected.
+    Parameters
+    ----------
+    table : dict[str, Any]
+        Raw TOML sub-table.
+    table_name : str
+        Section name for error messages.
+    key : str
+        Field key to extract.
+    default : str | None, optional
+        Fallback when *key* is absent. When ``None``, *key* is required.
+    allowed : frozenset[str] | None, optional
+        Permitted values; the raw string is stripped and lower-cased before
+        comparison.
+    non_empty : bool, optional
+        When ``True``, reject empty or whitespace-only strings.
 
     Returns
     -------
-        The validated string, lower-cased when *allowed* is set.
+    str
+        The raw string, or normalised (stripped, lower-cased) when *allowed*
+        is given.
 
     Raises
     ------
-        MissingFieldError: If *key* is absent and *default* is ``None``.
-        FieldTypeError:    If the stored value is not string-like.
-        FieldValueError:   If the value is empty (when *non_empty* is ``True``)
-                           or not in *allowed*.
+    MissingFieldError
+        If *key* is absent and *default* is ``None``.
+    FieldTypeError
+        If the raw value is not a ``str``.
+    FieldValueError
+        If empty (with *non_empty=True*) or not in *allowed*.
     """
     raw = table.get(key, default) if default is not None else _require(table, table_name, key)
     if not isinstance(raw, str):
@@ -404,25 +363,26 @@ def _cast_bool(
 ) -> bool:
     """Extract a boolean field from a TOML sub-table.
 
-    Args:
-        table:      Source dict.
-        table_name: Name used in error messages.
-        key:        Key to retrieve.
-        default:    Fallback when *key* is absent.
+    Parameters
+    ----------
+    table : dict[str, Any]
+        Raw TOML sub-table.
+    table_name : str
+        Section name for error messages.
+    key : str
+        Field key to extract.
+    default : bool
+        Fallback value when *key* is absent.
 
     Returns
     -------
-        The boolean value.
+    bool
+        The extracted boolean value.
 
     Raises
     ------
-        FieldTypeError: If the stored value is not a Python ``bool``.
-
-    Notes
-    -----
-    TOML natively distinguishes booleans from strings, so ``"true"``
-    (a TOML string) would raise :class:`FieldTypeError` here.  Use proper
-    TOML boolean literals (``true`` / ``false``) in spec files.
+    FieldTypeError
+        If the raw value is not a ``bool``.
     """
     raw = table.get(key, default)
     if not isinstance(raw, bool):
@@ -441,26 +401,36 @@ def _cast_str_list(
 ) -> list[str]:
     """Extract and validate a list-of-strings field from a TOML sub-table.
 
-    Args:
-        table:      Source dict.
-        table_name: Name used in error messages.
-        key:        Key to retrieve.
-        default:    Fallback when *key* is absent; ``None`` means required.
-        non_empty:  If ``True``, the list itself must contain ≥ 1 element.
-        allowed:    If provided, every element must be a member (comparison
-                    is case-insensitive; lower-cased elements are returned).
+    Parameters
+    ----------
+    table : dict[str, Any]
+        Raw TOML sub-table.
+    table_name : str
+        Section name for error messages.
+    key : str
+        Field key to extract.
+    default : list[str] | None, optional
+        Fallback list when *key* is absent. When ``None``, *key* is required.
+    non_empty : bool, optional
+        When ``True``, reject empty lists.
+    allowed : frozenset[str] | None, optional
+        Constraint set; each item is validated after stripping and lower-casing.
 
     Returns
     -------
-        A ``list[str]``, lower-cased when *allowed* is set.
+    list[str]
+        List of strings. Each item is normalised (stripped, lower-cased) when
+        *allowed* is given.
 
     Raises
     ------
-        MissingFieldError: If *key* is absent and *default* is ``None``.
-        FieldTypeError:    If the value is not a list, or any item is not a
-                           string.
-        FieldValueError:   If the list is empty (when *non_empty*) or an
-                           element is not in *allowed*.
+    MissingFieldError
+        If *key* is absent and *default* is ``None``.
+    FieldTypeError
+        If the raw value is not a list, or any element is not a ``str``.
+    FieldValueError
+        If the list is empty (with *non_empty=True*) or contains a value not
+        in *allowed*.
     """
     raw = table.get(key, default) if default is not None else _require(table, table_name, key)
     if not isinstance(raw, list):
@@ -483,39 +453,22 @@ def _cast_str_list(
     return result
 
 
-# ---------------------------------------------------------------------------
-# Sub-spec dataclasses
-# ---------------------------------------------------------------------------
-
-
 @dataclass(frozen=True, slots=True)
 class MetadataSpec:
     """Metadata describing the journal source and specification provenance.
 
     Attributes
     ----------
-    name
-        Human-readable journal name.
-    publisher
-        Publisher or society that owns the journal.
-    source_url
-        Canonical URL for the author guidelines being modelled.
-    last_verified
-        ISO 8601 date (``YYYY-MM-DD``) the spec was last checked against
-        the live guidelines.
-    verified_by
-        Name or identifier of the person who performed the last verification
-        (may be empty for legacy entries).
-
-    Example::
-
-        MetadataSpec(
-            name="Nature",
-            publisher="Springer Nature",
-            source_url="https://www.nature.com/nature/for-authors/formatting-guide",
-            last_verified="2024-05-01",
-            verified_by="j.doe",
-        )
+    name : str
+        Display name of the journal (e.g. ``"Nature"``).
+    publisher : str
+        Publisher name (e.g. ``"Springer Nature"``).
+    source_url : str
+        URL of the author guidelines used as the specification source.
+    last_verified : str
+        ISO 8601 date (``YYYY-MM-DD``) when the guidelines were last reviewed.
+    verified_by : str
+        Name or identifier of the person who last verified the spec.
     """
 
     name: str
@@ -527,25 +480,16 @@ class MetadataSpec:
 
 @dataclass(frozen=True, slots=True)
 class DimensionSpec:
-    """Physical column-width and height constraints for submitted figures.
-
-    All values are in **millimetres**.  Layout code should use these widths
-    as the maximum printable extent of a figure; exceeding them typically
-    results in automated rejection at submission.
+    """Physical column-width and height constraints (all values in mm).
 
     Attributes
     ----------
-    single_column_mm
-        Maximum width for a single-column figure (> 0).
-    double_column_mm
-        Maximum width for a double-column figure
-        (must be > *single_column_mm*).
-    max_height_mm
-        Maximum figure height for any column format (> 0).
-
-    Example::
-
-        DimensionSpec(single_column_mm=89.0, double_column_mm=183.0, max_height_mm=247.0)
+    single_column_mm : float
+        Width in millimetres for a single-column figure.
+    double_column_mm : float
+        Width in millimetres for a double-column (full-page) figure.
+    max_height_mm : float
+        Maximum permitted figure height in millimetres.
     """
 
     single_column_mm: float
@@ -559,37 +503,21 @@ class TypographySpec:
 
     Attributes
     ----------
-    font_family
-        Ordered list of preferred font-family names.  The first available
-        font on the target system should be used.
-    font_fallback
-        Generic fallback family (e.g. ``"sans-serif"``) when none of
-        *font_family* is available.
-    min_font_pt
-        Smallest permissible font size in points (> 0).
-    max_font_pt
-        Largest permissible font size in points (≥ *min_font_pt*).
-    panel_label_pt
-        Font size in points for panel labels (A, B, …).  Defaults to
-        *min_font_pt* when omitted in TOML.
-    panel_label_weight
-        CSS-style font weight for panel labels (e.g. ``"bold"``).
-    panel_label_case
-        Text transformation for panel labels — one of ``"lower"``,
-        ``"upper"``, ``"title"``, ``"sentence"``, ``"parens_lower"``,
-        ``"parens_upper"``.
-
-    Example::
-
-        TypographySpec(
-            font_family=["Helvetica", "Arial"],
-            font_fallback="sans-serif",
-            min_font_pt=7.0,
-            max_font_pt=9.0,
-            panel_label_pt=7.0,
-            panel_label_weight="bold",
-            panel_label_case="lower",
-        )
+    font_family : list[str]
+        Ordered list of preferred font family names.
+    font_fallback : str
+        Generic CSS-style family name used when none of the preferred fonts
+        are installed (e.g. ``"sans-serif"``).
+    min_font_pt : float
+        Minimum permitted font size in points.
+    max_font_pt : float
+        Maximum permitted font size in points.
+    panel_label_pt : float
+        Font size in points for panel labels (e.g. ``"a"``, ``"b"``).
+    panel_label_weight : str
+        Font weight for panel labels (e.g. ``"bold"``).
+    panel_label_case : str
+        Case transformation for panel labels (e.g. ``"lower"``, ``"upper"``).
     """
 
     font_family: list[str]
@@ -607,29 +535,17 @@ class ExportSpec:
 
     Attributes
     ----------
-    preferred_formats
-        Ordered list of accepted file formats (e.g. ``["pdf", "tiff"]``).
-        Formats are stored in lowercase without a leading dot.
-    min_dpi
-        Minimum resolution in dots per inch for raster output (≥ 72).
-    color_space
-        Required colour space — one of ``"rgb"``, ``"cmyk"``, or
-        ``"grayscale"``.
-    font_embedding
-        Whether fonts must be embedded in vector outputs.
-    editable_text
-        Whether text layers must remain editable in vector outputs
-        (e.g. for EPS/PDF).
-
-    Example::
-
-        ExportSpec(
-            preferred_formats=["pdf", "eps"],
-            min_dpi=300,
-            color_space="rgb",
-            font_embedding=True,
-            editable_text=False,
-        )
+    preferred_formats : list[str]
+        Recommended output formats in preference order
+        (e.g. ``["pdf", "tiff"]``).
+    min_dpi : int
+        Minimum acceptable raster resolution in dots per inch.
+    color_space : str
+        Required colour space for submission (e.g. ``"rgb"``, ``"cmyk"``).
+    font_embedding : bool
+        Whether the journal requires embedded fonts in vector exports.
+    editable_text : bool
+        Whether the journal requires vector/editable text in EPS/PDF files.
     """
 
     preferred_formats: list[str]
@@ -645,24 +561,13 @@ class ColorSpec:
 
     Attributes
     ----------
-    avoid_combinations
-        List of colour-pair groups that must not appear together in the
-        same figure (e.g. ``[["red", "green"], ["blue", "yellow"]]``).
-        Each inner list contains two or more colour identifiers.
-    colorblind_required
-        ``True`` if the palette must be perceptually distinguishable for
-        the most common types of colour-vision deficiency.
-    grayscale_required
-        ``True`` if the figure must remain interpretable when printed in
-        greyscale.
-
-    Example::
-
-        ColorSpec(
-            avoid_combinations=[["red", "green"]],
-            colorblind_required=True,
-            grayscale_required=False,
-        )
+    avoid_combinations : list[list[str]]
+        Colour pairs that should not be used together due to accessibility
+        constraints (e.g. ``[["red", "green"]]``).
+    colorblind_required : bool
+        Whether figures must pass all common colour-blindness simulations.
+    grayscale_required : bool
+        Whether figures must be interpretable in grayscale.
     """
 
     avoid_combinations: list[list[str]]
@@ -676,64 +581,36 @@ class LineSpec:
 
     Attributes
     ----------
-    min_weight_pt
-        Minimum stroke/line weight in points (> 0).  Lines thinner than
-        this threshold may not reproduce reliably in print.
-
-    Example::
-
-        LineSpec(min_weight_pt=0.5)
+    min_weight_pt : float
+        Minimum permitted line weight in points.
     """
 
     min_weight_pt: float
-
-
-# ---------------------------------------------------------------------------
-# Root dataclass
-# ---------------------------------------------------------------------------
 
 
 @dataclass(frozen=True, slots=True)
 class JournalSpec:
     """Complete, validated journal figure-submission specification.
 
-    :class:`JournalSpec` is the single object a caller works with after
-    loading a TOML configuration file.  It composes all domain-specific
-    sub-specs into one immutable, hashable value object.
-
     Attributes
     ----------
-    metadata
-        Provenance and verification metadata for this spec.
-    dimensions
-        Physical size constraints for figure files.
-    typography
-        Font and text-element constraints.
-    export
-        File-format and rendering requirements.
-    color
-        Colour usage and accessibility requirements.
-    line
-        Stroke-weight constraints.
-    notes
-        Free-form human-readable notes (may be empty).
-
-    Notes
-    -----
-    All sub-specs and the root :class:`JournalSpec` itself are
-    ``frozen=True`` dataclasses, making instances immutable and hashable.
-    ``slots=True`` avoids per-instance ``__dict__`` overhead.
-
-    Example::
-
-        import tomllib
-        from plotstyle.specs.schema import JournalSpec
-
-        with open("nature.toml", "rb") as fh:
-            spec = JournalSpec.from_toml(tomllib.load(fh))
-
-        assert spec.dimensions.single_column_mm == 89.0
-        assert "pdf" in spec.export.preferred_formats
+    metadata : MetadataSpec
+        Journal provenance and source information.
+    dimensions : DimensionSpec
+        Physical column-width and height limits.
+    typography : TypographySpec
+        Font, size, and panel-label constraints.
+    export : ExportSpec
+        File format, DPI, and embedding requirements.
+    color : ColorSpec
+        Colour usage and accessibility constraints.
+    line : LineSpec
+        Line rendering constraints.
+    notes : str
+        Free-form notes from the specification source; may be empty.
+    key : str
+        Lower-case registry identifier assigned by ``_with_key``
+        (e.g. ``"nature"``). Empty until the spec is registered.
     """
 
     metadata: MetadataSpec
@@ -743,128 +620,77 @@ class JournalSpec:
     color: ColorSpec
     line: LineSpec
     notes: str = field(default="")
+    key: str = field(default="")
 
-    # ------------------------------------------------------------------
-    # Factory
-    # ------------------------------------------------------------------
+    def _with_key(self, key: str) -> JournalSpec:
+        """Return a copy of this spec with *key* set to the registry identifier.
+
+        Parameters
+        ----------
+        key : str
+            Lower-case spec file stem (e.g. ``"nature"``, ``"ieee"``).
+
+        Returns
+        -------
+        JournalSpec
+            A new instance identical to *self* except that ``key`` is set.
+        """
+        return _dc_replace(self, key=key)
 
     @classmethod
     def from_toml(cls, data: dict[str, Any]) -> JournalSpec:
-        """Construct a validated :class:`JournalSpec` from raw TOML data.
+        """Construct a validated ``JournalSpec`` from raw TOML data.
 
-        Each top-level TOML table maps to one sub-spec.  Required fields
-        are validated for presence and type; optional fields fall back to
-        safe defaults.  All validation errors carry the TOML path of the
-        offending field to simplify debugging.
-
-        Args:
-            data: Parsed TOML content as returned by ``tomllib.load`` or
-                ``tomli.load``.  The expected top-level keys are:
-                ``metadata``, ``dimensions``, ``typography``, ``export``,
-                and optionally ``color``, ``line``, and ``notes``.
+        Parameters
+        ----------
+        data : dict[str, Any]
+            Raw dictionary from parsing a ``.toml`` spec file
+            (e.g. via ``plotstyle._utils.io.load_toml``).
 
         Returns
         -------
-            A fully populated and validated :class:`JournalSpec` instance.
+        JournalSpec
+            A fully validated, frozen ``JournalSpec`` instance.
 
         Raises
         ------
-            plotstyle.specs.schema.MissingFieldError: If a required TOML
-                field is absent.
-            plotstyle.specs.schema.FieldTypeError: If a field value cannot
-                be cast to the expected Python type.
-            plotstyle.specs.schema.FieldValueError: If a field value
-                violates a domain constraint (e.g. ``min_dpi < 72`` or an
-                unrecognised ``color_space``).
-
-        Notes
-        -----
-        * ``[color]`` and ``[line]`` tables are optional; sensible defaults
-          are applied when they are absent.
-        * ``color_space``, ``preferred_formats``, ``panel_label_weight``,
-          and ``panel_label_case`` are normalised to lowercase.
-        * Cross-field invariants (e.g. ``max_font_pt ≥ min_font_pt``) are
-          checked after individual fields are validated.
-
-        Example::
-
-            import tomllib
-            from plotstyle.specs.schema import JournalSpec
-
-            raw = tomllib.loads('''
-                [metadata]
-                name          = "Nature"
-                publisher     = "Springer Nature"
-                source_url    = "https://nature.com/guidelines"
-                last_verified = "2024-05-01"
-                verified_by   = "j.doe"
-
-                [dimensions]
-                single_column_mm = 89.0
-                double_column_mm = 183.0
-                max_height_mm    = 247.0
-
-                [typography]
-                font_family   = ["Helvetica", "Arial"]
-                font_fallback = "sans-serif"
-                min_font_pt   = 7.0
-                max_font_pt   = 9.0
-
-                [export]
-                preferred_formats = ["pdf", "eps"]
-                min_dpi           = 300
-                color_space       = "RGB"
-            ''')
-            spec = JournalSpec.from_toml(raw)
+        MissingFieldError
+            If a required TOML field is absent.
+        FieldTypeError
+            If a field value cannot be cast to the expected Python type.
+        FieldValueError
+            If a field value violates a domain constraint.
         """
-        # Extract raw sub-tables; raise clearly if a required one is absent.
-        meta_raw: dict[str, Any] = _require(data, "root", "metadata")
-        dims_raw: dict[str, Any] = _require(data, "root", "dimensions")
-        typo_raw: dict[str, Any] = _require(data, "root", "typography")
-        exp_raw: dict[str, Any] = _require(data, "root", "export")
-        # Optional tables default to empty dicts so all .get() calls inside
-        # the helpers return their declared defaults without special-casing.
-        col_raw: dict[str, Any] = data.get("color", {})
-        ln_raw: dict[str, Any] = data.get("line", {})
-
-        # Parse and validate each sub-spec independently.
-        metadata = cls._parse_metadata(meta_raw)
-        dimensions = cls._parse_dimensions(dims_raw)
-        typography = cls._parse_typography(typo_raw)
-        export = cls._parse_export(exp_raw)
-        color = cls._parse_color(col_raw)
-        line = cls._parse_line(ln_raw)
-
         return cls(
-            metadata=metadata,
-            dimensions=dimensions,
-            typography=typography,
-            export=export,
-            color=color,
-            line=line,
+            metadata=cls._parse_metadata(_require(data, "root", "metadata")),
+            dimensions=cls._parse_dimensions(_require(data, "root", "dimensions")),
+            typography=cls._parse_typography(_require(data, "root", "typography")),
+            export=cls._parse_export(_require(data, "root", "export")),
+            color=cls._parse_color(data.get("color", {})),
+            line=cls._parse_line(data.get("line", {})),
             notes=str(data.get("notes", "")),
         )
 
-    # ------------------------------------------------------------------
-    # Private sub-spec parsers — each maps to one TOML table
-    # ------------------------------------------------------------------
-
     @staticmethod
     def _parse_metadata(raw: dict[str, Any]) -> MetadataSpec:
-        """Parse and validate the ``[metadata]`` table.
+        """Parse and validate the ``[metadata]`` TOML sub-table.
 
-        Args:
-            raw: The raw dict for the ``[metadata]`` TOML table.
+        Parameters
+        ----------
+        raw : dict[str, Any]
+            Raw ``[metadata]`` dict.
 
         Returns
         -------
-            A validated :class:`MetadataSpec`.
+        MetadataSpec
+            A validated ``MetadataSpec`` instance.
 
         Raises
         ------
-            MissingFieldError: If a required field is absent.
-            FieldTypeError:    If a field value is not a string.
-            FieldValueError:   If ``last_verified`` is not ISO 8601.
+        MissingFieldError
+            If a required field is absent.
+        FieldValueError
+            If ``last_verified`` is not in ``YYYY-MM-DD`` format.
         """
         t = "metadata"
         last_verified = _cast_str(raw, t, "last_verified", non_empty=True)
@@ -880,40 +706,41 @@ class JournalSpec:
             publisher=_cast_str(raw, t, "publisher", non_empty=True),
             source_url=_cast_str(raw, t, "source_url", non_empty=True),
             last_verified=last_verified,
-            # ``verified_by`` is optional; legacy specs may omit it.
             verified_by=_cast_str(raw, t, "verified_by", default=""),
         )
 
     @staticmethod
     def _parse_dimensions(raw: dict[str, Any]) -> DimensionSpec:
-        """Parse and validate the ``[dimensions]`` table.
+        """Parse and validate the ``[dimensions]`` TOML sub-table.
 
-        Args:
-            raw: The raw dict for the ``[dimensions]`` TOML table.
+        Parameters
+        ----------
+        raw : dict[str, Any]
+            Raw ``[dimensions]`` dict.
 
         Returns
         -------
-            A validated :class:`DimensionSpec`.
+        DimensionSpec
+            A validated ``DimensionSpec`` instance.
 
         Raises
         ------
-            MissingFieldError: If a required field is absent.
-            FieldTypeError:    If a field value cannot be cast to float.
-            FieldValueError:   If any dimension is ≤ 0, or if
-                               ``double_column_mm ≤ single_column_mm``.
+        FieldValueError
+            If any dimension is not strictly positive, or if
+            ``double_column_mm`` is not greater than ``single_column_mm``.
         """
         t = "dimensions"
-        single = _cast_float(raw, t, "single_column_mm", min_val=0.0)
+        single = _cast_float(raw, t, "single_column_mm")
         if single <= 0:
             raise FieldValueError(t, "single_column_mm", f"must be > 0, got {single}")
-        double = _cast_float(raw, t, "double_column_mm", min_val=0.0)
+        double = _cast_float(raw, t, "double_column_mm")
         if double <= 0:
             raise FieldValueError(t, "double_column_mm", f"must be > 0, got {double}")
-        height = _cast_float(raw, t, "max_height_mm", min_val=0.0)
+        height = _cast_float(raw, t, "max_height_mm")
         if height <= 0:
             raise FieldValueError(t, "max_height_mm", f"must be > 0, got {height}")
 
-        # Cross-field invariant: double column must be wider than single.
+        # Double-column width must exceed single-column width.
         if double <= single:
             raise FieldValueError(
                 t,
@@ -929,22 +756,23 @@ class JournalSpec:
 
     @staticmethod
     def _parse_typography(raw: dict[str, Any]) -> TypographySpec:
-        """Parse and validate the ``[typography]`` table.
+        """Parse and validate the ``[typography]`` TOML sub-table.
 
-        Args:
-            raw: The raw dict for the ``[typography]`` TOML table.
+        Parameters
+        ----------
+        raw : dict[str, Any]
+            Raw ``[typography]`` dict.
 
         Returns
         -------
-            A validated :class:`TypographySpec`.
+        TypographySpec
+            A validated ``TypographySpec`` instance.
 
         Raises
         ------
-            MissingFieldError: If a required field is absent.
-            FieldTypeError:    If a field value has the wrong type.
-            FieldValueError:   If ``max_font_pt < min_font_pt``,
-                               ``panel_label_weight`` is unrecognised, or
-                               ``panel_label_case`` is unrecognised.
+        FieldValueError
+            If ``max_font_pt`` < ``min_font_pt``, or if
+            ``panel_label_weight`` or ``panel_label_case`` is unrecognised.
         """
         t = "typography"
         min_pt = _cast_float(raw, t, "min_font_pt", min_val=0.0)
@@ -957,52 +785,35 @@ class JournalSpec:
                 f"must be ≥ min_font_pt ({min_pt}), got {max_pt}",
             )
 
-        # ``panel_label_pt`` defaults to ``min_font_pt`` when omitted so that
-        # the smallest body text and panel labels share the same size — a safe
-        # default for most journal styles.
-        panel_pt = _cast_float(raw, t, "panel_label_pt", default=min_pt, min_val=0.0)
-
         return TypographySpec(
             font_family=_cast_str_list(raw, t, "font_family", default=[], non_empty=True),
             font_fallback=_cast_str(raw, t, "font_fallback", default="sans-serif"),
             min_font_pt=min_pt,
             max_font_pt=max_pt,
-            panel_label_pt=panel_pt,
+            panel_label_pt=_cast_float(raw, t, "panel_label_pt", default=min_pt, min_val=0.0),
             panel_label_weight=_cast_str(
-                raw,
-                t,
-                "panel_label_weight",
-                default="bold",
-                allowed=_KNOWN_FONT_WEIGHTS,
+                raw, t, "panel_label_weight", default="bold", allowed=_KNOWN_FONT_WEIGHTS
             ),
             panel_label_case=_cast_str(
-                raw,
-                t,
-                "panel_label_case",
-                default="lower",
-                allowed=_KNOWN_LABEL_CASES,
+                raw, t, "panel_label_case", default="lower", allowed=_KNOWN_LABEL_CASES
             ),
         )
 
     @staticmethod
     def _parse_export(raw: dict[str, Any]) -> ExportSpec:
-        """Parse and validate the ``[export]`` table.
+        """Parse and validate the ``[export]`` TOML sub-table.
 
-        Args:
-            raw: The raw dict for the ``[export]`` TOML table.
+        Parameters
+        ----------
+        raw : dict[str, Any]
+            Raw ``[export]`` dict.
 
         Returns
         -------
-            A validated :class:`ExportSpec`.
-
-        Raises
-        ------
-            MissingFieldError: If a required field is absent.
-            FieldTypeError:    If a field value has the wrong type.
-            FieldValueError:   If ``min_dpi`` is below the physical floor
-                               (72 DPI), ``color_space`` is unrecognised,
-                               or a format in ``preferred_formats`` is
-                               unknown.
+        ExportSpec
+            A validated ``ExportSpec`` instance. Defaults: ``min_dpi=300``,
+            ``color_space="rgb"``, ``font_embedding=True``,
+            ``editable_text=False``.
         """
         t = "export"
         return ExportSpec(
@@ -1016,11 +827,7 @@ class JournalSpec:
             ),
             min_dpi=_cast_int(raw, t, "min_dpi", default=300, min_val=_MIN_DPI_FLOOR),
             color_space=_cast_str(
-                raw,
-                t,
-                "color_space",
-                default="rgb",
-                allowed=_KNOWN_COLOR_SPACES,
+                raw, t, "color_space", default="rgb", allowed=_KNOWN_COLOR_SPACES
             ),
             font_embedding=_cast_bool(raw, t, "font_embedding", default=True),
             editable_text=_cast_bool(raw, t, "editable_text", default=False),
@@ -1028,22 +835,26 @@ class JournalSpec:
 
     @staticmethod
     def _parse_color(raw: dict[str, Any]) -> ColorSpec:
-        """Parse and validate the optional ``[color]`` table.
+        """Parse and validate the ``[color]`` TOML sub-table.
 
-        Args:
-            raw: The raw dict for the ``[color]`` TOML table, or ``{}`` if
-                 the table was absent.
+        All fields default to safe values; an empty dict is acceptable.
+
+        Parameters
+        ----------
+        raw : dict[str, Any]
+            Raw ``[color]`` dict (may be empty).
 
         Returns
         -------
-            A validated :class:`ColorSpec`.
+        ColorSpec
+            A validated ``ColorSpec`` instance.
 
         Raises
         ------
-            FieldTypeError:  If ``avoid_combinations`` is not a list of
-                             lists, or any element is not a string.
-            FieldValueError: If an inner combination list has fewer than
-                             two colour entries.
+        FieldTypeError
+            If ``avoid_combinations`` is not a list of string lists.
+        FieldValueError
+            If any combination entry has fewer than two colour names.
         """
         t = "color"
         raw_combos: list[Any] = raw.get("avoid_combinations", [])
@@ -1055,8 +866,6 @@ class JournalSpec:
             field_path = f"avoid_combinations[{combo_idx}]"
             if not isinstance(combo, list):
                 raise FieldTypeError(t, field_path, "list[str]", combo)
-            # Enforce that each group contains at least two colours; a
-            # single-colour "combination" is meaningless as a contrast rule.
             if len(combo) < 2:
                 raise FieldValueError(
                     t,
@@ -1078,20 +887,19 @@ class JournalSpec:
 
     @staticmethod
     def _parse_line(raw: dict[str, Any]) -> LineSpec:
-        """Parse and validate the optional ``[line]`` table.
+        """Parse and validate the ``[line]`` TOML sub-table.
 
-        Args:
-            raw: The raw dict for the ``[line]`` TOML table, or ``{}`` if
-                 the table was absent.
+        An empty dict is acceptable; ``min_weight_pt`` defaults to ``0.5``.
+
+        Parameters
+        ----------
+        raw : dict[str, Any]
+            Raw ``[line]`` dict (may be empty).
 
         Returns
         -------
-            A validated :class:`LineSpec`.
-
-        Raises
-        ------
-            FieldTypeError:  If ``min_weight_pt`` cannot be cast to float.
-            FieldValueError: If ``min_weight_pt`` is ≤ 0.
+        LineSpec
+            A validated ``LineSpec`` instance.
         """
         return LineSpec(
             min_weight_pt=_cast_float(raw, "line", "min_weight_pt", default=0.5, min_val=0.0),

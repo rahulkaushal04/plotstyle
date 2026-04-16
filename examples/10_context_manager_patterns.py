@@ -36,11 +36,11 @@ original_fontsize = mpl.rcParams["font.size"]
 
 with plotstyle.use("nature") as style:
     print(f"Inside 'nature' block — journal: {style.spec.metadata.name}")
-    fig, ax = plotstyle.figure("nature")
+    fig, ax = style.figure()
     ax.plot(x, np.sin(x))
     ax.set_xlabel("x")
     ax.set_ylabel("sin(x)")
-    plotstyle.savefig(fig, OUTPUT_DIR / "ctx_nature.pdf", journal="nature")
+    style.savefig(fig, OUTPUT_DIR / "ctx_nature.pdf")
     plt.close(fig)
 
 # Verify that rcParams were actually restored
@@ -53,11 +53,11 @@ print(f"Font size restored: {mpl.rcParams['font.size'] == original_fontsize}")
 
 style = plotstyle.use("ieee")
 try:
-    fig, ax = plotstyle.figure("ieee")
+    fig, ax = style.figure()
     ax.plot(x, np.cos(x))
     ax.set_xlabel("x")
     ax.set_ylabel("cos(x)")
-    plotstyle.savefig(fig, OUTPUT_DIR / "manual_ieee.pdf", journal="ieee")
+    style.savefig(fig, OUTPUT_DIR / "manual_ieee.pdf")
     plt.close(fig)
 finally:
     style.restore()
@@ -71,8 +71,8 @@ finally:
 prev_linewidth = mpl.rcParams["lines.linewidth"]
 mpl.rcParams["lines.linewidth"] = 3.0
 
-with plotstyle.use("science"):
-    fig, ax = plotstyle.figure("science")
+with plotstyle.use("science") as style:
+    fig, ax = style.figure()
     ax.plot(x, np.tan(np.clip(x, 0.1, 3.0)))
     ax.set_xlabel("x")
     ax.set_ylabel("f(x)")
