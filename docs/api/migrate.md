@@ -45,10 +45,15 @@ Output:
 Nature → IEEE Transactions
 ──────────────────────────────────────────────────
 Column Width (single):  89.0mm → 88.9mm
+Column Width (double):  183.0mm → 182.0mm
+Max Height:             247.0mm → 216.0mm
 Font Family:            Helvetica, Arial → Times New Roman, Times
 Min Font Size:          5.0pt → 8.0pt
 Max Font Size:          7.0pt → 10.0pt
+Panel Label Weight:     bold → normal
+Panel Label Case:       lower → parens_lower
 Min DPI:                300 → 600
+Preferred Formats:      tiff, pdf, eps → pdf, eps, png, tiff
 Grayscale Required:     No → Yes
 Min Line Weight:        0.25pt → 0.5pt
 ```
@@ -73,8 +78,8 @@ data = result.to_dict()
 ### Migrate a figure
 
 ```python
-with plotstyle.use("nature"):
-    fig, ax = plotstyle.figure("nature")
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure()
     ax.plot([1, 2, 3])
 
 # Re-style for IEEE
@@ -84,13 +89,11 @@ plotstyle.savefig(fig, "figure_ieee.pdf", journal="ieee")
 
 `migrate()` mutates the figure in-place. It:
 
-1. Applies target journal's rcParams globally
-2. Resizes the figure to the target's column width (preserving aspect ratio)
+1. Applies target journal's rcParams for the duration of the call
+2. Resizes the figure to the target's single-column width (preserving aspect ratio)
 3. Rescales all text artists, clamping to the target's font size range
 
 ## Notes
 
-- `migrate()` modifies `mpl.rcParams` globally. Wrap it in a `plotstyle.use()`
-  context manager if you need the original state restored afterwards.
 - Warnings are emitted when the migration involves a font family change, newly
   required grayscale safety, or an increased DPI floor.

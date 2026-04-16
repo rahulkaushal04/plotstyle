@@ -1,8 +1,8 @@
 # API Reference
 
-This section documents every public function, class, and constant in PlotStyle.
-All symbols listed here are importable directly from the top-level `plotstyle`
-package.
+Full reference for every public function, class, and constant in PlotStyle.
+All symbols are importable directly from the top-level `plotstyle` package
+unless stated otherwise.
 
 ```{toctree}
 :maxdepth: 2

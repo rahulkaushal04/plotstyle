@@ -1,29 +1,27 @@
 # Core Concepts
 
-This page explains the key ideas behind PlotStyle so you understand *why*
-things work the way they do, not just *how* to call the functions.
+A short explanation of how PlotStyle works and why it's designed this way.
 
-## Journal specifications (specs)
+## Journal specs
 
-Every journal has specific rules for figure submissions: column widths in mm,
-allowed fonts and size ranges, minimum DPI, preferred export formats, and
-accessibility requirements.
+Every journal has rules for figures: column widths, allowed fonts, minimum
+DPI, export formats, and accessibility requirements.
 
-PlotStyle stores these rules as **TOML files** inside the `plotstyle/specs/`
-directory. Each file is parsed into a frozen, immutable
-{class}`~plotstyle.specs.schema.JournalSpec` dataclass with typed sub-specs:
+PlotStyle stores these rules as TOML files inside the package. Each file is
+parsed into a {class}`~plotstyle.specs.schema.JournalSpec` dataclass with
+typed sub-specs:
 
-| Sub-spec | What it describes |
-|----------|-------------------|
-| `metadata` | Journal name, publisher, source URL, last verified date |
-| `dimensions` | Single/double column widths (mm), max height (mm) |
+| Sub-spec | What it covers |
+|----------|----------------|
+| `metadata` | Journal name, publisher, source URL |
+| `dimensions` | Column widths (mm), max height (mm) |
 | `typography` | Font family, size range (pt), panel label style |
-| `export` | Preferred formats, min DPI, colour space, font embedding |
-| `color` | Colour avoidance rules, colorblind/grayscale requirements |
+| `export` | Preferred formats, min DPI, colour space |
+| `color` | Colorblind/grayscale requirements, avoided combinations |
 | `line` | Minimum stroke weight (pt) |
 
-You rarely interact with specs directly — calling `plotstyle.use("nature")`
-triggers the chain automatically. But you can inspect them:
+You usually don't interact with specs directly — `plotstyle.use("nature")`
+handles everything automatically. But you can inspect them:
 
 ```python
 from plotstyle.specs import registry
@@ -36,8 +34,8 @@ print(spec.export.min_dpi)               # 300
 
 ## The spec registry
 
-The {class}`~plotstyle.specs.SpecRegistry` lazily loads and caches specs from
-disk. The module-level `registry` singleton is used by the entire library:
+The {class}`~plotstyle.specs.SpecRegistry` loads and caches specs on demand.
+The `registry` singleton is used by the whole library:
 
 ```python
 from plotstyle.specs import registry
@@ -47,97 +45,83 @@ registry.list_available()
 ```
 
 Journal names are **case-insensitive**: `"Nature"`, `"NATURE"`, and `"nature"`
-all resolve to the same spec.
+all work.
 
-## Style application and restoration
+## How style application works
 
-`plotstyle.use()` takes a snapshot of the Matplotlib `rcParams` keys it
-modifies, then applies the journal's rcParams. The returned
-{class}`~plotstyle.core.style.JournalStyle` handle stores this snapshot and
-can restore it:
+`plotstyle.use()` does three things:
 
-```
-                    ┌──────────┐
-mpl.rcParams ──────│ snapshot  │
-                    └──────────┘
-                         │
-                    ┌──────────┐
-                    │  apply   │── journal rcParams active
-                    └──────────┘
-                         │
-                    ┌──────────┐
-                    │ restore  │── original rcParams restored
-                    └──────────┘
-```
+1. Looks up the journal spec from the registry
+2. Saves the current Matplotlib rcParams values it's about to change
+3. Applies the journal's rcParams
 
-The snapshot is **surgical** — only the keys that PlotStyle touches are saved
-and restored. Any unrelated rcParam changes you make before or during the block
-are preserved.
+The {class}`~plotstyle.core.style.JournalStyle` handle stores the saved values
+and can restore them — either when you call `style.restore()` or automatically
+when the `with` block ends.
+
+Only the keys PlotStyle actually changes are saved. Any other rcParam changes
+you make are untouched.
 
 ## Figure sizing
 
-`plotstyle.figure()` and `plotstyle.subplots()` resolve the journal's
-column width from the spec, convert from millimetres to inches, and pass
-the result as `figsize` to Matplotlib.
+`plotstyle.figure()` and `plotstyle.subplots()` look up the journal's column
+width, convert from millimetres to inches, and create a Matplotlib figure at
+that exact size.
 
 - `columns=1` → single-column width (e.g. 89 mm for Nature)
 - `columns=2` → double-column / full-text width (e.g. 183 mm for Nature)
-- The default aspect ratio is the **golden ratio** (φ ≈ 1.618). Override it
-  with the `aspect` parameter.
+
+The default aspect ratio is the **golden ratio** (≈ 1.618). Override it with
+the `aspect` parameter.
 
 ## Palettes
 
-`plotstyle.palette()` maps each journal to a curated, colorblind-safe palette:
+`plotstyle.palette()` maps each journal to a colorblind-safe palette:
 
-| Journal | Default palette |
-|---------|----------------|
-| nature, plos, cell | Okabe–Ito |
-| acs, elsevier, springer | Tol Bright |
-| prl, wiley | Tol Muted |
-| science | Tol Vibrant |
-| ieee | Safe Grayscale |
+| Journal | Palette |
+|---------|---------|
+| Nature, PLOS, Cell | Okabe–Ito |
+| ACS, Elsevier, Springer | Tol Bright |
+| PRL, Wiley | Tol Muted |
+| Science | Tol Vibrant |
+| IEEE | Safe Grayscale |
 
-Palettes **cycle** automatically if you request more colours than the palette
+Palettes cycle automatically if you request more colours than the palette
 contains.
 
 ## Validation
 
-`plotstyle.validate()` runs every registered check function against a figure
-and returns a {class}`~plotstyle.validation.report.ValidationReport`. Checks
-cover:
+`plotstyle.validate()` runs a set of checks against your figure and returns a
+{class}`~plotstyle.validation.report.ValidationReport`. Checks cover:
 
-- **Dimensions** — width and height against the journal's allowed ranges
-- **Typography** — font sizes within min/max bounds
+- **Dimensions** — width and height vs. journal limits
+- **Typography** — font sizes within allowed range
 - **Lines** — stroke weights above journal minimum
-- **Colours** — avoided combinations, colorblind safety, grayscale compliance
-- **Export** — DPI and format requirements
+- **Colours** — avoided combinations, colorblind/grayscale compliance
+- **Export** — DPI and font embedding
 
-Each failed check includes a `fix_suggestion` string telling you exactly how
-to fix the problem.
+Each failed check includes a `fix_suggestion` so you know exactly what to fix.
 
 ## Export safety
 
 `plotstyle.savefig()` wraps `Figure.savefig()` with two guarantees:
 
 1. **TrueType font embedding** — `pdf.fonttype` and `ps.fonttype` are set to
-   `42` for the duration of the save, preventing Type 3 fonts that most
-   submission portals reject.
-2. **Journal DPI enforcement** — when a journal is specified, its `min_dpi` is
-   applied automatically.
+   `42`, preventing Type 3 fonts that most journal portals reject.
+2. **Journal DPI enforcement** — when a journal is specified, its minimum DPI
+   is applied automatically.
 
-Both overrides are scoped to the single save call and restored afterwards.
+Both settings are scoped to the single save call and restored afterwards.
 
 ## Migration
 
-`plotstyle.migrate()` re-styles an existing figure for a different journal. It:
+`plotstyle.migrate()` re-styles an existing figure for a different journal:
 
 1. Applies the target journal's rcParams
-2. Resizes the figure to the target's single-column width (preserving aspect
-   ratio)
-3. Rescales all text artists proportionally, clamping to the target's allowed
-   font-size range
+2. Resizes the figure to the target journal's column width (keeping aspect ratio)
+3. Rescales all text proportionally, clamping to the target's font-size range
 
-Use `plotstyle.diff()` first to see exactly what changes between two journals:
+Use `plotstyle.diff()` first to see what changes between two journals:
 
 ```python
 result = plotstyle.diff("nature", "ieee")

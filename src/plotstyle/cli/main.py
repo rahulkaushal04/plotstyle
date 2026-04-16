@@ -1,48 +1,14 @@
-"""PlotStyle CLI — journal-compliant Matplotlib figure toolkit.
+"""PlotStyle CLI entry point (``plotstyle`` console command).
 
-Entry point for the ``plotstyle`` console command, installed via the
-``[project.scripts]`` table in ``pyproject.toml``:
-
-    plotstyle = "plotstyle.cli.main:main"
-
-The CLI provides quick access to the most common PlotStyle workflows without
-requiring a Python session:
-
-    $ plotstyle list
-    $ plotstyle info nature
-    $ plotstyle diff nature ieee
-    $ plotstyle fonts --journal science
-    $ plotstyle validate figure1.pdf --journal nature
-    $ plotstyle export figure1.png --journal ieee --formats pdf,eps
-
-Design decisions
-----------------
-- **Stdlib only** — :mod:`argparse` is the sole CLI dependency so that the
-  command is available in minimal environments where optional dependencies
-  (e.g., Rich, Click) may not be installed.
-- **Lazy imports inside command handlers** — PlotStyle sub-packages import
-  Matplotlib and other heavy dependencies.  Deferring those imports to the
-  individual ``_cmd_*`` functions means that ``plotstyle --help`` and
-  ``plotstyle list`` start instantly without loading the full package graph.
-- **Integer exit codes** — every handler returns ``0`` on success and ``1``
-  on error, matching the POSIX convention expected by shell scripts and CI
-  pipelines.  :func:`main` re-raises nothing; all user-visible errors are
-  caught and printed to ``stderr``.
-- **Separation of concerns** — the ``_cmd_*`` functions contain only
-  display logic; all domain logic lives in the PlotStyle library.
-
-Adding a new sub-command
-------------------------
-1. Implement a ``_cmd_<name>`` function with the signature
-   ``(...) -> int`` that returns ``0`` on success or ``1`` on error.
-2. Add a ``subparsers.add_parser(...)`` block in :func:`_build_parser`.
-3. Add a dispatch branch in the ``try`` block inside :func:`main`.
+Provides sub-commands: ``list``, ``info``, ``diff``, ``fonts``,
+``validate``, and ``export``.  The public entry point is :func:`main`.
 """
 
 from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 from typing import Final
 
 from plotstyle.specs import SpecNotFoundError
@@ -51,8 +17,6 @@ from plotstyle.specs import SpecNotFoundError
 # Constants
 # ---------------------------------------------------------------------------
 
-# Maps panel_label_case spec values to a human-readable example string shown
-# in ``plotstyle info``.  Defined at module level so it is constructed once.
 _PANEL_LABEL_EXAMPLES: Final[dict[str, str]] = {
     "lower": "a, b, c",
     "upper": "A, B, C",
@@ -60,11 +24,8 @@ _PANEL_LABEL_EXAMPLES: Final[dict[str, str]] = {
     "parens_upper": "(A), (B), (C)",
 }
 
-# Width of the journal-name column in ``plotstyle list`` output.
-_LIST_NAME_WIDTH: int = 15
-
-# Separator line used in ``plotstyle info`` output.
-_INFO_SEPARATOR: str = "──────────────────────────"
+_LIST_NAME_WIDTH: Final[int] = 15
+_INFO_SEPARATOR: Final[str] = "──────────────────────────"
 
 
 # ---------------------------------------------------------------------------
@@ -73,17 +34,7 @@ _INFO_SEPARATOR: str = "──────────────────�
 
 
 def _cmd_list() -> int:
-    """List all journal presets available in the spec registry.
-
-    Prints one line per journal in the format::
-
-        nature          Springer Nature
-        ieee            IEEE
-
-    Returns
-    -------
-        ``0`` always (listing cannot fail if the registry loads).
-    """
+    """Print all available journal presets."""
     from plotstyle.specs import registry
 
     for name in sorted(registry.list_available()):
@@ -94,22 +45,7 @@ def _cmd_list() -> int:
 
 
 def _cmd_info(journal: str) -> int:
-    """Print a detailed human-readable summary of a journal specification.
-
-    Covers dimensions (mm and inches), typography, export requirements, and
-    accessibility constraints.
-
-    Args:
-        journal: Case-insensitive journal identifier (e.g., ``"nature"``).
-
-    Returns
-    -------
-        ``0`` on success.
-
-    Raises
-    ------
-        KeyError: Propagated to :func:`main` if *journal* is not registered.
-    """
+    """Print a detailed summary of a journal specification."""
     from plotstyle.specs import registry
     from plotstyle.specs.units import Dimension
 
@@ -120,15 +56,12 @@ def _cmd_info(journal: str) -> int:
     col = spec.color
     meta = spec.metadata
 
-    # Convert column widths from mm to inches for readability in mixed-unit labs.
     single_in: float = Dimension(dim.single_column_mm, "mm").to_inches()
     double_in: float = Dimension(dim.double_column_mm, "mm").to_inches()
 
     fonts: str = ", ".join(typo.font_family)
     formats: str = ", ".join(exp.preferred_formats)
 
-    # Resolve the panel label example; fall back to the raw case string if
-    # the value is not one of the four canonical variants.
     label_example: str = _PANEL_LABEL_EXAMPLES.get(typo.panel_label_case, typo.panel_label_case)
 
     avoid: str = ", ".join("-".join(pair) for pair in col.avoid_combinations) or "none"
@@ -163,51 +96,15 @@ def _cmd_info(journal: str) -> int:
 
 
 def _cmd_diff(journal_a: str, journal_b: str) -> int:
-    """Print a structured comparison of two journal specifications.
-
-    Args:
-        journal_a: Identifier of the first journal.
-        journal_b: Identifier of the second journal.
-
-    Returns
-    -------
-        ``0`` on success.
-
-    Raises
-    ------
-        KeyError: Propagated to :func:`main` if either journal is not
-            registered.
-
-    Example:
-        $ plotstyle diff nature ieee
-    """
+    """Print a comparison of two journal specifications."""
     from plotstyle.core.migrate import diff
 
-    # ``diff`` returns a SpecDiff whose __str__ renders the comparison table.
     print(diff(journal_a, journal_b))
     return 0
 
 
 def _cmd_fonts(journal: str) -> int:
-    """Check which of a journal's required fonts are available on this system.
-
-    Reports the best available font and whether it is an exact match or an
-    acceptable substitute.
-
-    Args:
-        journal: Case-insensitive journal identifier.
-
-    Returns
-    -------
-        ``0`` on success.
-
-    Raises
-    ------
-        KeyError: Propagated to :func:`main` if *journal* is not registered.
-
-    Example:
-        $ plotstyle fonts --journal nature
-    """
+    """Check which fonts required by *journal* are installed on this system."""
     from plotstyle.engine.fonts import detect_available, select_best
     from plotstyle.specs import registry
 
@@ -225,35 +122,12 @@ def _cmd_fonts(journal: str) -> int:
 
 
 def _cmd_validate(file: str, journal: str) -> int:
-    """Validate a saved figure file against a journal's publication spec.
-
-    CLI validation is intentionally limited to checks that can be performed
-    on a saved file (e.g., PDF font embedding).  Full validation — which
-    inspects live Matplotlib artists — requires a Python session.
-
-    Args:
-        file: Path to the saved figure file (PDF, PNG, SVG, …).
-        journal: Case-insensitive journal identifier.
-
-    Returns
-    -------
-        ``0`` on success; ``1`` if the file is not found.
-
-    Raises
-    ------
-        KeyError: Propagated to :func:`main` if *journal* is not registered.
-
-    Example:
-        $ plotstyle validate figure1.pdf --journal nature
-    """
-    from pathlib import Path
-
+    """Validate a saved figure file against a journal specification."""
     from plotstyle.engine.fonts import verify_embedded
     from plotstyle.specs import registry
 
     path = Path(file)
     if not path.exists():
-        # Use stderr so the error is visible even when stdout is redirected.
         print(f"Error: file not found: {file}", file=sys.stderr)
         return 1
 
@@ -289,40 +163,23 @@ def _cmd_export(
     author: str | None,
     output_dir: str,
 ) -> int:
-    """Print guidance for re-exporting a figure in journal-compliant formats.
-
-    Re-export from the CLI is not supported because it requires the original
-    Matplotlib ``Figure`` object.  This handler prints an actionable message
-    showing the equivalent Python call.
-
-    Args:
-        file: Path to the figure file (used only for display purposes).
-        journal: Journal identifier (used for the example snippet).
-        formats: Comma-separated output formats, or ``None`` for the journal
-            default.
-        author: Author surname for IEEE-style file naming, or ``None``.
-        output_dir: Target directory for exported files.
-
-    Returns
-    -------
-        ``0`` always (the message is informational, not an error).
-
-    Notes
-    -----
-        All parameters are accepted so that the argument parser can validate
-        them, even though the handler itself uses only *journal* in its output.
-        This preserves forward compatibility if re-export support is added later.
-    """
-    # Suppress "unused variable" warnings from linters; the parameters are
-    # intentionally accepted for API stability but not yet used in output.
-    _ = file, formats, author, output_dir
+    """Print a tailored Python snippet for re-exporting the figure."""
+    stem = Path(file).stem
+    kwargs: list[str] = [f"journal={journal!r}"]
+    if formats:
+        fmt_list = [f.strip() for f in formats.split(",")]
+        kwargs.append(f"formats={fmt_list!r}")
+    if author:
+        kwargs.append(f"author_surname={author!r}")
+    if output_dir != ".":
+        kwargs.append(f"output_dir={output_dir!r}")
 
     print(
         "Re-export requires the original Matplotlib Figure object.\n"
         "Use plotstyle.export_submission(fig, ...) in Python.\n\n"
         "Example:\n"
         "  import plotstyle\n"
-        f"  plotstyle.export_submission(fig, 'fig1', journal={journal!r})"
+        f"  plotstyle.export_submission(fig, {stem!r}, {', '.join(kwargs)})"
     )
     return 0
 
@@ -333,16 +190,7 @@ def _cmd_export(
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    """Construct and return the top-level argument parser.
-
-    Factored out of :func:`main` so that the parser can be instantiated in
-    tests without invoking :func:`sys.exit`.
-
-    Returns
-    -------
-        A fully configured :class:`~argparse.ArgumentParser` with all
-        sub-commands registered.
-    """
+    """Build and return the top-level argument parser with all sub-commands."""
     parser = argparse.ArgumentParser(
         prog="plotstyle",
         description="PlotStyle — journal-compliant Matplotlib figure toolkit",
@@ -354,19 +202,17 @@ def _build_parser() -> argparse.ArgumentParser:
             "  plotstyle diff nature ieee\n"
             "  plotstyle fonts --journal science\n"
             "  plotstyle validate figure1.pdf --journal nature\n"
-            "  plotstyle export figure1.png --journal ieee --formats pdf,eps"
+            "  plotstyle export figure1.png --journal ieee --formats pdf,eps  # prints snippet"
         ),
     )
 
     subparsers = parser.add_subparsers(dest="command", metavar="<command>")
 
-    # ── plotstyle list ────────────────────────────────────────────────────
     subparsers.add_parser(
         "list",
         help="List all available journal presets",
     )
 
-    # ── plotstyle info <journal> ──────────────────────────────────────────
     sub_info = subparsers.add_parser(
         "info",
         help="Show detailed specification for a journal",
@@ -377,7 +223,6 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Journal identifier (e.g., 'nature', 'ieee')",
     )
 
-    # ── plotstyle diff <journal_a> <journal_b> ────────────────────────────
     sub_diff = subparsers.add_parser(
         "diff",
         help="Compare two journal specifications side-by-side",
@@ -385,7 +230,6 @@ def _build_parser() -> argparse.ArgumentParser:
     sub_diff.add_argument("journal_a", type=str, help="First journal identifier")
     sub_diff.add_argument("journal_b", type=str, help="Second journal identifier")
 
-    # ── plotstyle fonts --journal <journal> ───────────────────────────────
     sub_fonts = subparsers.add_parser(
         "fonts",
         help="Check font availability for a journal on this system",
@@ -398,7 +242,6 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Journal identifier",
     )
 
-    # ── plotstyle validate <file> --journal <journal> ─────────────────────
     sub_validate = subparsers.add_parser(
         "validate",
         help="Validate a saved figure file against a journal specification",
@@ -416,15 +259,20 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Journal identifier",
     )
 
-    # ── plotstyle export <file> --journal <journal> ───────────────────────
     sub_export = subparsers.add_parser(
         "export",
-        help="Re-export a figure in journal-compliant formats (see note)",
+        help="Print a Python snippet for re-exporting a figure in journal-compliant formats",
+        description=(
+            "Prints a ready-to-run Python snippet that calls "
+            "plotstyle.export_submission() with the requested settings. "
+            "No file is created — re-export requires the original Matplotlib "
+            "Figure object, which cannot be recovered from a saved file."
+        ),
     )
     sub_export.add_argument(
         "file",
         type=str,
-        help="Path to the figure file",
+        help="Path to the figure file (used to derive the output stem)",
     )
     sub_export.add_argument(
         "--journal",
@@ -438,7 +286,7 @@ def _build_parser() -> argparse.ArgumentParser:
         type=str,
         default=None,
         metavar="FMT,...",
-        help="Comma-separated output formats (default: journal preferred formats)",
+        help="Comma-separated output formats to include in the generated snippet",
     )
     sub_export.add_argument(
         "--author",
@@ -452,7 +300,7 @@ def _build_parser() -> argparse.ArgumentParser:
         type=str,
         default=".",
         metavar="DIR",
-        help="Directory for exported files (default: current directory)",
+        help="Output directory to include in the generated snippet (default: current directory)",
     )
 
     return parser
@@ -464,41 +312,17 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Entry point for the ``plotstyle`` console command.
+    """Parse arguments and dispatch to the appropriate sub-command handler.
 
-    Parses *argv* (or ``sys.argv[1:]`` when *argv* is ``None``), dispatches
-    to the appropriate ``_cmd_*`` handler, and returns a POSIX exit code.
-    All :exc:`KeyError` exceptions — which indicate an unrecognised journal
-    identifier — are caught here and reported to ``stderr`` with an
-    actionable suggestion.
-
-    Args:
-        argv: Argument list to parse.  Pass ``None`` (the default) to use
-            ``sys.argv[1:]``, or supply a list explicitly for testing.
+    Parameters
+    ----------
+    argv : list[str] | None
+        Argument list to parse.  ``None`` falls back to ``sys.argv[1:]``.
 
     Returns
     -------
-        ``0`` on success; ``1`` on any error (unknown journal, file not
-        found, or no sub-command given).
-
-    Example:
-        >>> from plotstyle.cli.main import main
-        >>> main(["list"])
-        0
-        >>> main(["info", "nature"])
-        0
-        >>> main([])
-        1
-
-    Notes
-    -----
-        - Only :exc:`~plotstyle.specs.SpecNotFoundError` is caught; all other
-          exceptions propagate so that unexpected errors produce a full
-          traceback rather than a misleading one-line message.
-        - :func:`main` is the value of the ``plotstyle`` console-script entry
-          point; it must never call :func:`sys.exit` directly — callers
-          (including the ``if __name__ == "__main__"`` guard below) are
-          responsible for passing the return value to :class:`SystemExit`.
+    int
+        POSIX exit code: ``0`` on success, ``1`` on error or unknown command.
     """
     parser = _build_parser()
     args = parser.parse_args(argv)
@@ -533,8 +357,6 @@ def main(argv: list[str] | None = None) -> int:
             )
 
     except SpecNotFoundError as exc:
-        # SpecNotFoundError is raised by registry.get() for unknown journal identifiers.
-        # Extract the journal name from the exception for a clearer message.
         print(
             f"Error: unknown journal {exc.name!r}.\n"
             "Run 'plotstyle list' to see all available journal identifiers.",
@@ -542,9 +364,6 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
-    # Defensive fallthrough: should be unreachable if all sub-commands are
-    # dispatched above, but guards against future parser additions where the
-    # dispatch block is not updated.
     print(f"Error: unhandled command {args.command!r}.", file=sys.stderr)
     return 1
 

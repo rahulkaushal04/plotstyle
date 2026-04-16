@@ -1,6 +1,6 @@
 # Grayscale — `plotstyle.color.grayscale`
 
-Grayscale simulation and luminance analysis for IEEE/print compliance.
+Grayscale simulation and luminance analysis for print safety checks.
 
 ## `preview_grayscale`
 
@@ -37,8 +37,8 @@ colors = ["#e41a1c", "#377eb8", "#4daf4a"]
 print(is_grayscale_safe(colors, threshold=0.1))  # True or False
 ```
 
-The default `threshold=0.1` means every pair of colours must differ by at
-least 10% of the full luminance range. For stricter workflows, use `0.15`.
+The default `threshold=0.1` requires every pair of colours to differ by at
+least 10% of the full luminance range. Use `0.15` for stricter workflows.
 
 ### Inspect pairwise luminance differences
 
@@ -50,7 +50,7 @@ for idx_a, idx_b, delta in pairs:
     print(f"Pair ({idx_a}, {idx_b}): delta = {delta:.3f}")
 ```
 
-Results are sorted ascending by delta — the most problematic pair comes first.
+Results are sorted ascending — the most problematic pair comes first.
 
 ### Visual grayscale preview
 
@@ -65,10 +65,15 @@ comp = preview_grayscale(fig)
 comp.savefig("grayscale_preview.png", dpi=150)
 ```
 
-Creates a side-by-side `[Original | Grayscale]` comparison figure.
+Creates a side-by-side `[Original | Grayscale]` comparison.
+
+**Output:**
+
+![Grayscale preview — original vs grayscale](../images/accessibility_grayscale.png)
 
 ## Notes
 
-- Luminance is computed using ITU-R BT.709 coefficients:
+- Luminance uses ITU-R BT.709 coefficients:
   $L = 0.2126 R + 0.7152 G + 0.0722 B$
-- The source figure is never modified. `preview_grayscale()` returns a new figure.
+- The source figure is never modified. `preview_grayscale()` returns a new
+  figure.

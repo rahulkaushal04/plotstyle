@@ -57,10 +57,10 @@ Each spec is stored as a validated TOML file and loaded on demand via the
 import plotstyle
 
 # Apply a journal's style
-with plotstyle.use("nature"):
-    fig, ax = plotstyle.figure("nature", columns=1)
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure(columns=1)
     ax.plot([1, 2, 3])
-    plotstyle.savefig(fig, "figure.pdf", journal="nature")
+    style.savefig(fig, "figure.pdf")
 ```
 
 ## Inspect a spec programmatically

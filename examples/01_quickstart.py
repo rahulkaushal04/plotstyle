@@ -20,9 +20,9 @@ OUTPUT_DIR = Path(__file__).parent / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 # The context manager restores all modified rcParams when the block exits.
-with plotstyle.use("nature"):
+with plotstyle.use("nature") as style:
     # columns=1 → single-column width (89 mm); use columns=2 for full width
-    fig, ax = plotstyle.figure("nature", columns=1)
+    fig, ax = style.figure(columns=1)
 
     x = np.linspace(0, 2 * np.pi, 200)
     ax.plot(x, np.sin(x), label="sin(x)")
@@ -31,7 +31,7 @@ with plotstyle.use("nature"):
     ax.set_ylabel("Amplitude (a.u.)")
     ax.legend()
 
-    # journal="nature" enforces DPI >= 300 and embeds TrueType fonts
-    plotstyle.savefig(fig, OUTPUT_DIR / "quickstart_nature.pdf", journal="nature")
+    # Enforces DPI >= 300 and embeds TrueType fonts
+    style.savefig(fig, OUTPUT_DIR / "quickstart_nature.pdf")
 
 plt.close(fig)

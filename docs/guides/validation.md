@@ -1,21 +1,20 @@
 # Pre-Submission Validation
 
-This guide shows how to validate your figures against a journal's
-requirements before submitting.
+How to check your figures against a journal's requirements before submitting.
 
 ## Run validation
 
 ```python
 import plotstyle
 
-with plotstyle.use("nature"):
-    fig, ax = plotstyle.figure("nature")
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure()
     ax.plot([1, 2, 3], [4, 5, 6])
 
-    report = plotstyle.validate(fig, journal="nature")
+    report = style.validate(fig)
 ```
 
-## Interpret results
+## Check results
 
 ### Quick pass/fail
 
@@ -32,16 +31,16 @@ else:
 print(report)
 ```
 
-Output looks like:
+Example output:
 
 ```
 ┌──────────────────────────────────────────────────────┐
 │      PlotStyle Validation Report — Nature            │
 ├──────────┬───────────────────────────────────────────┤
-│ ✓ PASS   │ Figure width: 89.0mm (single column)      │
-│ ✓ PASS   │ Height within max allowed (247.0mm)        │
-│ ✗ FAIL   │ Font size 4pt below minimum 5pt            │
-│ ✓ PASS   │ Line weights OK                            │
+│ PASS     │ Figure width: 89.0mm (single column)      │
+│ PASS     │ Height within max allowed (247.0mm)        │
+│ FAIL     │ Font size 4pt below minimum 5pt            │
+│ PASS     │ Line weights OK                            │
 └──────────┴───────────────────────────────────────────┘
 3/4 checks passed, 0 warning(s), 1 failure(s)
 ```
@@ -53,69 +52,63 @@ for failure in report.failures:
     print(f"Check:  {failure.check_name}")
     print(f"Issue:  {failure.message}")
     print(f"Fix:    {failure.fix_suggestion}")
-    print()
 ```
 
 Each `CheckResult` has:
 
 - `status` — `PASS`, `FAIL`, or `WARN`
-- `check_name` — dot-namespaced identifier (e.g. `dimensions.width`)
-- `message` — human-readable description
-- `fix_suggestion` — actionable fix (for FAIL/WARN)
+- `check_name` — dot-namespaced id (e.g. `dimensions.width`)
+- `message` — what the check found
+- `fix_suggestion` — how to fix it (for FAIL/WARN)
 
 ### Warnings vs failures
 
-`WARN` results are advisory — they don't affect `report.passed`:
+`WARN` results are advisory and don't affect `report.passed`:
 
 ```python
 print(report.passed)     # True even if warnings exist
-print(report.warnings)   # list of WARN results
-print(report.failures)   # list of FAIL results only
+print(report.warnings)   # advisory issues
+print(report.failures)   # blocking issues only
 ```
 
 ## Serialize to dict
 
-For programmatic pipelines or CI integration:
+For use in pipelines or CI:
 
 ```python
 data = report.to_dict()
 # {
 #     "journal": "Nature",
 #     "passed": True,
-#     "checks": [
-#         {"status": "PASS", "check_name": "dimensions.width", ...},
-#         ...
-#     ]
+#     "checks": [{"status": "PASS", "check_name": "dimensions.width", ...}, ...]
 # }
 ```
 
-## Validate in CI
-
-A minimal CI check:
+## Use in CI
 
 ```python
 import sys
 import plotstyle
 
-with plotstyle.use("nature"):
-    fig, ax = plotstyle.figure("nature")
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure()
     # ... compose figure ...
 
-    report = plotstyle.validate(fig, journal="nature")
+    report = style.validate(fig)
     if not report.passed:
         print(report, file=sys.stderr)
         sys.exit(1)
 ```
 
-## What gets validated
+## What gets checked
 
-| Category | Checks |
-|----------|--------|
-| Dimensions | Figure width/height vs journal column widths and max height |
-| Typography | All text elements within min/max font size range |
+| Category | What's checked |
+|----------|----------------|
+| Dimensions | Figure width/height vs. journal column widths and max height |
+| Typography | All text elements within the journal's font size range |
 | Lines | Stroke weights above journal minimum |
-| Colours | Avoided combinations (e.g. red-green), colorblind and grayscale compliance |
-| Export | DPI, format, and font embedding requirements |
+| Colours | Avoided combinations, colorblind and grayscale compliance |
+| Export | DPI and font embedding requirements |
 
 All checks run in a single pass. There is no way to skip individual checks
 via the public `validate()` API.

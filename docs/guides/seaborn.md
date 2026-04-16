@@ -1,7 +1,6 @@
 # Seaborn Integration
 
-This guide shows how to use PlotStyle with Seaborn without one library
-clobbering the other's settings.
+How to use PlotStyle with Seaborn without one overriding the other.
 
 ## The problem
 
@@ -11,71 +10,43 @@ everything PlotStyle set.
 
 ## Solution 1: Automatic patch (recommended)
 
-Pass `seaborn_compatible=True` to `plotstyle.use()`. This monkey-patches
-`sns.set_theme` so that PlotStyle's rcParams are automatically reapplied after
-every Seaborn theme call:
+Pass `seaborn_compatible=True` to `plotstyle.use()`. This makes PlotStyle's
+settings survive any `sns.set_theme()` calls:
 
 ```python
 import plotstyle
 import seaborn as sns
 import pandas as pd
 
-df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [2, 4, 3, 5], "group": ["A", "A", "B", "B"]})
+df = pd.DataFrame({
+    "x": [1, 2, 3, 4],
+    "y": [2, 4, 3, 5],
+    "group": ["A", "A", "B", "B"],
+})
 
-with plotstyle.use("nature", seaborn_compatible=True):
-    sns.set_theme(style="ticks")
-    # PlotStyle rcParams are restored automatically ✓
+with plotstyle.use("nature", seaborn_compatible=True) as style:
+    sns.set_theme(style="ticks")   # PlotStyle settings are preserved
 
-    fig, ax = plotstyle.figure("nature")
+    fig, ax = style.figure()
     sns.scatterplot(data=df, x="x", y="y", hue="group", ax=ax)
-    plotstyle.savefig(fig, "seaborn_figure.pdf", journal="nature")
+    style.savefig(fig, "seaborn_figure.pdf")
 ```
 
-The patch is removed automatically when the `with` block exits.
+The patch is removed automatically when the `with` block ends.
 
 ## Solution 2: One-shot helper
 
-If you only call `sns.set_theme()` once (typical in scripts):
+If you only need to call `sns.set_theme()` once:
 
 ```python
 from plotstyle.integrations.seaborn import plotstyle_theme
 
 plotstyle_theme("nature", seaborn_style="ticks")
-# This applies the seaborn theme first, then layers PlotStyle params on top
-```
-
-## Solution 3: Manual control
-
-For advanced use cases, manage the patch lifecycle explicitly:
-
-```python
-from plotstyle.integrations.seaborn import (
-    capture_overrides,
-    patch_seaborn,
-    unpatch_seaborn,
-)
-from plotstyle.engine.rcparams import build_rcparams
-from plotstyle.specs import registry
-
-spec = registry.get("nature")
-params = build_rcparams(spec)
-
-capture_overrides(params)
-patch_seaborn()
-
-try:
-    import seaborn as sns
-    sns.set_theme(style="whitegrid")
-    # PlotStyle params survive ✓
-finally:
-    unpatch_seaborn()
+# Applies the seaborn theme first, then overlays PlotStyle settings
 ```
 
 ## Tips
 
-- Always apply `plotstyle.use()` **before** `sns.set_theme()` when using the
-  automatic patch.
-- The patch is **idempotent** — calling `patch_seaborn()` twice does not
-  double-wrap.
-- The patch is **not thread-safe**. Avoid concurrent calls from multiple
-  threads.
+- Apply `plotstyle.use()` **before** `sns.set_theme()` when using the patch.
+- Calling `patch_seaborn()` more than once is safe — it won't double-wrap.
+- The patch is **not thread-safe**. Avoid concurrent use from multiple threads.

@@ -19,13 +19,13 @@ import plotstyle
 # Box-drawing characters in the report table require UTF-8 output.
 sys.stdout.reconfigure(encoding="utf-8")
 
-with plotstyle.use("nature"):
-    fig, ax = plotstyle.figure("nature", columns=1)
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure(columns=1)
     ax.plot(np.arange(10), np.random.default_rng(0).normal(0, 1, 10))
     ax.set_xlabel("Sample")
     ax.set_ylabel("Measurement")
 
-    report = plotstyle.validate(fig, journal="nature")
+    report = style.validate(fig)
 
     # Human-readable table (uses box-drawing characters)
     print(report)

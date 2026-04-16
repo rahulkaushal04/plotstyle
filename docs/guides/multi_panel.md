@@ -1,7 +1,6 @@
 # Multi-Panel Figures
 
-This guide shows how to create multi-panel figures with automatic panel labels
-that match your target journal's conventions.
+How to create multi-panel figures with automatic panel labels.
 
 ## Basic 2×2 grid
 
@@ -9,8 +8,8 @@ that match your target journal's conventions.
 import numpy as np
 import plotstyle
 
-with plotstyle.use("science"):
-    fig, axes = plotstyle.subplots("science", nrows=2, ncols=2, columns=2)
+with plotstyle.use("science") as style:
+    fig, axes = style.subplots(nrows=2, ncols=2, columns=2)
 
     x = np.linspace(0, 2 * np.pi, 100)
 
@@ -26,69 +25,82 @@ with plotstyle.use("science"):
     axes[1, 1].plot(x, np.cos(2 * x))
     axes[1, 1].set_ylabel("cos(2x)")
 
-    plotstyle.savefig(fig, "multi_panel.pdf", journal="science")
+    style.savefig(fig, "multi_panel.pdf")
 ```
 
-Each panel is automatically labelled in the style dictated by the journal spec
-(for Science: **A**, **B**, **C**, **D**; for Nature: **a**, **b**, **c**, **d**).
+Panel labels are added automatically. For Science that's **A**, **B**, **C**,
+**D**; for Nature it's **a**, **b**, **c**, **d**.
+
+**Output:**
+
+![2x2 multi-panel figure styled for Science](../images/multi_panel_science.png)
 
 ## Panel label styles by journal
-
-Different journals use different label conventions:
 
 | Journal | Style | Example |
 |---------|-------|---------|
 | Nature | bold lowercase | a, b, c |
 | Science | bold uppercase | A, B, C |
-| IEEE | normal parenthesised lowercase | (a), (b), (c) |
+| IEEE | parenthesised lowercase | (a), (b), (c) |
 | Cell | bold uppercase | A, B, C |
 | ACS | bold lowercase | a, b, c |
 
-PlotStyle handles this automatically based on the journal spec's
-`panel_label_case` field.
+PlotStyle picks the right style automatically from the journal spec.
 
-## Suppress panel labels
+## Turn off panel labels
 
 If you want to manage labels yourself:
 
 ```python
-fig, axes = plotstyle.subplots("nature", nrows=1, ncols=3, panels=False)
+fig, axes = style.subplots(nrows=1, ncols=3, panels=False)
 ```
 
 ## Single-column vs double-column
 
 ```python
-# Narrow (single column) — fits in the text column
-fig, axes = plotstyle.subplots("nature", nrows=1, ncols=2, columns=1)
+# Single-column — fits within one text column
+fig, axes = style.subplots(nrows=1, ncols=2, columns=1)
 
-# Wide (double column) — spans the full page width
-fig, axes = plotstyle.subplots("nature", nrows=1, ncols=2, columns=2)
+# Double-column — spans the full page width
+fig, axes = style.subplots(nrows=1, ncols=2, columns=2)
 ```
 
 ## Custom aspect ratio
 
-The default aspect ratio is the golden ratio (φ ≈ 1.618). For square panels:
+The default aspect ratio is the golden ratio (≈ 1.618). For square panels:
 
 ```python
-fig, axes = plotstyle.subplots("nature", nrows=2, ncols=2, aspect=1.0)
+fig, axes = style.subplots(nrows=2, ncols=2, aspect=1.0)
 ```
 
 ## Iterating over axes
 
-`subplots()` always returns a 2-D ndarray, even for single-panel figures:
+`subplots()` always returns a 2-D ndarray, even for single-row layouts. This
+lets you use `axes[i, j]` indexing and `axes.flat` iteration consistently:
 
 ```python
-fig, axes = plotstyle.subplots("nature", nrows=2, ncols=3)
+fig, axes = style.subplots(nrows=2, ncols=3)
 
-# Flat iteration
+# Flat iteration — works for any shape
 for ax in axes.flat:
     ax.plot([1, 2, 3])
 
 # Indexed access
 axes[0, 0].set_title("Top-left")
 axes[1, 2].set_title("Bottom-right")
+```
 
-# Single-panel case
-fig, axes = plotstyle.subplots("nature", nrows=1, ncols=1)
-ax = axes[0, 0]  # always use indexing
+### Matplotlib-compatible mode (`squeeze=True`)
+
+Pass `squeeze=True` to drop size-1 dimensions, matching `plt.subplots()`:
+
+```python
+# nrows=1, ncols=3 → axes is a 1-D array of length 3
+fig, axes = style.subplots(nrows=1, ncols=3, squeeze=True)
+for ax in axes:
+    ax.plot([1, 2, 3])
+
+# nrows=1, ncols=1 → axes is a bare Axes object
+fig, ax = style.subplots(nrows=1, ncols=1, squeeze=True)
+ax.plot([1, 2, 3])
 ```

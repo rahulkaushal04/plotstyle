@@ -1,7 +1,6 @@
 # CLI Reference
 
-PlotStyle includes a command-line interface for quick access to common
-workflows without writing Python scripts.
+PlotStyle includes a command-line tool for common tasks without writing Python.
 
 ## Commands
 
@@ -25,7 +24,7 @@ $ plotstyle list
 
 ### `plotstyle info <journal>`
 
-Show detailed specification for a journal:
+Show full specification for a journal:
 
 ```bash
 $ plotstyle info nature
@@ -54,7 +53,7 @@ Accessibility:
 
 ### `plotstyle diff <journal_a> <journal_b>`
 
-Compare two journal specifications side-by-side:
+Compare two journal specs:
 
 ```bash
 $ plotstyle diff nature ieee
@@ -68,7 +67,7 @@ Min Font Size:          5.0pt → 8.0pt
 
 ### `plotstyle fonts --journal <journal>`
 
-Check whether the required fonts are available on your system:
+Check whether the fonts required by a journal are installed on your system:
 
 ```bash
 $ plotstyle fonts --journal nature
@@ -84,7 +83,9 @@ $ plotstyle validate figure1.pdf --journal nature
 
 ### `plotstyle export <file> --journal <journal>`
 
-Re-export a figure in the journal's required formats:
+Prints a Python snippet you can run to re-export a figure in the journal's
+required formats. No files are created — re-exporting requires the original
+Matplotlib `Figure` object, which cannot be recovered from a saved file.
 
 ```bash
 $ plotstyle export figure1.png --journal ieee --formats pdf,eps
@@ -92,5 +93,5 @@ $ plotstyle export figure1.png --journal ieee --formats pdf,eps
 
 ## Exit codes
 
-All commands return `0` on success and `1` on error, following POSIX
+All commands return `0` on success and `1` on error, following standard POSIX
 conventions for use in shell scripts and CI pipelines.

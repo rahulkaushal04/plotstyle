@@ -1052,18 +1052,6 @@ class TestMigrate:
 
     @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.PlotStyleWarning")
     @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
-    def test_migrate_updates_rcparams(self, nature_fig: plt.Figure) -> None:
-        """
-        Description: migrate must update mpl.rcParams with target journal's params.
-        Scenario: Check a known rcParam after migration.
-        Expectation: savefig.dpi matches target journal's min_dpi.
-        """
-        migrate(nature_fig, from_journal="nature", to_journal="ieee")
-        ieee_spec = registry.get("ieee")
-        assert mpl.rcParams["savefig.dpi"] == ieee_spec.export.min_dpi
-
-    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.PlotStyleWarning")
-    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
     def test_migrate_chaining(self, nature_fig: plt.Figure) -> None:
         """
         Description: migrate returns the figure for call chaining.

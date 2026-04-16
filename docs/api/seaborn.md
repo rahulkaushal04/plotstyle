@@ -1,6 +1,6 @@
 # Seaborn Integration — `plotstyle.integrations.seaborn`
 
-Compatibility layer ensuring PlotStyle's rcParams survive `sns.set_theme()`.
+Keeps PlotStyle's rcParams intact when `sns.set_theme()` is called.
 
 ## `plotstyle_theme`
 
@@ -20,61 +20,46 @@ Compatibility layer ensuring PlotStyle's rcParams survive `sns.set_theme()`.
 .. autofunction:: plotstyle.integrations.seaborn.unpatch_seaborn
 ```
 
-## `capture_overrides`
-
-```{eval-rst}
-.. autofunction:: plotstyle.integrations.seaborn.capture_overrides
-```
-
-## `reapply_overrides`
-
-```{eval-rst}
-.. autofunction:: plotstyle.integrations.seaborn.reapply_overrides
-```
-
 ## The problem
 
 Both PlotStyle and Seaborn write to `matplotlib.rcParams`. When you call
-`sns.set_theme()`, Seaborn resets everything it knows about — including the
-journal-specific fonts, sizes, and line widths that PlotStyle set. This module
-solves that conflict.
+`sns.set_theme()`, Seaborn resets fonts, sizes, and line widths — undoing
+everything PlotStyle set. This module solves that conflict.
 
-## Two strategies
+## Recommended usage
 
-### Strategy 1: Automatic patch (persistent)
+### Automatic patch (via context manager)
 
-Use the `seaborn_compatible` flag on `plotstyle.use()`:
+The easiest approach — pass `seaborn_compatible=True` to `plotstyle.use()`:
 
 ```python
 import plotstyle
 import seaborn as sns
 
-with plotstyle.use("nature", seaborn_compatible=True):
+with plotstyle.use("nature", seaborn_compatible=True) as style:
     sns.set_theme(style="ticks")
-    # PlotStyle rcParams restored automatically after set_theme()
-    fig, ax = plotstyle.figure("nature")
+    # PlotStyle rcParams are reapplied automatically after set_theme()
+    fig, ax = style.figure()
     sns.scatterplot(data=df, x="x", y="y", ax=ax)
 ```
 
-This monkey-patches `sns.set_theme` for the duration of the `with` block. The
-original `set_theme` is restored when the block exits.
+The patch is removed when the `with` block ends.
 
-### Strategy 2: One-shot helper
+### One-shot helper
 
-For scripts where `sns.set_theme()` is called once:
+For scripts where `sns.set_theme()` is called once upfront:
 
 ```python
 from plotstyle.integrations.seaborn import plotstyle_theme
 
 plotstyle_theme("nature", seaborn_style="ticks")
-# Applies seaborn theme first, then layers PlotStyle params on top
+# Applies seaborn theme first, then overlays PlotStyle settings
 ```
 
 ## Notes
 
-- Seaborn is imported lazily. This module can be imported without seaborn
-  installed; `ImportError` is raised only when a function that requires it is
+- Seaborn is imported lazily — this module can be imported without seaborn
+  installed. `ImportError` is raised only when a function that requires it is
   called.
-- The patch is **not thread-safe**. Concurrent calls to `patch_seaborn` /
-  `unpatch_seaborn` from multiple threads may produce undefined state.
-- `patch_seaborn()` is idempotent — calling it twice does not double-wrap.
+- The patch is **not thread-safe**.
+- `patch_seaborn()` is idempotent — calling it more than once is safe.

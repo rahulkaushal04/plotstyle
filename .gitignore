@@ -157,3 +157,6 @@ celerybeat-schedule
 
 # secrets (just in case)
 secrets.json
+
+# local files
+local/

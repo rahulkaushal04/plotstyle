@@ -1,35 +1,7 @@
-"""Typography validation check — font size compliance.
+"""Typography validation check — font size compliance (internal, not part of public API).
 
-This module registers :func:`check_typography`, which verifies that every
-visible text element in a figure falls within the minimum and maximum font
-sizes specified by the target journal.
-
-Text elements inspected
------------------------
-- Figure-level text (``fig.texts`` — suptitle, annotations added directly to
-  the figure).
-- Axes titles (``ax.title``).
-- Axis labels (``ax.xaxis.label``, ``ax.yaxis.label``).
-- Tick labels (``ax.get_xticklabels()``, ``ax.get_yticklabels()``).
-- Legend text entries (from every legend attached to an axes).
-
-Empty and whitespace-only text artists are skipped because they contribute no
-visible content and should not be penalised for having a default font size that
-might fall outside the permitted range.
-
-Why font size matters
----------------------
-Journals enforce minimum font sizes (typically 6-7 pt) to ensure legibility
-after reduction to column width during typesetting.  Maximum sizes prevent
-labels from dominating the figure area and clashing with the journal's body
-text.
-
-Example
--------
-    >>> from plotstyle.validation.checks.typography import check_typography
-    >>> results = check_typography(fig, spec)
-    >>> results[0].check_name
-    'typography.font_size'
+Registers `check_typography` via the `check` decorator. Validates all visible
+text elements in a figure against the journal's permitted font-size range.
 """
 
 from __future__ import annotations
@@ -45,41 +17,27 @@ if TYPE_CHECKING:
 
     from plotstyle.specs.schema import JournalSpec
 
-# Maximum number of violation examples to include in the result message.
 _MAX_VIOLATION_EXAMPLES: int = 5
 
 
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
-
-
 def _gather_text_artists(fig: Figure) -> list[Text]:
-    """Collect all relevant :class:`~matplotlib.text.Text` artists from *fig*.
+    """Collect all Text artists from a figure.
 
-    Includes figure-level text and all per-axes text elements that carry
-    meaningful content labels: titles, axis labels, tick labels, and legend
-    entries.
+    Traverses the figure-level text objects, then for every axes collects
+    axis titles, axis labels, tick labels, and legend text items.
 
-    Args:
-        fig: The figure to inspect.
+    Parameters
+    ----------
+    fig : Figure
+        The figure to inspect.
 
     Returns
     -------
-        Flat list of :class:`~matplotlib.text.Text` instances in the order:
-        figure texts → (for each axes) title, x-label, y-label, x-tick
-        labels, y-tick labels, legend texts.
-
-    Notes
-    -----
-        - Axes with empty titles or labels are included; the caller
-          (:func:`check_typography`) is responsible for skipping
-          whitespace-only entries.
-        - The list may contain duplicates if an artist is somehow shared
-          across axes; in practice this does not occur in normal figure
-          construction.
+    list[Text]
+        Flat list of `Text` objects, including both visible and zero-length text
+        elements. The caller is responsible for filtering empty strings.
     """
-    texts: list[Text] = list(fig.texts)  # copy to avoid mutating fig.texts
+    texts: list[Text] = list(fig.texts)
 
     for ax in fig.get_axes():
         texts.append(ax.title)
@@ -95,54 +53,22 @@ def _gather_text_artists(fig: Figure) -> list[Text]:
     return texts
 
 
-# ---------------------------------------------------------------------------
-# Registered check
-# ---------------------------------------------------------------------------
-
-
 @check
 def check_typography(fig: Figure, spec: JournalSpec) -> list[CheckResult]:
-    """Validate all visible text elements against journal font size limits.
+    """Validate all visible text elements against the journal's font size range.
 
-    Gathers every :class:`~matplotlib.text.Text` artist in *fig* (via
-    :func:`_gather_text_artists`), skips empty/whitespace-only entries, and
-    checks whether each artist's font size is within
-    ``[spec.typography.min_font_pt, spec.typography.max_font_pt]``.
-
-    Args:
-        fig: The :class:`~matplotlib.figure.Figure` to inspect.  Should be
-            fully composed before calling (tick labels may not be finalised
-            until the figure is rendered or the layout engine has run).
-        spec: Journal specification providing ``typography.min_font_pt``,
-            ``typography.max_font_pt``, and ``metadata.name``.
+    Parameters
+    ----------
+    fig : Figure
+        The Matplotlib figure to validate.
+    spec : JournalSpec
+        The journal specification supplying min and max font size.
 
     Returns
     -------
-        A list containing exactly one :class:`~plotstyle.validation.report.CheckResult`
-        with check name ``"typography.font_size"``.  Status is:
-
-        - ``PASS`` — all non-empty text elements are within the allowed range.
-        - ``FAIL`` — one or more text elements fall outside the range, with
-          up to :data:`_MAX_VIOLATION_EXAMPLES` specific violations reported.
-
-    Example:
-        >>> import matplotlib.pyplot as plt
-        >>> fig, ax = plt.subplots()
-        >>> ax.set_xlabel("Time (s)", fontsize=4)  # below most minimums
-        >>> results = check_typography(fig, spec)
-        >>> results[0].is_failure
-        True
-
-    Notes
-    -----
-        - Font size is read via :meth:`~matplotlib.text.Text.get_fontsize`,
-          which returns the *effective* size in points after resolving any
-          relative size strings (``"small"``, ``"large"``, etc.).
-        - Tick labels are computed from the axes' locator/formatter when the
-          figure is drawn; calling this check before ``fig.canvas.draw()`` may
-          return empty tick-label strings, causing them to be skipped.  For
-          accurate tick-label validation, call ``fig.canvas.draw()`` or use
-          ``constrained_layout=True`` before validation.
+    list[CheckResult]
+        A single-element list with a ``PASS`` result when all text is
+        within range, or a ``FAIL`` result listing violating elements.
     """
     min_pt: float = spec.typography.min_font_pt
     max_pt: float = spec.typography.max_font_pt
@@ -152,7 +78,6 @@ def check_typography(fig: Figure, spec: JournalSpec) -> list[CheckResult]:
     for text in _gather_text_artists(fig):
         content = text.get_text()
 
-        # Skip artists that carry no visible content.
         if not content or not content.strip():
             continue
 

@@ -27,9 +27,9 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 # 1. Build a figure with multiple colored data series
 # ==============================================================================
 
-with plotstyle.use("nature"):
-    colors = plotstyle.palette("nature", n=4)
-    fig, ax = plotstyle.figure("nature", columns=1)
+with plotstyle.use("nature") as style:
+    colors = style.palette(n=4)
+    fig, ax = style.figure(columns=1)
     x = np.linspace(0, 5, 80)
     for i, c in enumerate(colors):
         ax.plot(x, np.sin(x + i), color=c, linewidth=1.5, label=f"Series {i + 1}")

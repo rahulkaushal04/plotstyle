@@ -32,14 +32,14 @@ print("Nature palette (4 colors):", colors)
 
 x = np.linspace(0, 6, 100)
 
-with plotstyle.use("nature"):
-    fig, ax = plotstyle.figure("nature", columns=1)
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure(columns=1)
     for i, color in enumerate(colors):
         ax.plot(x, np.sin(x + i * 0.5), color=color, label=f"Series {i + 1}")
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.legend()
-    plotstyle.savefig(fig, OUTPUT_DIR / "palette_basic.pdf", journal="nature")
+    style.savefig(fig, OUTPUT_DIR / "palette_basic.pdf")
     plt.close(fig)
 
 # ==============================================================================
@@ -50,8 +50,8 @@ with plotstyle.use("nature"):
 # Each series gets a unique combination of color, linestyle, and marker.
 styled = plotstyle.palette("ieee", n=4, with_markers=True)
 
-with plotstyle.use("ieee"):
-    fig, ax = plotstyle.figure("ieee", columns=1)
+with plotstyle.use("ieee") as style:
+    fig, ax = style.figure(columns=1)
     for i, (color, ls, marker) in enumerate(styled):
         ax.plot(
             x,
@@ -65,7 +65,7 @@ with plotstyle.use("ieee"):
     ax.set_xlabel("Time (ms)")
     ax.set_ylabel("Voltage (mV)")
     ax.legend()
-    plotstyle.savefig(fig, OUTPUT_DIR / "palette_styled_ieee.pdf", journal="ieee")
+    style.savefig(fig, OUTPUT_DIR / "palette_styled_ieee.pdf")
     plt.close(fig)
 
 # ==============================================================================

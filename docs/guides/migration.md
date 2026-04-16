@@ -1,11 +1,10 @@
 # Spec Diffing & Migration
 
-This guide demonstrates how to compare journal specs and migrate existing
-figures from one journal to another.
+How to compare journal specs and re-style a figure for a different journal.
 
 ## Compare two journals
 
-Use `plotstyle.diff()` to see exactly what differs between two journals:
+`plotstyle.diff()` shows exactly what differs between two journals:
 
 ```python
 import plotstyle
@@ -20,10 +19,15 @@ Output:
 Nature → IEEE Transactions
 ──────────────────────────────────────────────────
 Column Width (single):  89.0mm → 88.9mm
+Column Width (double):  183.0mm → 182.0mm
+Max Height:             247.0mm → 216.0mm
 Font Family:            Helvetica, Arial → Times New Roman, Times
 Min Font Size:          5.0pt → 8.0pt
 Max Font Size:          7.0pt → 10.0pt
+Panel Label Weight:     bold → normal
+Panel Label Case:       lower → parens_lower
 Min DPI:                300 → 600
+Preferred Formats:      tiff, pdf, eps → pdf, eps, png, tiff
 Grayscale Required:     No → Yes
 Min Line Weight:        0.25pt → 0.5pt
 ```
@@ -36,7 +40,7 @@ result = plotstyle.diff("nature", "science")
 if result:
     print(f"{len(result)} fields differ")
 else:
-    print("Specs are identical across all tracked fields")
+    print("Specs are identical")
 ```
 
 ### Serialize to JSON
@@ -57,8 +61,8 @@ import numpy as np
 import plotstyle
 
 # Create a Nature figure
-with plotstyle.use("nature"):
-    fig, ax = plotstyle.figure("nature")
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure()
     x = np.linspace(0, 10, 100)
     ax.plot(x, np.sin(x), label="sin(x)")
     ax.set_xlabel("Time (s)")
@@ -72,48 +76,31 @@ plotstyle.savefig(fig, "figure_ieee.pdf", journal="ieee")
 
 ### What migration does
 
-1. **Applies target rcParams** — fonts, sizes, line widths
-2. **Resizes the figure** — to the target journal's single-column width,
-   preserving the current aspect ratio
-3. **Rescales text** — all text artists are proportionally rescaled and clamped
-   to the target journal's allowed font-size range
+1. Applies the target journal's rcParams (fonts, sizes, line widths)
+2. Resizes the figure to the target's single-column width, keeping aspect ratio
+3. Rescales all text proportionally, clamped to the target's font-size range
 
 ### Migration warnings
 
-PlotStyle warns you about notable changes that may require manual attention:
+When notable changes are detected, PlotStyle prints warnings to guide you:
 
-- **Font family change**: e.g. Helvetica → Times New Roman. Update any
+- **Font family change** (e.g. Helvetica → Times New Roman) — update any
   hardcoded font references.
-- **Grayscale now required**: verify all colours remain distinguishable when
-  printed in grayscale.
-- **Increased DPI floor**: re-export at the higher resolution.
+- **Grayscale now required** — verify all colours are distinguishable in print.
+- **Increased DPI floor** — re-export at the higher resolution.
 
-```python
-import warnings
-from plotstyle._utils.warnings import PlotStyleWarning
-
-with warnings.catch_warnings(record=True) as caught:
-    warnings.simplefilter("always")
-    plotstyle.migrate(fig, from_journal="nature", to_journal="ieee")
-
-for w in caught:
-    if issubclass(w.category, PlotStyleWarning):
-        print(w.message)
-```
-
-## Workflow: diff, decide, migrate
+## Full workflow
 
 ```python
 # 1. See what changes
 diff = plotstyle.diff("nature", "science")
 print(diff)
 
-# 2. Decide if migration is appropriate
+# 2. Migrate if needed
 if diff:
-    # 3. Migrate
     plotstyle.migrate(fig, from_journal="nature", to_journal="science")
 
-    # 4. Validate the result
+    # 3. Validate the result
     report = plotstyle.validate(fig, journal="science")
     if not report.passed:
         for f in report.failures:
@@ -122,8 +109,14 @@ if diff:
 
 ## Notes
 
-- `migrate()` mutates the figure **in-place** and returns it (for call
-  chaining). Clone the figure first if you need to preserve the original.
-- `migrate()` calls `mpl.rcParams.update()` with the target journal's
-  rcParams. Wrap it in `plotstyle.use()` if you need the original state
-  restored afterwards.
+- `migrate()` modifies the figure **in-place**. Clone it first if you need
+  to keep the original:
+
+  ```python
+  import copy
+  fig_copy = copy.deepcopy(fig)
+  plotstyle.migrate(fig_copy, from_journal="nature", to_journal="ieee")
+  ```
+
+- `migrate()` applies the target journal's rcParams temporarily and restores
+  global state when it returns.

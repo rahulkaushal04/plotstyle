@@ -21,11 +21,11 @@ from plotstyle.color.palettes import (
     _MARKERS,
     JOURNAL_PALETTE_MAP,
     PaletteNotFoundError,
-    UnknownJournalError,
     _palette_cache,
     load_palette,
     palette,
 )
+from plotstyle.specs import SpecNotFoundError
 
 # ---------------------------------------------------------------------------
 # Shared constants and fixtures
@@ -76,11 +76,11 @@ class TestExceptionHierarchy:
 
     def test_unknown_journal_error_is_key_error(self) -> None:
         """
-        Description: UnknownJournalError must extend KeyError.
-        Scenario: Instantiate UnknownJournalError.
+        Description: SpecNotFoundError must extend KeyError.
+        Scenario: Instantiate SpecNotFoundError.
         Expectation: isinstance(KeyError) is True.
         """
-        err = UnknownJournalError("test")
+        err = SpecNotFoundError("test", available=[])
         assert isinstance(err, KeyError)
 
     def test_palette_not_found_catchable_as_os_error(self) -> None:
@@ -94,12 +94,12 @@ class TestExceptionHierarchy:
 
     def test_unknown_journal_catchable_as_lookup_error(self) -> None:
         """
-        Description: KeyError is a LookupError; UnknownJournalError must be too.
+        Description: KeyError is a LookupError; SpecNotFoundError must be too.
         Scenario: Catch as LookupError.
         Expectation: No uncaught exception.
         """
         with pytest.raises(LookupError):
-            raise UnknownJournalError("bad")
+            raise SpecNotFoundError("bad", available=[])
 
 
 # ---------------------------------------------------------------------------
@@ -378,14 +378,15 @@ class TestPalette:
         colors = palette("nature", n=4)
         assert len(colors) == 4
 
-    def test_palette_default_n_is_six(self) -> None:
+    def test_palette_default_n_returns_full_palette(self) -> None:
         """
-        Description: Default n must be 6.
+        Description: Default n must return all colours in the underlying palette.
         Scenario: palette('nature') without explicit n.
-        Expectation: len == 6.
+        Expectation: len equals the full palette size.
         """
         colors = palette("nature")
-        assert len(colors) == 6
+        base = load_palette(JOURNAL_PALETTE_MAP["nature"])
+        assert len(colors) == len(base)
 
     @pytest.mark.parametrize("n", [1, 2, 3, 5, 8, 10])
     def test_palette_various_n_values(self, n: int) -> None:
@@ -450,20 +451,20 @@ class TestPalette:
 
     def test_palette_unknown_journal_raises(self) -> None:
         """
-        Description: Unknown journal must raise UnknownJournalError.
+        Description: Unknown journal must raise SpecNotFoundError.
         Scenario: palette('nonexistent').
-        Expectation: UnknownJournalError raised.
+        Expectation: SpecNotFoundError raised.
         """
-        with pytest.raises(UnknownJournalError):
+        with pytest.raises(SpecNotFoundError):
             palette("nonexistent")
 
     def test_palette_unknown_journal_error_lists_known(self) -> None:
         """
         Description: Error message must list known journal identifiers.
-        Scenario: Trigger UnknownJournalError and inspect message.
+        Scenario: Trigger SpecNotFoundError and inspect message.
         Expectation: At least one known journal in the message.
         """
-        with pytest.raises(UnknownJournalError, match="nature"):
+        with pytest.raises(SpecNotFoundError, match="nature"):
             palette("fake_journal")
 
     def test_palette_unknown_journal_error_contains_input(self) -> None:
@@ -472,12 +473,12 @@ class TestPalette:
         Scenario: palette('FakeJournal').
         Expectation: 'FakeJournal' in str(error).
         """
-        with pytest.raises(UnknownJournalError, match="FakeJournal"):
+        with pytest.raises(SpecNotFoundError, match="FakeJournal"):
             palette("FakeJournal")
 
     def test_palette_unknown_journal_catchable_as_key_error(self) -> None:
         """
-        Description: UnknownJournalError must be catchable as KeyError.
+        Description: SpecNotFoundError must be catchable as KeyError.
         Scenario: Catch as KeyError.
         Expectation: No uncaught exception.
         """

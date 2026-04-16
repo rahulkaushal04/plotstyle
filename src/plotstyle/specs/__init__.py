@@ -15,7 +15,9 @@ Notes
 * Files whose name starts with an underscore (e.g. ``_base.toml``) are
   considered *private* and excluded from :meth:`SpecRegistry.list_available`.
 
-Example::
+Examples
+--------
+::
 
     from plotstyle.specs import registry
 
@@ -52,11 +54,12 @@ _SPECS_DIR: Final[Path] = Path(__file__).parent
 # ---------------------------------------------------------------------------
 
 
-class SpecNotFoundError(KeyError):
+class SpecNotFoundError(ValueError, KeyError):
     """Raised when a requested journal specification cannot be found.
 
-    Inherits from :class:`KeyError` so that existing ``except KeyError``
-    handlers continue to work without modification.
+    Inherits from :class:`ValueError` (semantically: bad user input) and
+    :class:`KeyError` (for backward compatibility with existing
+    ``except KeyError`` handlers).
 
     Attributes
     ----------
@@ -65,7 +68,9 @@ class SpecNotFoundError(KeyError):
     available
         Journal identifiers that *are* available at the time of the error.
 
-    Example::
+    Examples
+    --------
+    ::
 
         try:
             registry.get("unknown_journal")
@@ -77,10 +82,12 @@ class SpecNotFoundError(KeyError):
     def __init__(self, name: str, available: list[str]) -> None:
         self.name: str = name
         self.available: list[str] = available
-        # Build a human-friendly message while remaining a KeyError subclass
-        # so that existing ``except KeyError`` handlers still work.
-        available_str: str = ", ".join(available) if available else "(none)"
+        available_str = ", ".join(available) if available else "(none)"
         super().__init__(f"Unknown journal {name!r}. Available journals: {available_str}")
+
+    def __str__(self) -> str:
+        """Return the plain message, bypassing ``KeyError``'s ``repr()`` wrapping."""
+        return self.args[0]
 
 
 # ---------------------------------------------------------------------------
@@ -91,21 +98,25 @@ class SpecNotFoundError(KeyError):
 class SpecRegistry:
     """Registry for discovering, loading, and caching journal specifications.
 
-    TOML files are parsed **lazily** on first access via :meth:`get` and
+    TOML files are parsed **lazily** on first access via :meth:`~plotstyle.specs.SpecRegistry.get` and
     cached in an internal dictionary so that repeated lookups for the same
     journal incur no I/O or parsing overhead.
 
-    Args:
-        specs_dir: Directory that contains the ``*.toml`` spec files.
-            When ``None`` (the default), the package's own ``specs/``
-            directory is used.
+    Parameters
+    ----------
+    specs_dir
+        Directory that contains the ``*.toml`` spec files.
+        When ``None`` (the default), the package's own ``specs/``
+        directory is used.
 
     Notes
     -----
     ``__slots__`` is used to reduce per-instance memory overhead and to
     prevent accidental attribute assignment outside the defined interface.
 
-    Example::
+    Examples
+    --------
+    ::
 
         reg = SpecRegistry()
         reg.list_available()  # ['acs', 'ieee', 'nature', 'science']
@@ -130,44 +141,41 @@ class SpecRegistry:
         Parsed specs are cached after the first access — subsequent calls
         for the same name are free.
 
-        Args:
-            name: Journal identifier (e.g. ``"nature"``).
+        Parameters
+        ----------
+        name : str
+            Journal identifier (e.g. ``"nature"``).
 
         Returns
         -------
+        JournalSpec
             The fully-parsed :class:`~plotstyle.specs.schema.JournalSpec`
             instance.
 
         Raises
         ------
-            SpecNotFoundError: If no matching TOML file exists in the specs
-                directory.
-            TypeError: If *name* is not a string.
-
-        Example::
-
-            spec = registry.get("nature")
-            print(spec.dimensions.single_column_mm)  # 89.0
+        SpecNotFoundError
+            If no matching TOML file exists in the specs directory.
+        TypeError
+            If *name* is not a string.
         """
         if not isinstance(name, str):
             raise TypeError(f"Journal name must be a string, got {type(name).__name__!r}.")
 
-        key: str = name.lower()
+        key = name.lower()
 
-        # Fast path — spec already parsed and cached.
         try:
             return self._cache[key]
         except KeyError:
             pass
 
-        # Slow path — resolve the TOML file, parse, and populate the cache.
-        toml_path: Path = self._specs_dir / f"{key}.toml"
+        toml_path = self._specs_dir / f"{key}.toml"
 
         if not toml_path.is_file():
             raise SpecNotFoundError(name, available=self.list_available())
 
-        raw_data: dict[str, object] = load_toml(toml_path)
-        spec: JournalSpec = JournalSpec.from_toml(raw_data)
+        raw_data = load_toml(toml_path)
+        spec = JournalSpec.from_toml(raw_data)._with_key(key)
 
         self._cache[key] = spec
         return spec
@@ -180,19 +188,16 @@ class SpecRegistry:
 
         Returns
         -------
+        list[str]
             Alphabetically sorted list of spec names (file stems, lower-case).
 
         Raises
         ------
-            FileNotFoundError: If the specs directory is inaccessible.
-
-        Example::
-
-            registry.list_available()
-            # ['acs', 'ieee', 'nature', 'science']
+        FileNotFoundError
+            If the specs directory is inaccessible.
         """
         try:
-            entries: list[str] = sorted(
+            entries = sorted(
                 Path(entry.path).stem
                 for entry in os.scandir(self._specs_dir)
                 if entry.is_file()
@@ -210,29 +215,26 @@ class SpecRegistry:
         Useful when startup latency matters more than lazy loading — for
         example, in a CLI tool that accesses many specs in a tight loop.
 
-        Args:
-            names: Journal identifiers to preload.  When ``None``, **all**
-                available specs are loaded.
+        Parameters
+        ----------
+        names : list[str] | None
+            Journal identifiers to preload.  When ``None``, **all**
+            available specs are loaded.
 
         Raises
         ------
-            SpecNotFoundError: If any requested name does not correspond
-                to a TOML file in the specs directory.
-
-        Notes
-        -----
-        Delegation to :meth:`get` keeps validation and caching logic
-        centralised — this method adds no caching logic of its own.
+        SpecNotFoundError
+            If any requested name does not correspond
+            to a TOML file in the specs directory.
         """
-        targets: list[str] = names if names is not None else self.list_available()
+        targets = names if names is not None else self.list_available()
         for target in targets:
-            # Delegate to get() so validation and caching stay centralised.
             self.get(target)
 
     def clear_cache(self) -> None:
         """Discard all cached :class:`~plotstyle.specs.schema.JournalSpec` instances.
 
-        Subsequent calls to :meth:`get` will re-read from disk and re-parse.
+        Subsequent calls to :meth:`~plotstyle.specs.SpecRegistry.get` will re-read from disk and re-parse.
         Primarily useful during testing or after the specs directory has been
         modified at runtime.
         """
@@ -245,33 +247,24 @@ class SpecRegistry:
     def __contains__(self, name: str) -> bool:
         """Check whether a journal specification is available.
 
-        Args:
-            name: Journal identifier to test.  Case-insensitive.
+        Parameters
+        ----------
+        name : str
+            Journal identifier to test.  Case-insensitive.
 
         Returns
         -------
+        bool
             ``True`` if a spec with the given name exists in the cache or
             has a corresponding TOML file on disk.
-
-        Example::
-
-            "nature" in registry  # True
-            "unknown" in registry  # False
         """
-        key: str = name.lower()
-        # Check cache first to avoid a filesystem call when already loaded.
+        key = name.lower()
         if key in self._cache:
             return True
         return (self._specs_dir / f"{key}.toml").is_file()
 
     def __len__(self) -> int:
-        """Return the total number of discoverable spec files on disk.
-
-        Returns
-        -------
-            Count of ``*.toml`` files in the specs directory that do not
-            start with an underscore.
-        """
+        """Return the number of discoverable non-private spec files on disk."""
         return len(self.list_available())
 
     def __repr__(self) -> str:
@@ -279,26 +272,16 @@ class SpecRegistry:
 
         Returns
         -------
+        str
             A string of the form
             ``<SpecRegistry specs_dir='...' cached=N/M>``.
         """
-        cached: int = len(self._cache)
-        total: int = len(self)
+        cached = len(self._cache)
+        total = len(self)
         return f"<{type(self).__name__} specs_dir={str(self._specs_dir)!r} cached={cached}/{total}>"
 
 
 # ---------------------------------------------------------------------------
 # Module-level singleton
 # ---------------------------------------------------------------------------
-
-#: Module-level registry singleton used throughout the *plotstyle* library.
-#:
-#: Import this directly rather than instantiating :class:`SpecRegistry`
-#: unless you need a non-default specs directory.
-#:
-#: Example::
-#:
-#:     from plotstyle.specs import registry
-#:
-#:     spec = registry.get("ieee")
 registry: Final[SpecRegistry] = SpecRegistry()
