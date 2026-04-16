@@ -161,8 +161,8 @@ class JournalStyle:
     ) -> tuple[Figure, Axes]:
         """Create a figure sized to this journal's column width.
 
-        Delegates to :func:`plotstyle.figure` with the journal key bound
-        from this style handle.  All keyword arguments are forwarded.
+        Delegates to :func:`~plotstyle.core.figure.figure` with the journal key
+        bound from this style handle.  All keyword arguments are forwarded.
 
         Parameters
         ----------
@@ -194,8 +194,8 @@ class JournalStyle:
     ) -> PaletteResult:
         """Return *n* colours from this journal's recommended palette.
 
-        Delegates to :func:`plotstyle.palette` with the journal key bound
-        from this style handle.
+        Delegates to :func:`~plotstyle.color.palettes.palette` with the journal
+        key bound from this style handle.
 
         Parameters
         ----------
@@ -219,8 +219,8 @@ class JournalStyle:
     def validate(self, fig: Figure) -> ValidationReport:
         """Validate *fig* against this journal's publication specification.
 
-        Delegates to :func:`plotstyle.validate` with the journal key bound
-        from this style handle.
+        Delegates to :func:`~plotstyle.validation.validate` with the journal
+        key bound from this style handle.
 
         Parameters
         ----------
@@ -248,8 +248,8 @@ class JournalStyle:
     ) -> tuple[Figure, np.ndarray | Axes]:
         """Create a multi-panel figure sized to this journal's column width.
 
-        Delegates to :func:`plotstyle.subplots` with the journal key bound
-        from this style handle.
+        Delegates to :func:`~plotstyle.core.figure.subplots` with the journal
+        key bound from this style handle.
 
         Parameters
         ----------
@@ -305,9 +305,9 @@ class JournalStyle:
     ) -> None:
         """Save *fig* with this journal's DPI and export settings.
 
-        Delegates to :func:`plotstyle.savefig` with the journal key bound
-        from this style handle.  All extra keyword arguments are forwarded
-        to :meth:`~matplotlib.figure.Figure.savefig`.
+        Delegates to :func:`~plotstyle.core.export.savefig` with the journal
+        key bound from this style handle.  All extra keyword arguments are
+        forwarded to :meth:`~matplotlib.figure.Figure.savefig`.
 
         Parameters
         ----------
@@ -339,8 +339,8 @@ class JournalStyle:
     ) -> list[Path]:
         """Export *fig* in multiple formats for journal submission.
 
-        Delegates to :func:`plotstyle.export_submission` with the journal
-        key bound from this style handle.
+        Delegates to :func:`~plotstyle.core.export.export_submission` with the
+        journal key bound from this style handle.
 
         Parameters
         ----------

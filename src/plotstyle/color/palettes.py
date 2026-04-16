@@ -76,8 +76,8 @@ def load_palette(name: str) -> list[str]:
     Parameters
     ----------
     name : str
-        Palette key matching a JSON file stem in :data:`_DATA_DIR`
-        (e.g. ``"okabe_ito"``, ``"tol_bright"``).
+        Palette key matching a JSON file stem in the bundled ``color/data/``
+        directory (e.g. ``"okabe_ito"``, ``"tol_bright"``).
 
     Returns
     -------
@@ -87,7 +87,7 @@ def load_palette(name: str) -> list[str]:
     Raises
     ------
     PaletteNotFoundError
-        If no JSON file matching *name* exists in :data:`_DATA_DIR`.
+        If no JSON file matching *name* exists in the bundled data directory.
     """
     if name in _palette_cache:
         return _palette_cache[name]

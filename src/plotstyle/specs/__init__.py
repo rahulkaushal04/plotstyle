@@ -98,7 +98,7 @@ class SpecNotFoundError(ValueError, KeyError):
 class SpecRegistry:
     """Registry for discovering, loading, and caching journal specifications.
 
-    TOML files are parsed **lazily** on first access via :meth:`get` and
+    TOML files are parsed **lazily** on first access via :meth:`~plotstyle.specs.SpecRegistry.get` and
     cached in an internal dictionary so that repeated lookups for the same
     journal incur no I/O or parsing overhead.
 
@@ -234,7 +234,7 @@ class SpecRegistry:
     def clear_cache(self) -> None:
         """Discard all cached :class:`~plotstyle.specs.schema.JournalSpec` instances.
 
-        Subsequent calls to :meth:`get` will re-read from disk and re-parse.
+        Subsequent calls to :meth:`~plotstyle.specs.SpecRegistry.get` will re-read from disk and re-parse.
         Primarily useful during testing or after the specs directory has been
         modified at runtime.
         """
