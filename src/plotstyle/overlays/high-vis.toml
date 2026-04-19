@@ -1,0 +1,13 @@
+[metadata]
+name = "High Visibility"
+category = "context"
+description = "Maximum contrast, bold lines, and oversized ticks for projected displays."
+
+[rcparams]
+"lines.linewidth" = 3.0
+"axes.linewidth" = 2.0
+"xtick.major.size" = 8.0
+"ytick.major.size" = 8.0
+"xtick.major.width" = 2.0
+"ytick.major.width" = 2.0
+"font.weight" = "bold"

@@ -410,6 +410,36 @@ def _snapshot_rcparams(keys: dict[str, Any]) -> dict[str, Any]:
     return {key: mpl.rcParams[key] for key in keys if key in mpl.rcParams}
 
 
+def _warn_if_overlay_oversizes_journal(
+    spec: JournalSpec,
+    overlays: list[StyleOverlay],
+) -> None:
+    """Emit :class:`~plotstyle._utils.warnings.OverlaySizeWarning` when needed.
+
+    Warns when an overlay's ``figure.figsize`` width exceeds the journal's
+    double-column width.
+    """
+    from plotstyle._utils.warnings import OverlaySizeWarning
+    from plotstyle.specs.units import Dimension
+
+    journal_double_in = Dimension(spec.dimensions.double_column_mm, "mm").to_inches()
+
+    for overlay in overlays:
+        figsize = overlay.rcparams.get("figure.figsize")
+        if figsize is None:
+            continue
+        overlay_width_in = figsize[0]
+        if overlay_width_in > journal_double_in:
+            warnings.warn(
+                f"The '{overlay.key}' overlay sets figure.figsize width to "
+                f"{overlay_width_in:.1f} in, which exceeds the '{spec.key}' "
+                f"journal's double-column width ({journal_double_in:.2f} in). "
+                "The figure will not conform to journal column dimensions.",
+                OverlaySizeWarning,
+                stacklevel=4,
+            )
+
+
 def _apply_seaborn_patch(params: dict[str, Any]) -> bool:
     """Apply the seaborn compatibility patch, returning ``True`` on success."""
     try:
@@ -548,6 +578,8 @@ def use(
 
     if resolved_overlays:
         params = apply_overlays(params, resolved_overlays)
+        if spec is not None:
+            _warn_if_overlay_oversizes_journal(spec, resolved_overlays)
 
     # latex=True kwarg always wins over any overlay that might disable it.
     if latex is True:

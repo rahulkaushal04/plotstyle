@@ -11,3 +11,7 @@ class PlotStyleWarning(UserWarning):
 
 class FontFallbackWarning(PlotStyleWarning):
     """Emitted when a preferred journal font is unavailable and a fallback is used."""
+
+
+class OverlaySizeWarning(PlotStyleWarning):
+    """Emitted when a context overlay's figure size exceeds the journal's column width."""
