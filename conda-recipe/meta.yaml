@@ -1,0 +1,49 @@
+{% set version = "1.1.0" %}
+{% set sha256 = "SET_SHA256_FROM_PYPI_TARBALL" %}
+
+package:
+  name: plotstyle
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/p/plotstyle/plotstyle-{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+
+build:
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  number: 0
+
+requirements:
+  host:
+    - python >=3.10
+    - pip
+    - hatchling >=1.27
+    - hatch-vcs >=0.5
+  run:
+    - python >=3.10
+    - matplotlib-base >=3.9,<4
+    - tomli >=2.0  # [py<311]
+
+test:
+  imports:
+    - plotstyle
+  commands:
+    - plotstyle --help
+
+about:
+  home: https://github.com/rahulkaushal04/plotstyle
+  license: MIT
+  license_file: LICENSE
+  summary: Publication-ready scientific figure styling for Matplotlib
+  description: |
+    plotstyle provides Matplotlib/seaborn style presets matching scientific
+    journal requirements (Nature, IEEE, Science, and more), with composable
+    overlays, built-in validation, accessible colour palettes, and
+    submission-ready export.
+  doc_url: https://plotstyle.readthedocs.io
+  dev_url: https://github.com/rahulkaushal04/plotstyle
+
+extra:
+  recipe-maintainers:
+    - rahulkaushal04
