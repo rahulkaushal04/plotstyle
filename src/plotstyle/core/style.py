@@ -440,6 +440,32 @@ def _warn_if_overlay_oversizes_journal(
             )
 
 
+def _warn_if_grayscale_palette_on_colorblind_journal(
+    spec: JournalSpec,
+    overlays: list[StyleOverlay],
+) -> None:
+    """Emit :class:`~plotstyle._utils.warnings.PaletteColorblindWarning` when needed.
+
+    Warns when the ``safe-grayscale`` palette overlay is combined with a
+    journal that requires colorblind-safe colours.
+    """
+    if not spec.color.colorblind_required:
+        return
+
+    from plotstyle._utils.warnings import PaletteColorblindWarning
+
+    for overlay in overlays:
+        if overlay.key == "safe-grayscale":
+            warnings.warn(
+                f"The 'safe-grayscale' palette overlay is used with '{spec.key}', "
+                "which requires colorblind-safe colours. "
+                "Grayscale palettes may not pass colorblind accessibility checks.",
+                PaletteColorblindWarning,
+                stacklevel=4,
+            )
+            break
+
+
 def _apply_seaborn_patch(params: dict[str, Any]) -> bool:
     """Apply the seaborn compatibility patch, returning ``True`` on success."""
     try:
@@ -580,6 +606,7 @@ def use(
         params = apply_overlays(params, resolved_overlays)
         if spec is not None:
             _warn_if_overlay_oversizes_journal(spec, resolved_overlays)
+            _warn_if_grayscale_palette_on_colorblind_journal(spec, resolved_overlays)
 
     # latex=True kwarg always wins over any overlay that might disable it.
     if latex is True:

@@ -197,10 +197,24 @@ def apply_overlays(base: dict[str, Any], overlays: list[StyleOverlay]) -> dict[s
     -------
     dict[str, Any]
         New dict containing *base* with all overlay patches merged in.
+
+    Notes
+    -----
+    Overlay TOML files may include a special ``_palette`` key (a list of hex
+    colour strings) under ``[rcparams]``.  This is converted to a
+    ``cycler('color', ...)`` object and stored under ``axes.prop_cycle``
+    before merging.  This convention exists because TOML has no native type
+    for matplotlib's ``cycler`` objects.
     """
     import copy
 
+    from cycler import cycler
+
     result = copy.deepcopy(base)
     for overlay in overlays:
-        result.update(overlay.rcparams)
+        rcparams = dict(overlay.rcparams)
+        if "_palette" in rcparams:
+            colors = rcparams.pop("_palette")
+            rcparams["axes.prop_cycle"] = cycler("color", colors)
+        result.update(rcparams)
     return result

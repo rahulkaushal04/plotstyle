@@ -1,0 +1,7 @@
+[metadata]
+name = "Tol Rainbow 4"
+category = "color"
+description = "Paul Tol's discrete rainbow palette sampled at 4 colors."
+
+[rcparams]
+_palette = ["#4477AA", "#228833", "#CCBB44", "#EE6677"]

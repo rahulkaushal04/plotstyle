@@ -13,7 +13,7 @@ from importlib.metadata import version as _pkg_version
 
 from plotstyle.color.accessibility import preview_colorblind
 from plotstyle.color.grayscale import preview_grayscale
-from plotstyle.color.palettes import palette
+from plotstyle.color.palettes import apply_palette, list_palettes, palette
 from plotstyle.core.export import export_submission, savefig
 from plotstyle.core.figure import figure, subplots
 from plotstyle.core.migrate import SpecDiff, diff, migrate
@@ -54,11 +54,13 @@ __all__: list[str] = [
     "OverlayRegistry",
     "SpecDiff",
     "__version__",
+    "apply_palette",
     "diff",
     "export_submission",
     "figure",
     "gallery",
     "list_overlays",
+    "list_palettes",
     "migrate",
     "overlay_registry",
     "palette",

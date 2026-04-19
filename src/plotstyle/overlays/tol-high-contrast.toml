@@ -1,0 +1,7 @@
+[metadata]
+name = "Tol High Contrast"
+category = "color"
+description = "Paul Tol's high-contrast 3-color qualitative palette, optimised for black/white printing."
+
+[rcparams]
+_palette = ["#004488", "#DDAA33", "#BB5566"]

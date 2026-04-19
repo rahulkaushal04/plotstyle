@@ -34,6 +34,12 @@ class StyleOverlay:
         One-sentence description of what the overlay does.
     rcparams : dict[str, Any]
         Flat mapping of ``matplotlib.rcParams`` keys to new values.
+
+        **Special key ``_palette``**: a list of hex colour strings.
+        :func:`~plotstyle.engine.rcparams.apply_overlays` converts this to a
+        ``cycler('color', ...)`` object stored under ``axes.prop_cycle``.
+        Use this convention in TOML files because TOML has no native type for
+        matplotlib's ``cycler`` objects.
     """
 
     key: str

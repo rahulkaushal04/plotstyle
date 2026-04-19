@@ -15,3 +15,7 @@ class FontFallbackWarning(PlotStyleWarning):
 
 class OverlaySizeWarning(PlotStyleWarning):
     """Emitted when a context overlay's figure size exceeds the journal's column width."""
+
+
+class PaletteColorblindWarning(PlotStyleWarning):
+    """Emitted when a non-colorblind-safe palette is used with a colorblind-required journal."""
