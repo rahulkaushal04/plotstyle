@@ -23,9 +23,11 @@ from plotstyle._utils.warnings import FontFallbackWarning
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from plotstyle.overlays.schema import StyleOverlay
     from plotstyle.specs.schema import JournalSpec
 
 __all__: list[str] = [
+    "check_overlay_fonts",
     "detect_available",
     "select_best",
     "verify_embedded",
@@ -128,6 +130,27 @@ def select_best(spec: JournalSpec) -> tuple[str, bool]:
     )
 
     return generic_fallback, False
+
+
+def check_overlay_fonts(overlay: StyleOverlay) -> dict[str, bool]:
+    """Return a ``{font_name: is_installed}`` mapping for fonts required by *overlay*.
+
+    Parameters
+    ----------
+    overlay : StyleOverlay
+        Overlay to inspect.  When it has no ``[requires]`` section the
+        returned dict is empty.
+
+    Returns
+    -------
+    dict[str, bool]
+        Each key is a font family name from ``overlay.requires["fonts"]``; the
+        value is ``True`` when the font resolves on the current system.
+    """
+    if overlay.requires is None:
+        return {}
+    fonts: list[str] = overlay.requires.get("fonts", [])
+    return {font: _find_font_or_none(font) is not None for font in fonts}
 
 
 def verify_embedded(pdf_path: Path) -> list[dict[str, Any]]:

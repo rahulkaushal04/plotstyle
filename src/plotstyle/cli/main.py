@@ -104,7 +104,15 @@ def _cmd_diff(journal_a: str, journal_b: str) -> int:
     return 0
 
 
-def _cmd_fonts(journal: str) -> int:
+def _cmd_fonts(journal: str | None, overlay: str | None = None) -> int:
+    """Check which fonts required by *journal* or *overlay* are installed."""
+    if overlay is not None:
+        return _cmd_fonts_overlay(overlay)
+    assert journal is not None
+    return _cmd_fonts_journal(journal)
+
+
+def _cmd_fonts_journal(journal: str) -> int:
     """Check which fonts required by *journal* are installed on this system."""
     from plotstyle.engine.fonts import detect_available, select_best
     from plotstyle.specs import registry
@@ -118,6 +126,39 @@ def _cmd_fonts(journal: str) -> int:
     print(f"Available:       {', '.join(available) if available else 'none'}")
     print(f"Selected:        {best}")
     print(f"Exact match:     {'Yes' if is_exact else 'No (using acceptable substitute)'}")
+
+    return 0
+
+
+def _cmd_fonts_overlay(overlay_key: str) -> int:
+    """Check which fonts required by *overlay_key* are installed on this system."""
+    from plotstyle.engine.fonts import check_overlay_fonts
+    from plotstyle.overlays import overlay_registry
+
+    overlay = overlay_registry.get(overlay_key)
+    status = check_overlay_fonts(overlay)
+
+    print(f"Font check for overlay: {overlay.name}")
+    print(_INFO_SEPARATOR)
+
+    if not status:
+        print("No font requirements declared for this overlay.")
+        return 0
+
+    any_installed = any(status.values())
+    available = [f for f, ok in status.items() if ok]
+
+    for font, installed in status.items():
+        mark = "✓" if installed else "✗"
+        suffix = "  (selected fallback)" if installed and font == available[0] else ""
+        print(f"  {font}: {'installed' if installed else 'not found'} {mark}{suffix}")
+
+    print()
+    if any_installed:
+        print(f"Selected font: {available[0]}")
+    else:
+        print("Warning: none of the required fonts are installed.")
+        print("Non-Latin characters may not render correctly.")
 
     return 0
 
@@ -237,6 +278,7 @@ def _build_parser() -> argparse.ArgumentParser:
             "  plotstyle info nature\n"
             "  plotstyle diff nature ieee\n"
             "  plotstyle fonts --journal science\n"
+            "  plotstyle fonts --overlay cjk-simplified\n"
             "  plotstyle validate figure1.pdf --journal nature\n"
             "  plotstyle export figure1.png --journal ieee --formats pdf,eps  # prints snippet\n"
             "  plotstyle overlays\n"
@@ -271,14 +313,22 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sub_fonts = subparsers.add_parser(
         "fonts",
-        help="Check font availability for a journal on this system",
+        help="Check font availability for a journal or overlay on this system",
     )
-    sub_fonts.add_argument(
+    sub_fonts_group = sub_fonts.add_mutually_exclusive_group(required=True)
+    sub_fonts_group.add_argument(
         "--journal",
         type=str,
-        required=True,
+        default=None,
         metavar="JOURNAL",
         help="Journal identifier",
+    )
+    sub_fonts_group.add_argument(
+        "--overlay",
+        type=str,
+        default=None,
+        metavar="OVERLAY",
+        help="Overlay key (e.g., 'cjk-simplified')",
     )
 
     sub_validate = subparsers.add_parser(
@@ -403,7 +453,7 @@ def main(argv: list[str] | None = None) -> int:
             return _cmd_diff(args.journal_a, args.journal_b)
 
         if args.command == "fonts":
-            return _cmd_fonts(args.journal)
+            return _cmd_fonts(args.journal, getattr(args, "overlay", None))
 
         if args.command == "validate":
             return _cmd_validate(args.file, args.journal)

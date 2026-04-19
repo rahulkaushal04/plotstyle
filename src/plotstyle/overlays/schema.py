@@ -50,6 +50,23 @@ class StyleOverlay:
           overrides the font family used for LaTeX rendering.
 
         ``None`` when the TOML file has no ``[rendering]`` section.
+    script : dict[str, Any] | None
+        Optional script-specific directives parsed from the ``[script]`` TOML
+        section.  Supported keys:
+
+        - ``latex_preamble``: list of LaTeX preamble lines to append to
+          ``text.latex.preamble`` when LaTeX rendering is active.
+
+        ``None`` when the TOML file has no ``[script]`` section.
+    requires : dict[str, Any] | None
+        Optional font requirements parsed from the ``[requires]`` TOML section.
+        Supported keys:
+
+        - ``fonts``: list of font family names that this overlay needs.  Used by
+          :func:`~plotstyle.engine.fonts.check_overlay_fonts` and the CLI
+          ``fonts --overlay`` sub-command.
+
+        ``None`` when the TOML file has no ``[requires]`` section.
     """
 
     key: str
@@ -58,6 +75,8 @@ class StyleOverlay:
     description: str
     rcparams: dict[str, Any]
     rendering: dict[str, Any] | None = None
+    script: dict[str, Any] | None = None
+    requires: dict[str, Any] | None = None
 
     @classmethod
     def from_toml(cls, data: dict[str, Any], key: str) -> StyleOverlay:
@@ -92,6 +111,8 @@ class StyleOverlay:
 
         rcparams = dict(data.get("rcparams", {}))
         rendering = dict(data["rendering"]) if "rendering" in data else None
+        script = dict(data["script"]) if "script" in data else None
+        requires = dict(data["requires"]) if "requires" in data else None
 
         return cls(
             key=key,
@@ -100,4 +121,6 @@ class StyleOverlay:
             description=description,
             rcparams=rcparams,
             rendering=rendering,
+            script=script,
+            requires=requires,
         )

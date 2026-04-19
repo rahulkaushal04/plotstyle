@@ -1,0 +1,17 @@
+[metadata]
+name = "CJK Traditional"
+category = "script"
+description = "Font configuration for Traditional Chinese labels (Big5/Unicode)."
+
+[rcparams]
+"font.family" = ["PMingLiU", "MingLiU", "Noto Sans CJK TC", "AR PL UMing TW"]
+"axes.unicode_minus" = false
+
+[script]
+latex_preamble = [
+    "\\usepackage{xeCJK}",
+    "\\setCJKmainfont{PMingLiU}",
+]
+
+[requires]
+fonts = ["PMingLiU", "MingLiU", "Noto Sans CJK TC", "AR PL UMing TW"]

@@ -1,0 +1,15 @@
+[metadata]
+name = "Russian"
+category = "script"
+description = "Font configuration for Russian / Cyrillic labels."
+
+[rcparams]
+"font.family" = ["DejaVu Sans", "Liberation Sans", "FreeSans"]
+
+[script]
+latex_preamble = [
+    "\\usepackage[russian]{babel}",
+]
+
+[requires]
+fonts = ["DejaVu Sans", "Liberation Sans", "FreeSans"]

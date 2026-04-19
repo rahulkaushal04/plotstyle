@@ -545,6 +545,55 @@ def _resolve_rendering_overlays(
     ) else overlay_latex_raw, False
 
 
+def _warn_if_script_fonts_missing(overlays: list[StyleOverlay]) -> None:
+    """Emit :class:`~plotstyle._utils.warnings.FontFallbackWarning` when needed.
+
+    Warns when a script overlay is applied and none of its required fonts are
+    installed on the current system.
+    """
+    from plotstyle._utils.warnings import FontFallbackWarning
+    from plotstyle.engine.fonts import check_overlay_fonts
+
+    for overlay in overlays:
+        if overlay.category != "script" or overlay.requires is None:
+            continue
+        status = check_overlay_fonts(overlay)
+        if status and not any(status.values()):
+            required = list(status)
+            warnings.warn(
+                f"The '{overlay.key}' script overlay requires fonts that are not installed: "
+                f"{required!r}. "
+                "Non-Latin characters may not render correctly. "
+                "Install one of the listed fonts for this overlay to take effect.",
+                FontFallbackWarning,
+                stacklevel=4,
+            )
+
+
+def _apply_script_latex_preambles(
+    params: dict[str, Any],
+    overlays: list[StyleOverlay],
+) -> None:
+    """Append script overlay LaTeX preamble lines to ``params`` when LaTeX is active.
+
+    Only runs when ``params["text.usetex"]`` is ``True``.  Lines from each
+    script overlay's ``[script].latex_preamble`` list are appended to any
+    existing ``text.latex.preamble`` value rather than replacing it.
+    """
+    if not params.get("text.usetex"):
+        return
+
+    for overlay in overlays:
+        if overlay.script is None:
+            continue
+        preamble_lines: list[str] = overlay.script.get("latex_preamble", [])
+        if not preamble_lines:
+            continue
+        existing = params.get("text.latex.preamble", "")
+        addition = "\n".join(preamble_lines)
+        params["text.latex.preamble"] = f"{existing}\n{addition}".strip() if existing else addition
+
+
 def _apply_seaborn_patch(params: dict[str, Any]) -> bool:
     """Apply the seaborn compatibility patch, returning ``True`` on success."""
     try:
@@ -689,6 +738,7 @@ def use(
             _warn_if_overlay_oversizes_journal(spec, resolved_overlays)
             _warn_if_grayscale_palette_on_colorblind_journal(spec, resolved_overlays)
             _warn_if_latex_sans_on_serif_journal(spec, resolved_overlays)
+        _warn_if_script_fonts_missing(resolved_overlays)
 
     # Apply font_family overrides from rendering overlays (e.g. latex-sans).
     for overlay in resolved_overlays:
@@ -710,6 +760,10 @@ def use(
     # latex=True kwarg always wins over any overlay that might disable it.
     if latex is True:
         params["text.usetex"] = True
+
+    # Append script overlay LaTeX preambles after all other params are settled.
+    if resolved_overlays:
+        _apply_script_latex_preambles(params, resolved_overlays)
 
     previous = _snapshot_rcparams(params)
     mpl.rcParams.update(params)

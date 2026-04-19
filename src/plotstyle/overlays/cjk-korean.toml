@@ -1,0 +1,17 @@
+[metadata]
+name = "CJK Korean"
+category = "script"
+description = "Font configuration for Korean labels (KS/Unicode)."
+
+[rcparams]
+"font.family" = ["NanumGothic", "Noto Sans CJK KR", "Apple SD Gothic Neo"]
+"axes.unicode_minus" = false
+
+[script]
+latex_preamble = [
+    "\\usepackage{xeCJK}",
+    "\\setCJKmainfont{NanumGothic}",
+]
+
+[requires]
+fonts = ["NanumGothic", "Noto Sans CJK KR", "Apple SD Gothic Neo"]
