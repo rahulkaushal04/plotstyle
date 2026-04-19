@@ -76,7 +76,7 @@ with plotstyle.use("nature") as style:
 ```
 
 <p align="center">
-  <img src="examples/output/quickstart_nature.png" width="55%" alt="Quickstart output: sin and cos figure styled for Nature">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/quickstart_nature.png" width="55%" alt="Quickstart output: sin and cos figure styled for Nature">
 </p>
 
 The `with` block is the recommended pattern. Matplotlib's `rcParams` are restored automatically when it exits, even if an exception occurs.
@@ -123,7 +123,7 @@ with plotstyle.use("science") as style:
 ```
 
 <p align="center">
-  <img src="examples/output/multi_panel_science.png" width="70%" alt="2x2 multi-panel Science figure with automatic panel labels A B C D">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/multi_panel_science.png" width="70%" alt="2x2 multi-panel Science figure with automatic panel labels A B C D">
 </p>
 
 > `axes` is always a 2-D NumPy array. Use `axes[0, 0]` to access a single panel or `axes.flat` to iterate. Pass `panels=False` to suppress the automatic labels.
@@ -156,7 +156,7 @@ fig.savefig("palette_comparison.png", dpi=150)
 ```
 
 <p align="center">
-  <img src="examples/output/palette_comparison.png" width="70%" alt="Color swatch comparison for Nature, Science, IEEE, and ACS palettes">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/palette_comparison.png" width="70%" alt="Color swatch comparison for Nature, Science, IEEE, and ACS palettes">
 </p>
 
 Pass `with_markers=True` to get `(color, linestyle, marker)` tuples, useful for journals like IEEE that print in grayscale:
@@ -192,7 +192,7 @@ with plotstyle.use("nature") as style:
 ```
 
 <p align="center">
-  <img src="examples/output/accessibility_colorblind.png" width="90%" alt="Colorblind simulation: original, deuteranopia, protanopia, tritanopia">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/accessibility_colorblind.png" width="90%" alt="Colorblind simulation: original, deuteranopia, protanopia, tritanopia">
 </p>
 
 ```python
@@ -201,7 +201,7 @@ with plotstyle.use("nature") as style:
 ```
 
 <p align="center">
-  <img src="examples/output/accessibility_grayscale.png" width="60%" alt="Grayscale simulation: original vs grayscale rendering">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/accessibility_grayscale.png" width="60%" alt="Grayscale simulation: original vs grayscale rendering">
 </p>
 
 ---
