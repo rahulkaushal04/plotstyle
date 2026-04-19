@@ -49,6 +49,13 @@ try:
 except PackageNotFoundError:
     __version__ = "0.0.0+unknown"
 
+try:
+    from plotstyle._compat.mpl_style import register_all_styles as _register_mpl_styles
+
+    _register_mpl_styles()
+except Exception:
+    pass
+
 __all__: list[str] = [
     "JournalStyle",
     "OverlayRegistry",
