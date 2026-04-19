@@ -466,6 +466,85 @@ def _warn_if_grayscale_palette_on_colorblind_journal(
             break
 
 
+def _warn_if_latex_sans_on_serif_journal(
+    spec: JournalSpec,
+    overlays: list[StyleOverlay],
+) -> None:
+    """Emit :class:`~plotstyle._utils.warnings.PlotStyleWarning` when needed.
+
+    Warns when a rendering overlay requests a sans-serif LaTeX font family
+    on a journal whose typography specifies a serif font.
+    """
+    from plotstyle._utils.warnings import PlotStyleWarning
+
+    for overlay in overlays:
+        if overlay.rendering is None:
+            continue
+        if overlay.rendering.get("font_family") == "sans-serif":
+            if getattr(spec.typography, "font_fallback", None) == "serif":
+                warnings.warn(
+                    f"The '{overlay.key}' overlay uses a sans-serif LaTeX font, "
+                    f"but '{spec.key}' specifies a serif font. "
+                    "The sans-serif override may not meet the journal's typography requirements.",
+                    PlotStyleWarning,
+                    stacklevel=4,
+                )
+            break
+
+
+def _resolve_rendering_overlays(
+    overlays: list[StyleOverlay],
+    latex_kwarg: bool | str,
+) -> tuple[bool | str, bool]:
+    """Determine effective latex mode and PGF flag from rendering overlays.
+
+    Kwarg wins when it is not the default ``False``; emits
+    :class:`~plotstyle._utils.warnings.PlotStyleWarning` on conflict.
+
+    Returns
+    -------
+    tuple[bool | str, bool]
+        ``(effective_latex, pgf_mode)`` where *pgf_mode* is ``True`` when
+        the PGF backend should be activated.
+    """
+    from plotstyle._utils.warnings import PlotStyleWarning
+
+    rendering_overlays = [o for o in overlays if o.rendering is not None]
+
+    if len(rendering_overlays) > 1:
+        keys = [o.key for o in rendering_overlays]
+        warnings.warn(
+            f"Multiple rendering overlays specified: {keys!r}. Only '{keys[-1]}' takes effect.",
+            PlotStyleWarning,
+            stacklevel=4,
+        )
+
+    if not rendering_overlays:
+        return latex_kwarg, False
+
+    last = rendering_overlays[-1]
+    overlay_latex_raw = last.rendering.get("latex", False)
+    pgf_mode = overlay_latex_raw == "pgf"
+
+    if latex_kwarg is not False:
+        # Caller explicitly set latex=True or "auto" — kwarg wins.
+        if overlay_latex_raw != latex_kwarg:
+            warnings.warn(
+                f"The '{last.key}' rendering overlay sets latex={overlay_latex_raw!r}, "
+                f"but the explicit latex={latex_kwarg!r} kwarg takes precedence.",
+                PlotStyleWarning,
+                stacklevel=4,
+            )
+        return latex_kwarg, False
+
+    # Overlay wins.
+    if pgf_mode:
+        return True, True
+    return bool(overlay_latex_raw) if isinstance(
+        overlay_latex_raw, bool
+    ) else overlay_latex_raw, False
+
+
 def _apply_seaborn_patch(params: dict[str, Any]) -> bool:
     """Apply the seaborn compatibility patch, returning ``True`` on success."""
     try:
@@ -594,12 +673,14 @@ def use(
                 raise SpecNotFoundError(item, available=registry.list_available())
             raise OverlayNotFoundError(item, available=overlay_registry.list_available())
 
+    effective_latex, pgf_mode = _resolve_rendering_overlays(resolved_overlays, latex)
+
     if journal_key is not None:
         spec = registry.get(journal_key)
-        params = build_rcparams(spec, latex=latex)
+        params = build_rcparams(spec, latex=effective_latex)
     else:
         spec = None
-        use_latex = _resolve_latex_mode(latex)
+        use_latex = _resolve_latex_mode(effective_latex)
         params = {"text.usetex": use_latex}
 
     if resolved_overlays:
@@ -607,6 +688,24 @@ def use(
         if spec is not None:
             _warn_if_overlay_oversizes_journal(spec, resolved_overlays)
             _warn_if_grayscale_palette_on_colorblind_journal(spec, resolved_overlays)
+            _warn_if_latex_sans_on_serif_journal(spec, resolved_overlays)
+
+    # Apply font_family overrides from rendering overlays (e.g. latex-sans).
+    for overlay in resolved_overlays:
+        if overlay.rendering is None:
+            continue
+        font_family = overlay.rendering.get("font_family")
+        if font_family is not None:
+            from plotstyle.engine.latex import _FALLBACK_TO_PREAMBLE
+
+            params["font.family"] = font_family
+            preamble = _FALLBACK_TO_PREAMBLE.get(font_family)
+            if preamble is not None:
+                params["text.latex.preamble"] = preamble
+
+    # Activate PGF backend when a pgf rendering overlay was requested.
+    if pgf_mode:
+        params["backend"] = "pgf"
 
     # latex=True kwarg always wins over any overlay that might disable it.
     if latex is True:

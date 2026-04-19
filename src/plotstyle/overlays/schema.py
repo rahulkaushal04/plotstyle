@@ -40,6 +40,16 @@ class StyleOverlay:
         ``cycler('color', ...)`` object stored under ``axes.prop_cycle``.
         Use this convention in TOML files because TOML has no native type for
         matplotlib's ``cycler`` objects.
+    rendering : dict[str, Any] | None
+        Optional rendering directives parsed from the ``[rendering]`` TOML
+        section.  Supported keys:
+
+        - ``latex``: ``false`` / ``true`` / ``"pgf"`` — the LaTeX mode to
+          activate.  ``"pgf"`` enables the PGF backend in addition to LaTeX.
+        - ``font_family``: ``"sans-serif"`` / ``"serif"`` / ``"monospace"`` —
+          overrides the font family used for LaTeX rendering.
+
+        ``None`` when the TOML file has no ``[rendering]`` section.
     """
 
     key: str
@@ -47,6 +57,7 @@ class StyleOverlay:
     category: str
     description: str
     rcparams: dict[str, Any]
+    rendering: dict[str, Any] | None = None
 
     @classmethod
     def from_toml(cls, data: dict[str, Any], key: str) -> StyleOverlay:
@@ -80,6 +91,7 @@ class StyleOverlay:
             )
 
         rcparams = dict(data.get("rcparams", {}))
+        rendering = dict(data["rendering"]) if "rendering" in data else None
 
         return cls(
             key=key,
@@ -87,4 +99,5 @@ class StyleOverlay:
             category=category,
             description=description,
             rcparams=rcparams,
+            rendering=rendering,
         )
