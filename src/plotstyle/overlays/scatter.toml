@@ -1,0 +1,11 @@
+[metadata]
+name = "Scatter"
+category = "plot-type"
+description = "Optimised rcParams for scatter plots: markers enabled, connecting lines removed."
+
+[rcparams]
+"lines.linestyle" = "none"
+"lines.marker" = "o"
+"lines.markersize" = 6
+"axes.grid" = true
+"grid.alpha" = 0.4

@@ -545,6 +545,39 @@ def _resolve_rendering_overlays(
     ) else overlay_latex_raw, False
 
 
+def _warn_if_scatter_loses_line_distinction(
+    spec: JournalSpec | None,
+    overlays: list[StyleOverlay],
+) -> None:
+    """Emit :class:`~plotstyle._utils.warnings.PlotStyleWarning` when needed.
+
+    Warns when the ``scatter`` overlay removes line style differentiation that
+    the IEEE journal or the ``safe-grayscale`` palette relies on for accessibility.
+    """
+    if not any(o.key == "scatter" for o in overlays):
+        return
+
+    from plotstyle._utils.warnings import PlotStyleWarning
+
+    if spec is not None and spec.key == "ieee":
+        warnings.warn(
+            "The 'scatter' overlay sets lines.linestyle='none', removing line style "
+            "differentiation. IEEE figures rely on line styles for print accessibility. "
+            "Use palette(with_markers=True) to restore per-series distinction.",
+            PlotStyleWarning,
+            stacklevel=4,
+        )
+        return
+
+    if any(o.key == "safe-grayscale" for o in overlays):
+        warnings.warn(
+            "The 'scatter' overlay sets lines.linestyle='none', but 'safe-grayscale' "
+            "uses line style variation for accessibility. Line style differentiation will be lost.",
+            PlotStyleWarning,
+            stacklevel=4,
+        )
+
+
 def _warn_if_script_fonts_missing(overlays: list[StyleOverlay]) -> None:
     """Emit :class:`~plotstyle._utils.warnings.FontFallbackWarning` when needed.
 
@@ -739,6 +772,7 @@ def use(
             _warn_if_grayscale_palette_on_colorblind_journal(spec, resolved_overlays)
             _warn_if_latex_sans_on_serif_journal(spec, resolved_overlays)
         _warn_if_script_fonts_missing(resolved_overlays)
+        _warn_if_scatter_loses_line_distinction(spec, resolved_overlays)
 
     # Apply font_family overrides from rendering overlays (e.g. latex-sans).
     for overlay in resolved_overlays:
