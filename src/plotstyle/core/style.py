@@ -175,11 +175,18 @@ class JournalStyle:
 
     def palette(
         self,
-        n: int = 6,
+        n: int | None = None,
         *,
         with_markers: bool = False,
     ) -> PaletteResult:
-        """Return *n* colours from this journal's recommended palette.
+        """Return colours from this journal's recommended palette.
+
+        Parameters
+        ----------
+        n : int | None
+            Number of colours to return.  When ``None`` (the default), all
+            colours in the underlying palette are returned.  When *n* exceeds
+            the palette size, colours cycle from the beginning.
 
         Delegates to :func:`~plotstyle.color.palettes.palette` with the journal
         key bound from this style handle.
@@ -753,7 +760,11 @@ def use(
             if is_single_string:
                 # Maintain backward compatibility: single string → SpecNotFoundError.
                 raise SpecNotFoundError(item, available=registry.list_available())
-            raise OverlayNotFoundError(item, available=overlay_registry.list_available())
+            raise OverlayNotFoundError(
+                item,
+                available=overlay_registry.list_available(),
+                journals=registry.list_available(),
+            )
 
     effective_latex, pgf_mode = _resolve_rendering_overlays(resolved_overlays, latex)
 
@@ -788,8 +799,21 @@ def use(
                 params["text.latex.preamble"] = preamble
 
     # Activate PGF backend when a pgf rendering overlay was requested.
+    # Setting rcParams["backend"] after pyplot import has no effect; switch_backend is required.
     if pgf_mode:
-        params["backend"] = "pgf"
+        try:
+            import matplotlib.pyplot as plt
+
+            plt.switch_backend("pgf")
+        except Exception as exc:
+            from plotstyle._utils.warnings import PlotStyleWarning
+
+            warnings.warn(
+                f"Could not activate the PGF backend: {exc}. "
+                "Call matplotlib.use('pgf') before importing pyplot.",
+                PlotStyleWarning,
+                stacklevel=2,
+            )
 
     # latex=True kwarg always wins over any overlay that might disable it.
     if latex is True:

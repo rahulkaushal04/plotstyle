@@ -56,6 +56,9 @@ class OverlayNotFoundError(ValueError):
         The overlay identifier that was requested.
     available
         Overlay identifiers that *are* available at the time of the error.
+    journals
+        Journal identifiers available at the time of the error, or ``None``
+        when the error was not raised from a combined journal+overlay lookup.
 
     Examples
     --------
@@ -68,11 +71,28 @@ class OverlayNotFoundError(ValueError):
             print(exc.available)  # ['grid', 'no-latex', 'notebook']
     """
 
-    def __init__(self, name: str, available: list[str]) -> None:
+    def __init__(
+        self,
+        name: str,
+        available: list[str],
+        *,
+        journals: list[str] | None = None,
+    ) -> None:
         self.name: str = name
         self.available: list[str] = available
-        available_str = ", ".join(available) if available else "(none)"
-        super().__init__(f"Unknown overlay {name!r}. Available overlays: {available_str}")
+        self.journals: list[str] | None = journals
+        if journals is not None:
+            journals_str = ", ".join(journals) if journals else "(none)"
+            available_str = ", ".join(available) if available else "(none)"
+            message = (
+                f"{name!r} not found in journal specs or overlay registry.\n"
+                f"  Journals: {journals_str}\n"
+                f"  Overlays: {available_str}"
+            )
+        else:
+            available_str = ", ".join(available) if available else "(none)"
+            message = f"Unknown overlay {name!r}. Available overlays: {available_str}"
+        super().__init__(message)
 
     def __str__(self) -> str:
         """Return the plain message."""
@@ -102,11 +122,12 @@ class OverlayRegistry:
     prevent accidental attribute assignment outside the defined interface.
     """
 
-    __slots__ = ("_cache", "_overlays_dir")
+    __slots__ = ("_available_cache", "_cache", "_overlays_dir")
 
     def __init__(self, overlays_dir: Path | None = None) -> None:
         self._overlays_dir: Final[Path] = overlays_dir or _OVERLAYS_DIR
         self._cache: dict[str, StyleOverlay] = {}
+        self._available_cache: list[str] | None = None
 
     # ------------------------------------------------------------------
     # Public API
@@ -171,27 +192,29 @@ class OverlayRegistry:
         FileNotFoundError
             If the overlays directory is inaccessible.
         """
-        try:
-            entries = sorted(
-                Path(entry.path).stem
-                for entry in os.scandir(self._overlays_dir)
-                if entry.is_file()
-                and entry.name.endswith(".toml")
-                and not entry.name.startswith("_")
-            )
-        except OSError as exc:
-            raise FileNotFoundError(
-                f"Overlays directory is inaccessible: {self._overlays_dir}"
-            ) from exc
+        if self._available_cache is None:
+            try:
+                self._available_cache = sorted(
+                    Path(entry.path).stem
+                    for entry in os.scandir(self._overlays_dir)
+                    if entry.is_file()
+                    and entry.name.endswith(".toml")
+                    and not entry.name.startswith("_")
+                )
+            except OSError as exc:
+                raise FileNotFoundError(
+                    f"Overlays directory is inaccessible: {self._overlays_dir}"
+                ) from exc
 
         if category is None:
-            return entries
+            return list(self._available_cache)
 
-        return [key for key in entries if self.get(key).category == category]
+        return [key for key in self._available_cache if self.get(key).category == category]
 
     def clear_cache(self) -> None:
         """Discard all cached :class:`.StyleOverlay` instances."""
         self._cache.clear()
+        self._available_cache = None
 
     # ------------------------------------------------------------------
     # Dunder helpers

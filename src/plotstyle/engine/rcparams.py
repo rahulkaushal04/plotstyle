@@ -115,6 +115,7 @@ def build_rcparams(
     spec: JournalSpec,
     *,
     latex: _LatexMode = False,
+    detect_fonts: bool = True,
 ) -> dict[str, Any]:
     """Build a complete ``matplotlib.rcParams`` mapping from a journal spec.
 
@@ -129,6 +130,12 @@ def build_rcparams(
         - ``True`` — require LaTeX; raises :class:`LatexNotFoundError` if
           no ``latex`` binary is found on ``PATH``.
         - ``"auto"`` — enable LaTeX when available, fall back to MathText.
+    detect_fonts : bool
+        When ``True`` *(default)*, probe the system font cache via
+        :func:`~plotstyle.engine.fonts.select_best` to pick the best
+        available font family.  When ``False``, skip probing and use
+        ``spec.typography.font_fallback`` directly — useful for snapshot
+        builds at import time where the filesystem overhead is unacceptable.
 
     Returns
     -------
@@ -146,7 +153,10 @@ def build_rcparams(
     if latex not in (True, False, "auto"):
         raise ValueError(f"Invalid latex value {latex!r}. Expected True, False, or 'auto'.")
 
-    font_name, _font_meta = select_best(spec)
+    if detect_fonts:
+        font_name, _ = select_best(spec)
+    else:
+        font_name = spec.typography.font_fallback
     width_in, height_in = _compute_figure_size(spec)
     font_size = _compute_base_font_size(spec)
 
@@ -206,11 +216,9 @@ def apply_overlays(base: dict[str, Any], overlays: list[StyleOverlay]) -> dict[s
     before merging.  This convention exists because TOML has no native type
     for matplotlib's ``cycler`` objects.
     """
-    import copy
-
     from cycler import cycler
 
-    result = copy.deepcopy(base)
+    result = {k: list(v) if isinstance(v, list) else v for k, v in base.items()}
     for overlay in overlays:
         rcparams = dict(overlay.rcparams)
         if "_palette" in rcparams:

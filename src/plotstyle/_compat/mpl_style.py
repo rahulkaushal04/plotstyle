@@ -36,6 +36,10 @@ _PREFIX = "plotstyle."
 def build_style_snapshot(spec: JournalSpec, *, latex: bool = False) -> dict[str, Any]:
     """Return a flat rcParams dict for *spec* using ``latex=False`` by default.
 
+    Font probing is skipped (``detect_fonts=False``) to avoid per-journal
+    filesystem calls at import time; the spec's generic fallback family is
+    used instead.  Warnings are suppressed for the same reason.
+
     Parameters
     ----------
     spec : JournalSpec
@@ -49,9 +53,13 @@ def build_style_snapshot(spec: JournalSpec, *, latex: bool = False) -> dict[str,
     dict[str, Any]
         Ready to inject into ``matplotlib.style.core.library``.
     """
+    import warnings
+
     from plotstyle.engine.rcparams import build_rcparams
 
-    return build_rcparams(spec, latex=latex)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return build_rcparams(spec, latex=latex, detect_fonts=False)
 
 
 def build_overlay_snapshot(overlay: StyleOverlay) -> dict[str, Any]:

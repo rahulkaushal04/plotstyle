@@ -230,6 +230,23 @@ def _cmd_overlay_info(overlay_key: str) -> int:
     for param_key, value in overlay.rcparams.items():
         print(f"  {param_key} = {value!r}")
 
+    if overlay.rendering:
+        print("Rendering:")
+        for k, v in overlay.rendering.items():
+            print(f"  {k} = {v!r}")
+
+    if overlay.script:
+        preamble_lines: list[str] = overlay.script.get("latex_preamble", [])
+        if preamble_lines:
+            print("LaTeX preamble:")
+            for line in preamble_lines:
+                print(f"  {line}")
+
+    if overlay.requires:
+        fonts: list[str] = overlay.requires.get("fonts", [])
+        if fonts:
+            print(f"Required fonts: {', '.join(fonts)}")
+
     return 0
 
 

@@ -123,11 +123,12 @@ class SpecRegistry:
         spec = reg.get("nature")
     """
 
-    __slots__ = ("_cache", "_specs_dir")
+    __slots__ = ("_available_cache", "_cache", "_specs_dir")
 
     def __init__(self, specs_dir: Path | None = None) -> None:
         self._specs_dir: Final[Path] = specs_dir or _SPECS_DIR
         self._cache: dict[str, JournalSpec] = {}
+        self._available_cache: list[str] | None = None
 
     # ------------------------------------------------------------------
     # Public API
@@ -196,6 +197,9 @@ class SpecRegistry:
         FileNotFoundError
             If the specs directory is inaccessible.
         """
+        if self._available_cache is not None:
+            return list(self._available_cache)
+
         try:
             entries = sorted(
                 Path(entry.path).stem
@@ -207,7 +211,8 @@ class SpecRegistry:
         except OSError as exc:
             raise FileNotFoundError(f"Specs directory is inaccessible: {self._specs_dir}") from exc
 
-        return entries
+        self._available_cache = entries
+        return list(entries)
 
     def preload(self, names: list[str] | None = None) -> None:
         """Eagerly parse and cache one or more specifications.
@@ -239,6 +244,7 @@ class SpecRegistry:
         modified at runtime.
         """
         self._cache.clear()
+        self._available_cache = None
 
     # ------------------------------------------------------------------
     # Dunder helpers

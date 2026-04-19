@@ -18,6 +18,7 @@ from plotstyle.core.export import export_submission, savefig
 from plotstyle.core.figure import figure, subplots
 from plotstyle.core.migrate import SpecDiff, diff, migrate
 from plotstyle.core.style import JournalStyle, use
+from plotstyle.engine.latex import detect_latex
 from plotstyle.integrations.seaborn import patch_seaborn, plotstyle_theme, unpatch_seaborn
 from plotstyle.overlays import OverlayRegistry, overlay_registry
 from plotstyle.preview.gallery import gallery
@@ -62,6 +63,7 @@ __all__: list[str] = [
     "SpecDiff",
     "__version__",
     "apply_palette",
+    "detect_latex",
     "diff",
     "export_submission",
     "figure",
