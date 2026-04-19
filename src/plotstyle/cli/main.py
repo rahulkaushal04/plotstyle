@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 from typing import Final
 
+from plotstyle.overlays import OverlayNotFoundError
 from plotstyle.specs import SpecNotFoundError
 
 # ---------------------------------------------------------------------------
@@ -156,6 +157,41 @@ def _cmd_validate(file: str, journal: str) -> int:
     return 0
 
 
+def _cmd_overlays(category: str | None) -> int:
+    """List all available style overlays."""
+    from plotstyle.overlays import overlay_registry
+
+    keys = overlay_registry.list_available(category=category)
+    if not keys:
+        label = f" in category {category!r}" if category else ""
+        print(f"No overlays available{label}.")
+        return 0
+
+    for key in keys:
+        overlay = overlay_registry.get(key)
+        print(f"  {key:<{_LIST_NAME_WIDTH}} [{overlay.category}]  {overlay.description}")
+
+    return 0
+
+
+def _cmd_overlay_info(overlay_key: str) -> int:
+    """Print metadata and rcparams for a single overlay."""
+    from plotstyle.overlays import overlay_registry
+
+    overlay = overlay_registry.get(overlay_key)
+
+    print(f"Overlay: {overlay.name}")
+    print(f"Key:     {overlay.key}")
+    print(f"Category: {overlay.category}")
+    print(f"Description: {overlay.description}")
+    print(_INFO_SEPARATOR)
+    print("rcParams:")
+    for param_key, value in overlay.rcparams.items():
+        print(f"  {param_key} = {value!r}")
+
+    return 0
+
+
 def _cmd_export(
     file: str,
     journal: str,
@@ -202,7 +238,10 @@ def _build_parser() -> argparse.ArgumentParser:
             "  plotstyle diff nature ieee\n"
             "  plotstyle fonts --journal science\n"
             "  plotstyle validate figure1.pdf --journal nature\n"
-            "  plotstyle export figure1.png --journal ieee --formats pdf,eps  # prints snippet"
+            "  plotstyle export figure1.png --journal ieee --formats pdf,eps  # prints snippet\n"
+            "  plotstyle overlays\n"
+            "  plotstyle overlays --category context\n"
+            "  plotstyle overlay-info notebook"
         ),
     )
 
@@ -257,6 +296,28 @@ def _build_parser() -> argparse.ArgumentParser:
         required=True,
         metavar="JOURNAL",
         help="Journal identifier",
+    )
+
+    sub_overlays = subparsers.add_parser(
+        "overlays",
+        help="List all available style overlays",
+    )
+    sub_overlays.add_argument(
+        "--category",
+        type=str,
+        default=None,
+        metavar="CATEGORY",
+        help=("Filter by category. Valid values: color, context, rendering, script, plot-type"),
+    )
+
+    sub_overlay_info = subparsers.add_parser(
+        "overlay-info",
+        help="Show metadata and rcParams for a style overlay",
+    )
+    sub_overlay_info.add_argument(
+        "overlay",
+        type=str,
+        help="Overlay key (e.g., 'notebook', 'no-latex')",
     )
 
     sub_export = subparsers.add_parser(
@@ -356,10 +417,24 @@ def main(argv: list[str] | None = None) -> int:
                 args.output_dir,
             )
 
+        if args.command == "overlays":
+            return _cmd_overlays(args.category)
+
+        if args.command == "overlay-info":
+            return _cmd_overlay_info(args.overlay)
+
     except SpecNotFoundError as exc:
         print(
             f"Error: unknown journal {exc.name!r}.\n"
             "Run 'plotstyle list' to see all available journal identifiers.",
+            file=sys.stderr,
+        )
+        return 1
+
+    except OverlayNotFoundError as exc:
+        print(
+            f"Error: unknown overlay {exc.name!r}.\n"
+            "Run 'plotstyle overlays' to see all available overlay keys.",
             file=sys.stderr,
         )
         return 1

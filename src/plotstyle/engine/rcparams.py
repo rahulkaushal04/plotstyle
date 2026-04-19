@@ -13,11 +13,13 @@ from plotstyle.engine.latex import configure_latex, detect_latex
 from plotstyle.specs.units import Dimension
 
 if TYPE_CHECKING:
+    from plotstyle.overlays.schema import StyleOverlay
     from plotstyle.specs.schema import JournalSpec
 
 __all__: list[str] = [
     "SAFETY_PARAMS",
     "LatexNotFoundError",
+    "apply_overlays",
     "build_rcparams",
 ]
 
@@ -178,3 +180,27 @@ def build_rcparams(
         params["text.usetex"] = False
 
     return params
+
+
+def apply_overlays(base: dict[str, Any], overlays: list[StyleOverlay]) -> dict[str, Any]:
+    """Merge overlay rcParams on top of *base*; last overlay wins on conflict.
+
+    Parameters
+    ----------
+    base : dict[str, Any]
+        Base rcParams dict (e.g. from :func:`build_rcparams`).
+    overlays : list[StyleOverlay]
+        Ordered list of overlays to apply.  Earlier overlays are applied
+        first; later entries win on key conflicts.
+
+    Returns
+    -------
+    dict[str, Any]
+        New dict containing *base* with all overlay patches merged in.
+    """
+    import copy
+
+    result = copy.deepcopy(base)
+    for overlay in overlays:
+        result.update(overlay.rcparams)
+    return result

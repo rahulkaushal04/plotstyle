@@ -19,10 +19,30 @@ from plotstyle.core.figure import figure, subplots
 from plotstyle.core.migrate import SpecDiff, diff, migrate
 from plotstyle.core.style import JournalStyle, use
 from plotstyle.integrations.seaborn import patch_seaborn, plotstyle_theme, unpatch_seaborn
+from plotstyle.overlays import OverlayRegistry, overlay_registry
 from plotstyle.preview.gallery import gallery
 from plotstyle.preview.print_size import preview_print_size
 from plotstyle.specs import registry
 from plotstyle.validation import validate
+
+
+def list_overlays(category: str | None = None) -> list[str]:
+    """List all available style overlay keys.
+
+    Parameters
+    ----------
+    category : str | None
+        When provided, only overlays whose ``category`` matches are returned.
+        Valid values: ``"color"``, ``"context"``, ``"rendering"``,
+        ``"script"``, ``"plot-type"``.
+
+    Returns
+    -------
+    list[str]
+        Alphabetically sorted list of overlay keys.
+    """
+    return overlay_registry.list_available(category=category)
+
 
 try:
     __version__: str = _pkg_version("plotstyle")
@@ -31,13 +51,16 @@ except PackageNotFoundError:
 
 __all__: list[str] = [
     "JournalStyle",
+    "OverlayRegistry",
     "SpecDiff",
     "__version__",
     "diff",
     "export_submission",
     "figure",
     "gallery",
+    "list_overlays",
     "migrate",
+    "overlay_registry",
     "palette",
     "patch_seaborn",
     "plotstyle_theme",

@@ -1,0 +1,7 @@
+[metadata]
+name = "No LaTeX"
+category = "rendering"
+description = "Disable LaTeX text rendering; use Matplotlib MathText instead."
+
+[rcparams]
+"text.usetex" = false

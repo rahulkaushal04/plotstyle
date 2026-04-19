@@ -1,0 +1,84 @@
+"""StyleOverlay dataclass — a named, flat rcParam patch."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any, Final
+
+__all__: list[str] = ["StyleOverlay"]
+
+_VALID_CATEGORIES: Final[frozenset[str]] = frozenset(
+    {"color", "context", "rendering", "script", "plot-type"}
+)
+
+
+@dataclass(frozen=True, slots=True)
+class StyleOverlay:
+    """A named overlay that patches a flat set of rcParams.
+
+    Overlay instances are immutable.  They are loaded from TOML files by
+    :class:`~plotstyle.overlays.OverlayRegistry` and applied on top of a
+    journal spec's base rcParams by
+    :func:`~plotstyle.engine.rcparams.apply_overlays`.
+
+    Attributes
+    ----------
+    key : str
+        Lower-case registry identifier (matches the TOML file stem).
+    name : str
+        Human-readable display name.
+    category : str
+        Functional category.  Must be one of ``"color"``, ``"context"``,
+        ``"rendering"``, ``"script"``, or ``"plot-type"``.
+    description : str
+        One-sentence description of what the overlay does.
+    rcparams : dict[str, Any]
+        Flat mapping of ``matplotlib.rcParams`` keys to new values.
+    """
+
+    key: str
+    name: str
+    category: str
+    description: str
+    rcparams: dict[str, Any]
+
+    @classmethod
+    def from_toml(cls, data: dict[str, Any], key: str) -> StyleOverlay:
+        """Parse a TOML dict with ``[metadata]`` and ``[rcparams]`` sections.
+
+        Parameters
+        ----------
+        data : dict[str, Any]
+            Raw parsed TOML content.
+        key : str
+            Lower-case registry identifier assigned by the caller.
+
+        Returns
+        -------
+        StyleOverlay
+
+        Raises
+        ------
+        ValueError
+            If ``metadata.category`` is not a recognised value.
+        """
+        meta = data.get("metadata", {})
+        name = str(meta.get("name", key))
+        category = str(meta.get("category", ""))
+        description = str(meta.get("description", ""))
+
+        if category not in _VALID_CATEGORIES:
+            raise ValueError(
+                f"[metadata.category] Expected one of "
+                f"{sorted(_VALID_CATEGORIES)}, got {category!r}."
+            )
+
+        rcparams = dict(data.get("rcparams", {}))
+
+        return cls(
+            key=key,
+            name=name,
+            category=category,
+            description=description,
+            rcparams=rcparams,
+        )
