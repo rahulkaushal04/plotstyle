@@ -42,7 +42,7 @@ with plotstyle.use("science") as style:
     fig, axes = style.subplots(nrows=2, ncols=2, columns=2)
     for ax in axes.flat:
         ax.plot([1, 2, 3])
-    # Each panel is labelled a, b, c, d per Science's style
+    # Each panel is labelled a, b, c, d — all current journal specs use lowercase
 ```
 
 ### Suppress panel labels

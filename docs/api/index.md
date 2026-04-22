@@ -16,6 +16,10 @@ accessibility
 grayscale
 validation
 registry
+overlays
+units
+fonts
 preview
 seaborn
+warnings
 ```

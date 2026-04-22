@@ -29,13 +29,16 @@ Examples
 from __future__ import annotations
 
 import os
+import warnings
 from pathlib import Path
 from typing import Final
 
 from plotstyle._utils.io import load_toml
+from plotstyle._utils.warnings import SpecAssumptionWarning
 from plotstyle.specs.schema import JournalSpec
 
 __all__: list[str] = [
+    "JournalSpec",
     "SpecNotFoundError",
     "SpecRegistry",
     "registry",
@@ -123,11 +126,12 @@ class SpecRegistry:
         spec = reg.get("nature")
     """
 
-    __slots__ = ("_cache", "_specs_dir")
+    __slots__ = ("_available_cache", "_cache", "_specs_dir")
 
     def __init__(self, specs_dir: Path | None = None) -> None:
         self._specs_dir: Final[Path] = specs_dir or _SPECS_DIR
         self._cache: dict[str, JournalSpec] = {}
+        self._available_cache: list[str] | None = None
 
     # ------------------------------------------------------------------
     # Public API
@@ -177,6 +181,17 @@ class SpecRegistry:
         raw_data = load_toml(toml_path)
         spec = JournalSpec.from_toml(raw_data)._with_key(key)
 
+        if spec.assumed_fields:
+            fields_str = ", ".join(sorted(spec.assumed_fields))
+            warnings.warn(
+                f"{spec.metadata.name} does not define: {fields_str}. "
+                f"Library defaults are applied. "
+                f"See {spec.metadata.source_url} for the official guidelines. "
+                f"Use spec.is_official(field) to check individual fields.",
+                SpecAssumptionWarning,
+                stacklevel=3,
+            )
+
         self._cache[key] = spec
         return spec
 
@@ -196,6 +211,9 @@ class SpecRegistry:
         FileNotFoundError
             If the specs directory is inaccessible.
         """
+        if self._available_cache is not None:
+            return list(self._available_cache)
+
         try:
             entries = sorted(
                 Path(entry.path).stem
@@ -207,7 +225,8 @@ class SpecRegistry:
         except OSError as exc:
             raise FileNotFoundError(f"Specs directory is inaccessible: {self._specs_dir}") from exc
 
-        return entries
+        self._available_cache = entries
+        return list(entries)
 
     def preload(self, names: list[str] | None = None) -> None:
         """Eagerly parse and cache one or more specifications.
@@ -223,10 +242,17 @@ class SpecRegistry:
 
         Raises
         ------
+        TypeError
+            If *names* is a bare string instead of a list (a common mistake).
         SpecNotFoundError
             If any requested name does not correspond
             to a TOML file in the specs directory.
         """
+        if isinstance(names, str):
+            raise TypeError(
+                f"preload() expects a list of names, not a bare string {names!r}. "
+                f"Use preload([{names!r}]) to preload a single spec."
+            )
         targets = names if names is not None else self.list_available()
         for target in targets:
             self.get(target)
@@ -239,25 +265,29 @@ class SpecRegistry:
         modified at runtime.
         """
         self._cache.clear()
+        self._available_cache = None
 
     # ------------------------------------------------------------------
     # Dunder helpers
     # ------------------------------------------------------------------
 
-    def __contains__(self, name: str) -> bool:
+    def __contains__(self, name: object) -> bool:
         """Check whether a journal specification is available.
 
         Parameters
         ----------
-        name : str
+        name : object
             Journal identifier to test.  Case-insensitive.
 
         Returns
         -------
         bool
             ``True`` if a spec with the given name exists in the cache or
-            has a corresponding TOML file on disk.
+            has a corresponding TOML file on disk.  ``False`` for non-string
+            inputs (mirrors standard container semantics).
         """
+        if not isinstance(name, str):
+            return False
         key = name.lower()
         if key in self._cache:
             return True

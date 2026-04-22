@@ -1,0 +1,12 @@
+[metadata]
+name = "Minimal"
+category = "context"
+description = "Stripped-down axes with no top/right spines for editorial and blog use."
+
+[rcparams]
+"axes.spines.top" = false
+"axes.spines.right" = false
+"xtick.top" = false
+"ytick.right" = false
+"axes.grid" = false
+"axes.linewidth" = 0.8

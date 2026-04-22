@@ -329,11 +329,17 @@ class _Measurement:
 
         Raises
         ------
+        TypeError
+            If *other* is not a ``_Measurement`` instance.
         IncompatibleUnitsError
             If *other* is a different measurement type.
         """
-        self._check_compatible(other)
-        return math.isclose(self._to_mm_raw(), other._to_mm_raw(), rel_tol=rel_tol)
+        rhs = self._check_compatible(other)
+        if rhs is NotImplemented:
+            raise TypeError(
+                f"is_close() requires a {type(self).__name__!r}, got {type(other).__name__!r}."
+            )
+        return math.isclose(self._to_mm_raw(), rhs._to_mm_raw(), rel_tol=rel_tol)
 
     def as_unit(self: _T, target_unit: str) -> _T:
         """Return a new measurement expressed in *target_unit*.

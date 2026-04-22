@@ -27,7 +27,8 @@ with plotstyle.use("nature") as style:
 
 - **Journal presets** — `plotstyle.use("nature")` sets fonts, sizes, line widths, and DPI for you.
 - **Correct figure sizes** — `figure()` / `subplots()` create figures at the exact column width a journal requires.
-- **Panel labels** — multi-panel figures automatically get **(a)**, **(b)**, **(c)** labels in the journal's style.
+- **Panel labels** — multi-panel figures automatically get bold lowercase panel labels (a, b, c) based on the journal spec.
+- **Overlays** — additive patches for colour palettes, context (notebook, presentation), rendering, and chart types.
 - **Colorblind-safe palettes** — Okabe–Ito, Tol, and grayscale-safe palettes are built in.
 - **Accessibility previews** — see how your figure looks under deuteranopia, protanopia, and tritanopia.
 - **Pre-submission validation** — check dimensions, fonts, line weights, and colours before you submit.

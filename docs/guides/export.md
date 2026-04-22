@@ -26,7 +26,7 @@ It automatically:
 ```
 ✓ TrueType fonts embedded (pdf.fonttype=42)
 ✓ Resolution: 300 DPI
-✓ Dimensions: 3.50in × 2.16in
+✓ Dimensions: 3.50in x 2.16in
 ✓ Saved: figure1.pdf
 ```
 
@@ -51,9 +51,10 @@ paths = plotstyle.export_submission(
     journal="nature",
     output_dir="submission_nature",
 )
-# paths = [Path('submission_nature/figure1.tiff'),
-#          Path('submission_nature/figure1.pdf'),
-#          Path('submission_nature/figure1.eps')]
+# paths = [Path('submission_nature/figure1.eps'),
+#          Path('submission_nature/figure1.pdf')]
+# Note: Nature also accepts AI (Adobe Illustrator) files, but Matplotlib
+# cannot produce them. The AI format is skipped with a note in the output.
 ```
 
 ### IEEE filename convention
@@ -94,10 +95,13 @@ plotstyle.export_submission(
 | `pdf` | `.pdf` | Vector; accepted by most journals |
 | `eps` | `.eps` | Vector; required by some physics journals |
 | `tiff` | `.tiff` | Raster; common in biology journals |
+| `tif` | `.tif` | Alias for `tiff` |
 | `png` | `.png` | Raster; web/screen use |
 | `svg` | `.svg` | Vector; web/interactive |
 | `jpg` | `.jpg` | Raster; rarely required |
+| `jpeg` | `.jpeg` | Alias for `jpg` |
 | `ps` | `.ps` | PostScript; legacy |
+| `ai` | `.ai` | Adobe Illustrator; accepted by Nature and Science but skipped during export (requires external tool) |
 
 ## Complete workflow
 

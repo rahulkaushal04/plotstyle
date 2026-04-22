@@ -1,0 +1,17 @@
+[metadata]
+name = "CJK Japanese"
+category = "script"
+description = "Font configuration for Japanese labels (JIS/Unicode)."
+
+[rcparams]
+"font.family" = ["IPAPGothic", "TakaoGothic", "Noto Sans CJK JP", "Hiragino Kaku Gothic Pro"]
+"axes.unicode_minus" = false
+
+[script]
+latex_preamble = [
+    "\\usepackage{xeCJK}",
+    "\\setCJKmainfont{IPAPGothic}",
+]
+
+[requires]
+fonts = ["IPAPGothic", "TakaoGothic", "Noto Sans CJK JP", "Hiragino Kaku Gothic Pro"]

@@ -37,10 +37,10 @@ Example output:
 ┌──────────────────────────────────────────────────────┐
 │      PlotStyle Validation Report — Nature            │
 ├──────────┬───────────────────────────────────────────┤
-│ PASS     │ Figure width: 89.0mm (single column)      │
-│ PASS     │ Height within max allowed (247.0mm)        │
-│ FAIL     │ Font size 4pt below minimum 5pt            │
-│ PASS     │ Line weights OK                            │
+│ ✓ PASS   │ Figure width: 89.0mm (single column)      │
+│ ✓ PASS   │ Height within max allowed (247.0mm)        │
+│ ✗ FAIL   │ Font size 4pt below minimum 5pt            │
+│ ✓ PASS   │ Line weights OK                            │
 └──────────┴───────────────────────────────────────────┘
 3/4 checks passed, 0 warning(s), 1 failure(s)
 ```
@@ -112,3 +112,30 @@ with plotstyle.use("nature") as style:
 
 All checks run in a single pass. There is no way to skip individual checks
 via the public `validate()` API.
+
+## Checks against library defaults
+
+Some journals do not publish complete guidelines. When a field like
+`min_font_pt` or `min_weight_pt` was not defined by the journal and a
+**library default** was used instead, the corresponding check is demoted from
+`FAIL` to `WARN`.
+
+This is intentional: you cannot fail a requirement the journal never set.
+The warning message identifies which limit is library-assumed and links to the
+official guidelines so you can verify the real constraint:
+
+```
+⚠ WARN  typography.font_size: 2 text element(s) outside the library-default
+         range of 6.0–10.0pt (Wiley does not define official font size limits).
+         Use this as a guideline only.
+```
+
+To check programmatically whether a field is journal-official:
+
+```python
+from plotstyle.specs import registry
+
+spec = registry.get("wiley")
+spec.is_official("typography.min_font_pt")  # False
+spec.is_official("dimensions.single_column_mm")  # True
+```

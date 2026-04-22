@@ -27,6 +27,7 @@
 - [Examples](#examples)
   - [Multi-panel figures](#multi-panel-figures)
   - [Color palettes](#color-palettes)
+  - [Overlays](#overlays)
   - [Colorblind and grayscale previews](#colorblind-and-grayscale-previews)
   - [Validation and submission export](#validation-and-submission-export)
 - [Supported Journals](#supported-journals)
@@ -76,7 +77,7 @@ with plotstyle.use("nature") as style:
 ```
 
 <p align="center">
-  <img src="examples/output/quickstart_nature.png" width="55%" alt="Quickstart output: sin and cos figure styled for Nature">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/quickstart_nature.png" width="55%" alt="Quickstart output: sin and cos figure styled for Nature">
 </p>
 
 The `with` block is the recommended pattern. Matplotlib's `rcParams` are restored automatically when it exits, even if an exception occurs.
@@ -87,7 +88,7 @@ The `with` block is the recommended pattern. Matplotlib's `rcParams` are restore
 
 ### Multi-panel figures
 
-`style.subplots()` works like `plt.subplots()` but sizes the figure to the journal spec and adds panel labels automatically, styled to each journal's convention (**A**, **B**, **C** for Science; **a**, **b**, **c** for Nature; **(a)**, **(b)**, **(c)** for IEEE).
+`style.subplots()` works like `plt.subplots()` but sizes the figure to the journal spec and adds panel labels automatically. All built-in journal specs use bold lowercase labels (**a**, **b**, **c**, …). The label style is driven by each spec's `panel_label_case` field and can be `lower`, `upper`, `parens_lower`, `parens_upper`, `sentence`, or `title`.
 
 ```python
 import numpy as np
@@ -123,7 +124,7 @@ with plotstyle.use("science") as style:
 ```
 
 <p align="center">
-  <img src="examples/output/multi_panel_science.png" width="70%" alt="2x2 multi-panel Science figure with automatic panel labels A B C D">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/multi_panel_science.png" width="70%" alt="2x2 multi-panel Science figure with automatic panel labels a b c d">
 </p>
 
 > `axes` is always a 2-D NumPy array. Use `axes[0, 0]` to access a single panel or `axes.flat` to iterate. Pass `panels=False` to suppress the automatic labels.
@@ -141,7 +142,7 @@ import plotstyle
 journals = ["nature", "science", "ieee", "acs"]
 fig, axes = plt.subplots(len(journals), 1, figsize=(6, 0.6 * len(journals)))
 
-for ax, journal in zip(axes, journals):
+for ax, journal in zip(axes, journals, strict=False):
     pal = plotstyle.palette(journal, n=8)
     for i, color in enumerate(pal):
         ax.barh(0, 1, left=i, color=color, edgecolor="none", height=0.8)
@@ -156,7 +157,7 @@ fig.savefig("palette_comparison.png", dpi=150)
 ```
 
 <p align="center">
-  <img src="examples/output/palette_comparison.png" width="70%" alt="Color swatch comparison for Nature, Science, IEEE, and ACS palettes">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/palette_comparison.png" width="70%" alt="Color swatch comparison for Nature, Science, IEEE, and ACS palettes">
 </p>
 
 Pass `with_markers=True` to get `(color, linestyle, marker)` tuples, useful for journals like IEEE that print in grayscale:
@@ -165,6 +166,66 @@ Pass `with_markers=True` to get `(color, linestyle, marker)` tuples, useful for 
 styled = plotstyle.palette("ieee", n=4, with_markers=True)
 for color, ls, marker in styled:
     ax.plot(x, y, color=color, linestyle=ls, marker=marker)
+```
+
+```text
+# styled — one (color, linestyle, marker) tuple per series:
+[('#000000', '-', 'o'), ('#333333', '--', 's'), ('#666666', '-.', '^'), ('#999999', ':', 'D')]
+```
+
+---
+
+### Overlays
+
+Overlays are additive patches that layer on top of a journal preset. They let you adjust one aspect of a figure — the colour palette, the context, the chart type — without changing the base journal settings.
+
+Pass overlay names in the same list as the journal key:
+
+```python
+import plotstyle
+
+# Strip top/right spines for a clean editorial look
+with plotstyle.use(["nature", "minimal"]) as style:
+    fig, ax = style.figure(columns=1)
+    ax.plot([1, 2, 3])
+    style.savefig(fig, "figure.pdf")
+
+# Larger figure and fonts for Jupyter notebooks
+with plotstyle.use(["nature", "notebook"]) as style:
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots()   # plt.subplots() picks up the notebook figsize
+    ax.plot([1, 2, 3])
+
+# Swap the colour cycle to a specific palette
+with plotstyle.use(["ieee", "okabe-ito"]) as style:
+    fig, ax = style.figure(columns=1)
+    ax.plot([1, 2, 3])
+```
+
+| Category | Purpose | Examples |
+|----------|---------|---------|
+| `color` | Swap the colour cycle | `okabe-ito`, `tol-bright`, `safe-grayscale` |
+| `context` | Adjust scale for the medium | `notebook`, `presentation`, `minimal`, `high-vis` |
+| `rendering` | Control LaTeX and grid rendering | `no-latex`, `grid`, `latex-sans`, `pgf` |
+| `plot-type` | Optimise for a chart type | `bar`, `scatter` |
+| `script` | Non-Latin font support | `cjk-simplified`, `russian`, `turkish` |
+
+```python
+# List all available overlays
+plotstyle.list_overlays()
+plotstyle.list_overlays(category="context")
+```
+
+```text
+# plotstyle.list_overlays()
+['bar', 'cjk-japanese', 'cjk-korean', 'cjk-simplified', 'cjk-traditional', 'grid',
+ 'high-vis', 'latex-sans', 'minimal', 'no-latex', 'notebook', 'okabe-ito', 'pgf',
+ 'presentation', 'russian', 'safe-grayscale', 'scatter', 'tol-bright',
+ 'tol-high-contrast', 'tol-light', 'tol-muted', 'tol-rainbow-10', 'tol-rainbow-12',
+ 'tol-rainbow-4', 'tol-rainbow-6', 'tol-rainbow-8', 'tol-vibrant', 'turkish']
+
+# plotstyle.list_overlays(category="context")
+['high-vis', 'minimal', 'notebook', 'presentation']
 ```
 
 ---
@@ -187,21 +248,21 @@ with plotstyle.use("nature") as style:
     ax.set_ylabel("Signal")
     ax.legend()
 
+    # Simulate colour vision deficiency (deuteranopia, protanopia, tritanopia)
     cvd_fig = plotstyle.preview_colorblind(fig)
     cvd_fig.savefig("accessibility_colorblind.png", dpi=150, bbox_inches="tight")
-```
 
-<p align="center">
-  <img src="examples/output/accessibility_colorblind.png" width="90%" alt="Colorblind simulation: original, deuteranopia, protanopia, tritanopia">
-</p>
-
-```python
+    # Simulate grayscale print
     gray_fig = plotstyle.preview_grayscale(fig)
     gray_fig.savefig("accessibility_grayscale.png", dpi=150, bbox_inches="tight")
 ```
 
 <p align="center">
-  <img src="examples/output/accessibility_grayscale.png" width="60%" alt="Grayscale simulation: original vs grayscale rendering">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/accessibility_colorblind.png" width="90%" alt="Colorblind simulation: original, deuteranopia, protanopia, tritanopia">
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/accessibility_grayscale.png" width="60%" alt="Grayscale simulation: original vs grayscale rendering">
 </p>
 
 ---
@@ -220,6 +281,46 @@ for failure in report.failures:
     print(failure.fix_suggestion)  # how to fix it
 ```
 
+```text
+┌──────────────────────────────────────────────────────┐
+│         PlotStyle Validation Report — Nature         │
+├──────────┬───────────────────────────────────────────┤
+│ ✓ PASS   │ Figure width 89.0mm matches single colu...│
+│ ✓ PASS   │ Figure height 55.0mm is within the Natu...│
+│ ✗ FAIL   │ pdf.fonttype = 3; must be 42 for TrueTy...│
+│ ✗ FAIL   │ ps.fonttype = 3; must be 42 for TrueTyp...│
+│ ⚠ WARN   │ savefig.dpi = 'figure'; Nature requires...│
+│ ✓ PASS   │ All plotted lines and spines meet the N...│
+│ ✗ FAIL   │ 14 text element(s) outside the Nature r...│
+└──────────┴───────────────────────────────────────────┘
+3/7 checks passed, 1 warning(s), 3 failure(s)
+
+passed: False
+
+failure.message:       pdf.fonttype = 3; must be 42 for TrueType font embedding.
+failure.fix_suggestion: Call plotstyle.use() to apply all required rcParams, or set
+                        mpl.rcParams['pdf.fonttype'] = 42 manually.
+```
+
+When called inside `plotstyle.use()`, all checks pass:
+
+```text
+┌──────────────────────────────────────────────────────┐
+│         PlotStyle Validation Report — Nature         │
+├──────────┬───────────────────────────────────────────┤
+│ ✓ PASS   │ Figure width 89.0mm matches single colu...│
+│ ✓ PASS   │ Figure height 55.0mm is within the Natu...│
+│ ✓ PASS   │ pdf.fonttype = 42 (TrueType fonts will ...│
+│ ✓ PASS   │ ps.fonttype = 42 (TrueType fonts will b...│
+│ ✓ PASS   │ savefig.dpi = 300.0 meets the Nature mi...│
+│ ✓ PASS   │ All plotted lines and spines meet the N...│
+│ ✓ PASS   │ All text elements are within the Nature...│
+└──────────┴───────────────────────────────────────────┘
+7/7 checks passed, 0 warning(s), 0 failure(s)
+
+passed: True
+```
+
 ```python
 paths = plotstyle.export_submission(
     fig,
@@ -228,7 +329,14 @@ paths = plotstyle.export_submission(
     author_surname="Smith",     # IEEE prepends the surname prefix to filenames
     output_dir="submission/",
 )
-# Produces: submission/smith_figure1.pdf (and any other IEEE-required formats)
+print(paths)
+```
+
+```text
+[PosixPath('submission/smith_figure1.tiff'),
+ PosixPath('submission/smith_figure1.eps'),
+ PosixPath('submission/smith_figure1.pdf'),
+ PosixPath('submission/smith_figure1.png')]
 ```
 
 ---
@@ -259,8 +367,107 @@ plotstyle list                                 # list all journal presets
 plotstyle info <journal>                       # show spec details
 plotstyle diff <journal_a> <journal_b>         # compare two journals
 plotstyle fonts --journal <journal>            # check font availability
+plotstyle overlays [--category <category>]    # list available overlays
+plotstyle overlay-info <overlay>               # show overlay details
 plotstyle validate <file> --journal <journal>  # validate a saved figure
 plotstyle export <file> --journal <journal>    # print snippet for re-exporting
+```
+
+**`plotstyle list`**
+```text
+  acs             American Chemical Society
+  cell            Cell Press
+  elsevier        Elsevier
+  ieee            IEEE
+  nature          Springer Nature
+  plos            Public Library of Science
+  prl             American Physical Society
+  science         AAAS
+  springer        Springer Nature
+  wiley           Wiley
+```
+
+**`plotstyle info nature`**
+```text
+Journal: Nature
+Publisher: Springer Nature
+Source: https://www.nature.com/documents/nature-final-artwork.pdf
+Last Verified: 2026-04-22
+──────────────────────────
+Dimensions:
+  Single column: 89.0mm (3.50in)
+  Double column: 183.0mm (7.20in)
+  Max height:    247.0mm
+Typography:
+  Font:          Helvetica, Arial (fallback: sans-serif)
+  Size range:    5.0-7.0pt
+  Panel labels:  5.0pt bold lower (a, b, c)
+Export:
+  Formats:  ai, eps, pdf
+  Min DPI:  300
+  Color:    rgb
+Accessibility:
+  Colorblind safe: Not required
+  Grayscale safe:  Not required
+```
+
+**`plotstyle diff nature science`**
+```text
+Nature → Science
+──────────────────────────────────────────────────
+Column Width (single):  89.0mm → 86.4mm
+Column Width (double):  183.0mm → 177.8mm
+Max Height:             247.0mm → —
+Font Family:            Helvetica, Arial → Minion Pro, Benton Sans Condensed
+Min Font Size:          5.0pt → 7.5pt
+Max Font Size:          7.0pt → 10.0pt
+Panel Label Size:       5.0pt → 7.5pt
+Preferred Formats:      ai, eps, pdf → ai, eps, pdf, tiff
+Colorblind Required:    No → Yes
+```
+
+**`plotstyle fonts --journal nature`**
+```text
+Font check for: Nature
+Required:        Helvetica, Arial
+Available:       Helvetica, Arial
+Selected:        Helvetica
+Exact match:     Yes
+```
+
+**`plotstyle overlays`**
+```text
+  bar             [plot-type]  Optimised rcParams for bar charts.
+  cjk-simplified  [script]     Font configuration for Simplified Chinese labels.
+  grid            [rendering]  Enable major grid lines with a subtle dashed style.
+  high-vis        [context]    Maximum contrast, bold lines, and oversized ticks.
+  latex-sans      [rendering]  Enable LaTeX rendering with a sans-serif font family.
+  minimal         [context]    Stripped-down axes with no top/right spines.
+  no-latex        [rendering]  Disable LaTeX text rendering; use Matplotlib MathText.
+  notebook        [context]    Enlarged figures and larger fonts for Jupyter.
+  okabe-ito       [color]      Colorblind-safe 8-color qualitative palette.
+  pgf             [rendering]  Use the PGF LaTeX backend for vector output.
+  presentation    [context]    Large text and thick lines for slide decks.
+  safe-grayscale  [color]      6-step grayscale palette for black-and-white print.
+  scatter         [plot-type]  Optimised rcParams for scatter plots.
+  tol-bright      [color]      Paul Tol's bright 7-color qualitative palette.
+  ...
+```
+
+**`plotstyle overlay-info minimal`**
+```text
+Overlay: Minimal
+Key:     minimal
+Category: context
+Description: Stripped-down axes with no top/right spines for editorial and blog use.
+──────────────────────────
+rcParams:
+  axes.spines.top = False
+  axes.spines.right = False
+  xtick.top = False
+  ytick.right = False
+  axes.grid = False
+  axes.linewidth = 0.8
 ```
 
 ---
@@ -295,7 +502,7 @@ If PlotStyle helps your research, a citation or star is appreciated:
   title   = {PlotStyle: Publication-ready scientific figure presets for Matplotlib},
   year    = {2026},
   url     = {https://github.com/rahulkaushal04/plotstyle},
-  note    = {Version 1.1.0},
+  note    = {Version 1.2.0},
 }
 ```
 

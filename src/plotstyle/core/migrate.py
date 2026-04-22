@@ -44,7 +44,9 @@ def _format_list(value: object) -> str:
 
 
 def _format_mm(value: object) -> str:
-    """Return ``"<value>mm"``."""
+    """Return ``"<value>mm"``, or ``"—"`` for *None*."""
+    if value is None:
+        return "—"
     return f"{value}mm"
 
 
@@ -304,16 +306,19 @@ def diff(journal_a: str, journal_b: str) -> SpecDiff:
     spec_a = registry.get(journal_a)
     spec_b = registry.get(journal_b)
 
-    differences = [
-        SpecDifference(
-            field=dotted_path,
-            label=label,
-            value_a=formatter(_resolve_attr(spec_a, dotted_path)),
-            value_b=formatter(_resolve_attr(spec_b, dotted_path)),
-        )
-        for dotted_path, label, formatter in _DIFF_FIELDS
-        if _resolve_attr(spec_a, dotted_path) != _resolve_attr(spec_b, dotted_path)
-    ]
+    differences: list[SpecDifference] = []
+    for dotted_path, label, formatter in _DIFF_FIELDS:
+        val_a = _resolve_attr(spec_a, dotted_path)
+        val_b = _resolve_attr(spec_b, dotted_path)
+        if val_a != val_b:
+            differences.append(
+                SpecDifference(
+                    field=dotted_path,
+                    label=label,
+                    value_a=formatter(val_a),
+                    value_b=formatter(val_b),
+                )
+            )
 
     return SpecDiff(
         journal_a=spec_a.metadata.name,
@@ -383,7 +388,15 @@ def migrate(
         mpl.rcParams.update(target_rc)
 
         old_w, old_h = fig.get_size_inches()
-        aspect_ratio = old_h / old_w if old_w else 1.0
+        if old_w <= 0:
+            warnings.warn(
+                f"Figure width is {old_w!r}; cannot preserve aspect ratio. Defaulting to 1.0.",
+                PlotStyleWarning,
+                stacklevel=2,
+            )
+            aspect_ratio = 1.0
+        else:
+            aspect_ratio = old_h / old_w
         new_w = Dimension(to_spec.dimensions.single_column_mm, "mm").to_inches()
         fig.set_size_inches(new_w, new_w * aspect_ratio)
 

@@ -1,0 +1,7 @@
+[metadata]
+name = "Safe Grayscale"
+category = "color"
+description = "6-step grayscale palette distinguishable in print and when converted to black-and-white."
+
+[rcparams]
+_palette = ["#000000", "#333333", "#666666", "#999999", "#CCCCCC", "#E8E8E8"]

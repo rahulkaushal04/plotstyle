@@ -96,9 +96,21 @@ except SpecNotFoundError as exc:
     print(exc.available)  # ['acs', 'ieee', 'nature', ...]
 ```
 
+### Preload specs
+
+```python
+registry.preload()           # load all specs eagerly
+registry.preload(["nature", "ieee"])  # load specific specs
+```
+
+Preloading is useful in CLI tools that access many specs in a tight loop and
+want to avoid per-lookup I/O.
+
 ## Notes
 
 - Journal names are case-insensitive: `"Nature"` and `"nature"` both work.
 - TOML files starting with `_` (e.g. `_templates.toml`) are private and
   excluded from `list_available()`.
 - Parsed specs are cached after first access; subsequent lookups incur no I/O.
+- `registry.clear_cache()` discards all cached specs, forcing re-reads from
+  disk on the next access.

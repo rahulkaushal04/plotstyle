@@ -1,0 +1,10 @@
+[metadata]
+name = "Bar"
+category = "plot-type"
+description = "Optimised rcParams for bar charts: markers removed, patch border width set."
+
+[rcparams]
+"lines.linestyle" = "none"
+"lines.marker" = "none"
+"lines.linewidth" = 0
+"patch.linewidth" = 0.5

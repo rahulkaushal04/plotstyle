@@ -12,6 +12,14 @@ No. PlotStyle uses Matplotlib's built-in text rendering by default. LaTeX
 is available as an opt-in if you have a LaTeX distribution installed, but it
 is not required.
 
+Use `latex="auto"` to enable LaTeX when available and silently fall back to
+MathText otherwise:
+
+```python
+with plotstyle.use("nature", latex="auto") as style:
+    ...
+```
+
 ### Does PlotStyle work with Seaborn?
 
 Yes. See the [Seaborn integration guide](guides/seaborn.md).
@@ -114,14 +122,56 @@ saved PDF.
 
 ### What does `WARN` vs `FAIL` mean?
 
-- **FAIL** — the criterion was not met; the figure is likely to be rejected.
-- **WARN** — advisory; could not be verified conclusively.
+- **FAIL** — the criterion was not met against a journal-official requirement.
+- **WARN** — the check flagged an issue against a library-assumed default (the
+  journal's guidelines did not define this field). Advisory only.
 
 Only `FAIL` results affect `report.passed`.
 
 ### Can I skip specific checks?
 
 Not via the public `validate()` API. All registered checks run in one pass.
+
+---
+
+## Overlays
+
+### What's the difference between a journal preset and an overlay?
+
+A journal preset (e.g. `"nature"`) is a full specification — it sets fonts,
+sizes, line widths, DPI, and links to the spec registry so `validate()` and
+`export_submission()` know the journal's requirements.
+
+An overlay is a lighter additive patch. It changes only the rcParams listed in
+its TOML file. Some overlays (color, context, plot-type) have no journal-
+specific requirements; others (script overlays) configure non-Latin fonts.
+
+### Can I stack multiple overlays?
+
+Yes. Pass them all in the list:
+
+```python
+with plotstyle.use(["nature", "minimal", "tol-bright"]) as style:
+    ...
+```
+
+Overlays are applied in order. If two overlays set the same rcParam, the last
+one wins.
+
+### Can I use overlays without a journal?
+
+Yes:
+
+```python
+with plotstyle.use("notebook") as style:
+    fig, ax = plt.subplots()
+    ax.plot([1, 2, 3])
+```
+
+Without a journal, `style.palette()`, `style.validate()`, and
+`style.export_submission()` raise `RuntimeError`. `style.figure()` and
+`style.subplots()` still work but use Matplotlib's default figure width
+(6.4 in) instead of a journal column width.
 
 ---
 

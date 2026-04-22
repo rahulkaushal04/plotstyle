@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 from typing import Final
 
+from plotstyle.overlays import OverlayNotFoundError
 from plotstyle.specs import SpecNotFoundError
 
 # ---------------------------------------------------------------------------
@@ -37,10 +38,13 @@ def _cmd_list() -> int:
     """Print all available journal presets."""
     from plotstyle.specs import registry
 
-    for name in sorted(registry.list_available()):
+    names = sorted(registry.list_available())
+    if not names:
+        print("No journal presets available.")
+        return 0
+    for name in names:
         spec = registry.get(name)
         print(f"  {name:<{_LIST_NAME_WIDTH}} {spec.metadata.publisher}")
-
     return 0
 
 
@@ -103,7 +107,16 @@ def _cmd_diff(journal_a: str, journal_b: str) -> int:
     return 0
 
 
-def _cmd_fonts(journal: str) -> int:
+def _cmd_fonts(journal: str | None, overlay: str | None = None) -> int:
+    """Check which fonts required by *journal* or *overlay* are installed."""
+    if overlay is not None:
+        return _cmd_fonts_overlay(overlay)
+    if journal is None:
+        raise ValueError("Either --journal or --overlay must be specified.")
+    return _cmd_fonts_journal(journal)
+
+
+def _cmd_fonts_journal(journal: str) -> int:
     """Check which fonts required by *journal* are installed on this system."""
     from plotstyle.engine.fonts import detect_available, select_best
     from plotstyle.specs import registry
@@ -117,6 +130,39 @@ def _cmd_fonts(journal: str) -> int:
     print(f"Available:       {', '.join(available) if available else 'none'}")
     print(f"Selected:        {best}")
     print(f"Exact match:     {'Yes' if is_exact else 'No (using acceptable substitute)'}")
+
+    return 0
+
+
+def _cmd_fonts_overlay(overlay_key: str) -> int:
+    """Check which fonts required by *overlay_key* are installed on this system."""
+    from plotstyle.engine.fonts import check_overlay_fonts
+    from plotstyle.overlays import overlay_registry
+
+    overlay = overlay_registry.get(overlay_key)
+    status = check_overlay_fonts(overlay)
+
+    print(f"Font check for overlay: {overlay.name}")
+    print(_INFO_SEPARATOR)
+
+    if not status:
+        print("No font requirements declared for this overlay.")
+        return 0
+
+    any_installed = any(status.values())
+    available = [f for f, ok in status.items() if ok]
+
+    for font, installed in status.items():
+        mark = "✓" if installed else "✗"
+        suffix = "  (selected fallback)" if installed and font == available[0] else ""
+        print(f"  {font}: {'installed' if installed else 'not found'} {mark}{suffix}")
+
+    print()
+    if any_installed:
+        print(f"Selected font: {available[0]}")
+    else:
+        print("Warning: none of the required fonts are installed.")
+        print("Non-Latin characters may not render correctly.")
 
     return 0
 
@@ -156,6 +202,58 @@ def _cmd_validate(file: str, journal: str) -> int:
     return 0
 
 
+def _cmd_overlays(category: str | None) -> int:
+    """List all available style overlays."""
+    from plotstyle.overlays import overlay_registry
+
+    keys = overlay_registry.list_available(category=category)
+    if not keys:
+        label = f" in category {category!r}" if category else ""
+        print(f"No overlays available{label}.")
+        return 0
+
+    for key in keys:
+        overlay = overlay_registry.get(key)
+        print(f"  {key:<{_LIST_NAME_WIDTH}} [{overlay.category}]  {overlay.description}")
+
+    return 0
+
+
+def _cmd_overlay_info(overlay_key: str) -> int:
+    """Print metadata and rcparams for a single overlay."""
+    from plotstyle.overlays import overlay_registry
+
+    overlay = overlay_registry.get(overlay_key)
+
+    print(f"Overlay: {overlay.name}")
+    print(f"Key:     {overlay.key}")
+    print(f"Category: {overlay.category}")
+    print(f"Description: {overlay.description}")
+    print(_INFO_SEPARATOR)
+    print("rcParams:")
+    for param_key, value in overlay.rcparams.items():
+        print(f"  {param_key} = {value!r}")
+
+    if overlay.rendering:
+        print("Rendering:")
+        for k, v in overlay.rendering.items():
+            print(f"  {k} = {v!r}")
+
+    if overlay.script:
+        preamble_lines: list[str] = overlay.script.get("latex_preamble", [])
+        if preamble_lines:
+            print("LaTeX preamble:")
+            for line in preamble_lines:
+                print(f"  {line}")
+
+    if overlay.requires:
+        fonts: list[str] = overlay.requires.get("fonts", [])
+        if fonts:
+            print(f"Required fonts: {', '.join(fonts)}")
+
+    return 0
+
+
 def _cmd_export(
     file: str,
     journal: str,
@@ -167,8 +265,9 @@ def _cmd_export(
     stem = Path(file).stem
     kwargs: list[str] = [f"journal={journal!r}"]
     if formats:
-        fmt_list = [f.strip() for f in formats.split(",")]
-        kwargs.append(f"formats={fmt_list!r}")
+        fmt_list = [f.strip() for f in formats.split(",") if f.strip()]
+        if fmt_list:
+            kwargs.append(f"formats={fmt_list!r}")
     if author:
         kwargs.append(f"author_surname={author!r}")
     if output_dir != ".":
@@ -201,8 +300,12 @@ def _build_parser() -> argparse.ArgumentParser:
             "  plotstyle info nature\n"
             "  plotstyle diff nature ieee\n"
             "  plotstyle fonts --journal science\n"
+            "  plotstyle fonts --overlay cjk-simplified\n"
             "  plotstyle validate figure1.pdf --journal nature\n"
-            "  plotstyle export figure1.png --journal ieee --formats pdf,eps  # prints snippet"
+            "  plotstyle export figure1.png --journal ieee --formats pdf,eps  # prints snippet\n"
+            "  plotstyle overlays\n"
+            "  plotstyle overlays --category context\n"
+            "  plotstyle overlay-info notebook"
         ),
     )
 
@@ -232,14 +335,22 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sub_fonts = subparsers.add_parser(
         "fonts",
-        help="Check font availability for a journal on this system",
+        help="Check font availability for a journal or overlay on this system",
     )
-    sub_fonts.add_argument(
+    sub_fonts_group = sub_fonts.add_mutually_exclusive_group(required=True)
+    sub_fonts_group.add_argument(
         "--journal",
         type=str,
-        required=True,
+        default=None,
         metavar="JOURNAL",
         help="Journal identifier",
+    )
+    sub_fonts_group.add_argument(
+        "--overlay",
+        type=str,
+        default=None,
+        metavar="OVERLAY",
+        help="Overlay key (e.g., 'cjk-simplified')",
     )
 
     sub_validate = subparsers.add_parser(
@@ -257,6 +368,28 @@ def _build_parser() -> argparse.ArgumentParser:
         required=True,
         metavar="JOURNAL",
         help="Journal identifier",
+    )
+
+    sub_overlays = subparsers.add_parser(
+        "overlays",
+        help="List all available style overlays",
+    )
+    sub_overlays.add_argument(
+        "--category",
+        type=str,
+        default=None,
+        metavar="CATEGORY",
+        help=("Filter by category. Valid values: color, context, rendering, script, plot-type"),
+    )
+
+    sub_overlay_info = subparsers.add_parser(
+        "overlay-info",
+        help="Show metadata and rcParams for a style overlay",
+    )
+    sub_overlay_info.add_argument(
+        "overlay",
+        type=str,
+        help="Overlay key (e.g., 'notebook', 'no-latex')",
     )
 
     sub_export = subparsers.add_parser(
@@ -342,7 +475,7 @@ def main(argv: list[str] | None = None) -> int:
             return _cmd_diff(args.journal_a, args.journal_b)
 
         if args.command == "fonts":
-            return _cmd_fonts(args.journal)
+            return _cmd_fonts(args.journal, args.overlay)
 
         if args.command == "validate":
             return _cmd_validate(args.file, args.journal)
@@ -356,10 +489,24 @@ def main(argv: list[str] | None = None) -> int:
                 args.output_dir,
             )
 
+        if args.command == "overlays":
+            return _cmd_overlays(args.category)
+
+        if args.command == "overlay-info":
+            return _cmd_overlay_info(args.overlay)
+
     except SpecNotFoundError as exc:
         print(
             f"Error: unknown journal {exc.name!r}.\n"
             "Run 'plotstyle list' to see all available journal identifiers.",
+            file=sys.stderr,
+        )
+        return 1
+
+    except OverlayNotFoundError as exc:
+        print(
+            f"Error: unknown overlay {exc.name!r}.\n"
+            "Run 'plotstyle overlays' to see all available overlay keys.",
             file=sys.stderr,
         )
         return 1

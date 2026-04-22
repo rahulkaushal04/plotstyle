@@ -45,8 +45,9 @@ with plotstyle.use("nature") as style:
     ax.legend()
 ```
 
-For multi-panel layouts, use `style.subplots()`. Panel labels like **(a)**,
-**(b)** are added automatically in the journal's style:
+For multi-panel layouts, use `style.subplots()`. Panel labels are added
+automatically in the journal's style (bold lowercase **a**, **b**, **c** by
+default):
 
 ```python
 with plotstyle.use("science") as style:

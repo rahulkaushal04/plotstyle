@@ -8,6 +8,7 @@ topic and includes working code examples.
 
 multi_panel
 palettes
+overlays
 accessibility
 validation
 export

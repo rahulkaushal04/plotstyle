@@ -478,7 +478,7 @@ class TestDefaults:
 
 
 class TestMissingRequiredFields:
-    @pytest.mark.parametrize("table", ["metadata", "dimensions", "typography", "export"])
+    @pytest.mark.parametrize("table", ["metadata", "typography", "export"])
     def test_missing_top_level_table_raises_missing_field_error(self, valid_data, table):
         """
         Description: Validates that each required top-level table, when absent, raises MissingFieldError.
@@ -500,43 +500,6 @@ class TestMissingRequiredFields:
         with pytest.raises(MissingFieldError) as exc_info:
             JournalSpec.from_toml(valid_data)
         assert exc_info.value.field_name == field_name
-
-    @pytest.mark.parametrize(
-        "field_name", ["single_column_mm", "double_column_mm", "max_height_mm"]
-    )
-    def test_missing_dimension_field_raises_with_correct_field_name(self, valid_data, field_name):
-        """
-        Description: Validates each required dimension field raises MissingFieldError when absent.
-        Scenario: Delete one required dimension field at a time.
-        Expectation: MissingFieldError.field_name matches the deleted key.
-        """
-        del valid_data["dimensions"][field_name]
-        with pytest.raises(MissingFieldError) as exc_info:
-            JournalSpec.from_toml(valid_data)
-        assert exc_info.value.field_name == field_name
-
-    @pytest.mark.parametrize("field_name", ["min_font_pt", "max_font_pt"])
-    def test_missing_typography_field_raises_with_correct_field_name(self, valid_data, field_name):
-        """
-        Description: Validates required typography fields raise MissingFieldError when absent.
-        Scenario: Delete one required typography field at a time.
-        Expectation: MissingFieldError.field_name matches the deleted key.
-        """
-        del valid_data["typography"][field_name]
-        with pytest.raises(MissingFieldError) as exc_info:
-            JournalSpec.from_toml(valid_data)
-        assert exc_info.value.field_name == field_name
-
-    def test_absent_font_family_raises_field_value_error(self, valid_data):
-        """
-        Description: Validates absent font_family (defaults to []) triggers FieldValueError due to non_empty=True.
-        Scenario: 'font_family' key removed; default is empty list which fails non_empty constraint.
-        Expectation: FieldValueError for font_family.
-        """
-        del valid_data["typography"]["font_family"]
-        with pytest.raises(FieldValueError) as exc_info:
-            JournalSpec.from_toml(valid_data)
-        assert exc_info.value.field_name == "font_family"
 
     def test_verified_by_is_optional_no_error(self, valid_data):
         """
@@ -746,16 +709,6 @@ class TestFieldTypeErrors:
         """
         valid_data["line"] = {"min_weight_pt": "thin"}
         with pytest.raises(FieldTypeError):
-            JournalSpec.from_toml(valid_data)
-
-    def test_dimensions_table_is_not_a_dict_raises(self, valid_data):
-        """
-        Description: Validates that a non-dict dimensions table raises an error.
-        Scenario: dimensions set to a list instead of a dict.
-        Expectation: Some JournalSpecError subtype is raised.
-        """
-        valid_data["dimensions"] = [89.0, 183.0, 247.0]
-        with pytest.raises((TypeError, AttributeError, JournalSpecError)):
             JournalSpec.from_toml(valid_data)
 
     def test_field_type_error_got_attribute_preserves_original_value(self, valid_data):

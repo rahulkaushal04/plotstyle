@@ -33,6 +33,8 @@ _DATA_DIR: Final[Path] = Path(__file__).parent / "data"
 __all__: list[str] = [
     "JOURNAL_PALETTE_MAP",
     "PaletteNotFoundError",
+    "apply_palette",
+    "list_palettes",
     "load_palette",
     "palette",
 ]
@@ -64,10 +66,15 @@ class PaletteNotFoundError(FileNotFoundError):
     """Raised when a requested palette JSON file does not exist."""
 
 
+def _to_internal_name(name: str) -> str:
+    """Convert kebab-case palette name to the underscore stem used by JSON files."""
+    return name.replace("-", "_")
+
+
 def _build_not_found_message(name: str) -> str:
     """Return a human-readable error message listing available palette names."""
-    available = ", ".join(sorted(p.stem for p in _DATA_DIR.glob("*.json")))
-    return f"Palette {name!r} not found in {_DATA_DIR}. Available palettes: {available or '(none)'}"
+    available = ", ".join(list_palettes())
+    return f"Palette {name!r} not found. Available palettes: {available or '(none)'}"
 
 
 def load_palette(name: str) -> list[str]:
@@ -76,8 +83,10 @@ def load_palette(name: str) -> list[str]:
     Parameters
     ----------
     name : str
-        Palette key matching a JSON file stem in the bundled ``color/data/``
-        directory (e.g. ``"okabe_ito"``, ``"tol_bright"``).
+        Palette key, in either kebab-case (e.g. ``"tol-bright"``) or
+        underscore-case (e.g. ``"tol_bright"``).  Both forms are accepted and
+        refer to the same palette.  Kebab-case keys match the output of
+        :func:`list_palettes`.
 
     Returns
     -------
@@ -89,10 +98,11 @@ def load_palette(name: str) -> list[str]:
     PaletteNotFoundError
         If no JSON file matching *name* exists in the bundled data directory.
     """
-    if name in _palette_cache:
-        return _palette_cache[name]
+    internal = _to_internal_name(name)
+    if internal in _palette_cache:
+        return _palette_cache[internal]
 
-    json_path = _DATA_DIR / f"{name}.json"
+    json_path = _DATA_DIR / f"{internal}.json"
     if not json_path.is_file():
         raise PaletteNotFoundError(_build_not_found_message(name))
 
@@ -100,7 +110,7 @@ def load_palette(name: str) -> list[str]:
         data = json.load(fh)
 
     colors = [str(c) for c in data["colors"]]
-    _palette_cache[name] = colors
+    _palette_cache[internal] = colors
     return colors
 
 
@@ -149,6 +159,8 @@ def palette(
     if n is None:
         count = palette_len
     else:
+        if not isinstance(n, int) or isinstance(n, bool):
+            raise TypeError(f"n must be an int, got {type(n).__name__!r}.")
         if n < 1:
             raise ValueError(f"n must be a positive integer, got {n!r}.")
         count = n
@@ -166,3 +178,59 @@ def palette(
         )
         for i, color in enumerate(selected)
     ]
+
+
+def list_palettes() -> list[str]:
+    """Return a sorted list of all available palette names.
+
+    Scans the bundled ``color/data/`` directory for ``*.json`` files and
+    returns their stems normalised to kebab-case (e.g. ``"tol-bright"``).
+
+    Returns
+    -------
+    list[str]
+        Alphabetically sorted list of palette keys.
+    """
+    return sorted(p.stem.replace("_", "-") for p in _DATA_DIR.glob("*.json"))
+
+
+def apply_palette(name: str, ax: object = None) -> None:
+    """Apply a named colour palette to an axes or globally via rcParams.
+
+    Parameters
+    ----------
+    name : str
+        Palette key in kebab-case (e.g. ``"tol-bright"``, ``"okabe-ito"``).
+        Matches the names returned by :func:`list_palettes`.
+    ax : matplotlib.axes.Axes | None
+        When provided, sets the colour cycle on this specific axes via
+        :meth:`~matplotlib.axes.Axes.set_prop_cycle`.  When ``None``
+        (default), sets ``mpl.rcParams["axes.prop_cycle"]`` globally so
+        that all subsequently created axes use this palette.
+
+    Raises
+    ------
+    PaletteNotFoundError
+        If *name* does not correspond to a bundled palette JSON file.
+
+    Notes
+    -----
+    Applying a palette to an existing axes does **not** retroactively
+    recolour artists that are already drawn.  Call this function before
+    plotting to ensure the new cycle is used from the first line.
+    """
+    import matplotlib as mpl
+    from cycler import cycler
+
+    internal = _to_internal_name(name)
+    json_path = _DATA_DIR / f"{internal}.json"
+    if not json_path.is_file():
+        raise PaletteNotFoundError(_build_not_found_message(name))
+
+    colors = load_palette(internal)
+    color_cycler = cycler("color", colors)
+
+    if ax is not None:
+        ax.set_prop_cycle(color_cycler)  # type: ignore[union-attr]
+    else:
+        mpl.rcParams["axes.prop_cycle"] = color_cycler

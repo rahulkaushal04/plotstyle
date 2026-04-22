@@ -66,6 +66,7 @@ This produces a two-panel figure: `[Original | Grayscale]`.
 Instead of visual inspection, check numerically:
 
 ```python
+import plotstyle
 from plotstyle.color.grayscale import is_grayscale_safe, luminance_delta
 
 colors = plotstyle.palette("nature", n=4)

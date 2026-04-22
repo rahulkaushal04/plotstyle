@@ -17,12 +17,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Final
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 from plotstyle.specs import registry
 from plotstyle.specs.units import Dimension
 
 if TYPE_CHECKING:
+    import numpy as np
     from matplotlib.axes import Axes
     from matplotlib.figure import Figure
 
@@ -103,6 +103,13 @@ def _resolve_width(journal: str, columns: int) -> float:
     width_mm = (
         spec.dimensions.double_column_mm if columns == 2 else spec.dimensions.single_column_mm
     )
+    if width_mm is None:
+        col = "double" if columns == 2 else "single"
+        raise RuntimeError(
+            f"{spec.metadata.name} does not publish {col}-column widths. "
+            f"Specify the figure size manually with figsize= or consult "
+            f"{spec.metadata.source_url} for the journal's size requirements."
+        )
     return Dimension(width_mm, "mm").to_inches()
 
 
@@ -367,18 +374,14 @@ def subplots(
     width_in = _resolve_width(journal, columns)
     figsize = _compute_figsize(width_in, aspect)
 
-    fig, axes_raw = plt.subplots(
+    # squeeze=False guarantees a 2-D ndarray for all (nrows, ncols) combinations.
+    fig, axes_2d = plt.subplots(
         nrows,
         ncols,
         figsize=figsize,
         constrained_layout=True,
+        squeeze=False,
     )
-
-    # Normalise to a consistent 2-D ndarray regardless of the nrows/ncols combination.
-    if isinstance(axes_raw, np.ndarray):
-        axes_2d = axes_raw.reshape(nrows, ncols)
-    else:
-        axes_2d = np.atleast_2d(np.array(axes_raw))
 
     if panels:
         _add_panel_labels(axes_2d, spec)

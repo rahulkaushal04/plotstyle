@@ -1,0 +1,10 @@
+[metadata]
+name = "LaTeX Sans-Serif"
+category = "rendering"
+description = "Enable LaTeX rendering with a sans-serif font family."
+
+[rcparams]
+
+[rendering]
+latex = true
+font_family = "sans-serif"

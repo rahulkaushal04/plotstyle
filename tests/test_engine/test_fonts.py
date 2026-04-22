@@ -831,7 +831,12 @@ class TestModuleAPI:
         """
         from plotstyle.engine.fonts import __all__
 
-        assert set(__all__) == {"detect_available", "select_best", "verify_embedded"}
+        assert set(__all__) == {
+            "check_overlay_fonts",
+            "detect_available",
+            "select_best",
+            "verify_embedded",
+        }
 
 
 # ---------------------------------------------------------------------------

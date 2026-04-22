@@ -1,35 +1,31 @@
 [metadata]
 name = "ACS (JACS)"
 publisher = "American Chemical Society"
-source_url = "https://publish.acs.org/publish/author_guidelines?coden=jacsat"
-last_verified = "2026-04-02"
-verified_by = "plotstyle"
+source_url = "https://pubs.acs.org/page/4authors/submission/graphics_prep.html"
+last_verified = "2026-04-22"
+verified_by = "rahulkaushal04"
 
 [dimensions]
-# 3.33 in = 84.58 mm  |  7.0 in = 177.8 mm  |  9.167 in = 232.84 mm
-single_column_mm = 84.6
+single_column_mm = 82.6
 double_column_mm = 177.8
-max_height_mm = 233.0
+max_height_mm = 241.3
 
 [typography]
 font_family = ["Helvetica", "Arial"]
 font_fallback = "sans-serif"
-min_font_pt = 4.5
-max_font_pt = 8.0
-panel_label_pt = 8.0
-panel_label_weight = "bold"
-panel_label_case = "lower"
+min_font_pt = 5.0
+max_font_pt = 10.0
 
 [export]
-preferred_formats = ["pdf", "eps", "tiff"]
+preferred_formats = ["tiff", "eps", "pdf"]
 min_dpi = 300
-color_space = "RGB"
+color_space = "CMYK"
 font_embedding = true
 editable_text = false
 
 [color]
-avoid_combinations = [["red", "green"]]
-colorblind_required = true
+avoid_combinations = []
+colorblind_required = false
 grayscale_required = false
 
 [line]

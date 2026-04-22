@@ -51,6 +51,8 @@ def check_line_weights(fig: Figure, spec: JournalSpec) -> list[CheckResult]:
             if lw < min_linewidth:
                 violations.append(f"spine '{spine_name}': {lw:.2f}pt")
 
+    line_weight_assumed = "line.min_weight_pt" in spec.assumed_fields
+
     if violations:
         truncated = violations[:_MAX_VIOLATION_EXAMPLES]
         suffix = (
@@ -58,21 +60,36 @@ def check_line_weights(fig: Figure, spec: JournalSpec) -> list[CheckResult]:
             if len(violations) > _MAX_VIOLATION_EXAMPLES
             else ""
         )
+        if line_weight_assumed:
+            message = (
+                f"{len(violations)} element(s) below the library-default minimum "
+                f"of {min_linewidth}pt "
+                f"({spec.metadata.name} does not define an official minimum line weight): "
+                f"{'; '.join(truncated)}{suffix}"
+            )
+            fix = (
+                f"Consider keeping line weights at or above {min_linewidth}pt as a "
+                f"general guideline. Check {spec.metadata.source_url} for any "
+                f"official {spec.metadata.name} line weight requirements."
+            )
+        else:
+            message = (
+                f"{len(violations)} element(s) below the "
+                f"{spec.metadata.name} minimum of {min_linewidth}pt: "
+                f"{'; '.join(truncated)}{suffix}"
+            )
+            fix = (
+                f"Set linewidth ≥ {min_linewidth}pt on all plotted lines. "
+                "Apply globally with "
+                f"mpl.rcParams['lines.linewidth'] = {min_linewidth}, or "
+                "per-line with the lw= keyword argument."
+            )
         return [
             CheckResult(
-                status=CheckStatus.FAIL,
+                status=CheckStatus.WARN if line_weight_assumed else CheckStatus.FAIL,
                 check_name="lines.min_weight",
-                message=(
-                    f"{len(violations)} element(s) below the "
-                    f"{spec.metadata.name} minimum of {min_linewidth}pt: "
-                    f"{'; '.join(truncated)}{suffix}"
-                ),
-                fix_suggestion=(
-                    f"Set linewidth ≥ {min_linewidth}pt on all plotted lines. "
-                    "Apply globally with "
-                    f"mpl.rcParams['lines.linewidth'] = {min_linewidth}, or "
-                    "per-line with the lw= keyword argument."
-                ),
+                message=message,
+                fix_suggestion=fix,
             )
         ]
 

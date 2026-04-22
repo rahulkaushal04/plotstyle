@@ -56,6 +56,18 @@ plotstyle_theme("nature", seaborn_style="ticks")
 # Applies seaborn theme first, then overlays PlotStyle settings
 ```
 
+## `capture_overrides`
+
+```{eval-rst}
+.. autofunction:: plotstyle.integrations.seaborn.capture_overrides
+```
+
+## `reapply_overrides`
+
+```{eval-rst}
+.. autofunction:: plotstyle.integrations.seaborn.reapply_overrides
+```
+
 ## Notes
 
 - Seaborn is imported lazily — this module can be imported without seaborn
@@ -63,3 +75,6 @@ plotstyle_theme("nature", seaborn_style="ticks")
   called.
 - The patch is **not thread-safe**.
 - `patch_seaborn()` is idempotent — calling it more than once is safe.
+- `capture_overrides()` and `reapply_overrides()` are called internally by
+  `plotstyle.use(seaborn_compatible=True)`. You rarely need to call them
+  directly.

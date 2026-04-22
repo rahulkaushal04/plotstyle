@@ -1190,16 +1190,19 @@ class TestEdgeCases:
         spec = reg.get("gamma")
         assert isinstance(spec, JournalSpec)
 
-    def test_list_available_reflects_file_added_at_runtime(self, tmp_specs_dir):
+    def test_list_available_reflects_file_added_after_cache_clear(self, tmp_specs_dir):
         """
-        Description: Validates that list_available() always scans disk, so new
-                     files are reflected without cache busting.
-        Scenario: Add 'gamma.toml' after registry construction, call list_available().
+        Description: Validates that list_available() reflects new files after
+                     clearing the cache.
+        Scenario: Add 'gamma.toml' after registry construction, clear cache,
+                  call list_available().
         Expectation: 'gamma' appears in the results.
         """
         reg = SpecRegistry(specs_dir=tmp_specs_dir)
         initial = reg.list_available()
         (tmp_specs_dir / "gamma.toml").write_text(_MINIMAL_TOML, encoding="utf-8")
+        reg.clear_cache()
+        reg._available_cache = None  # clear the list cache too
         updated = reg.list_available()
         assert "gamma" in updated
         assert len(updated) == len(initial) + 1
