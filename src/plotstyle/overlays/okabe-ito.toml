@@ -1,0 +1,7 @@
+[metadata]
+name = "Okabe-Ito"
+category = "color"
+description = "Colorblind-safe 8-color qualitative palette by Okabe and Ito (2008)."
+
+[rcparams]
+_palette = ["#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000"]

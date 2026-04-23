@@ -55,6 +55,34 @@ for i, (color, ls, marker) in enumerate(styled):
 | Science | Tol Vibrant | High contrast for small figures |
 | IEEE | Safe Grayscale | Distinguishable in black-and-white print |
 
+## Apply a palette to the colour cycle
+
+`apply_palette()` sets the default colour cycle so every new plot on those
+axes uses the palette automatically — no need to pass `color=` manually:
+
+```python
+import plotstyle
+import matplotlib.pyplot as plt
+
+# Global: all axes created after this call use tol-bright
+plotstyle.apply_palette("tol-bright")
+
+fig, ax = plt.subplots()
+ax.plot([1, 2, 3])   # first tol-bright colour
+ax.plot([3, 2, 1])   # second tol-bright colour
+```
+
+To restrict the change to a single axes:
+
+```python
+fig, (ax1, ax2) = plt.subplots(1, 2)
+plotstyle.apply_palette("okabe-ito", ax=ax1)  # only ax1 uses Okabe-Ito
+```
+
+> **Note:** `apply_palette()` does not retroactively recolour artists that are
+> already drawn. Call it before plotting to ensure the new cycle is used from
+> the first line.
+
 ## Check if colours are grayscale-safe
 
 ```python
@@ -73,8 +101,31 @@ If you want a specific palette regardless of journal:
 ```python
 from plotstyle.color.palettes import load_palette
 
-colors = load_palette("tol_vibrant")
+colors = load_palette("tol-vibrant")   # ['#EE7733', '#0077BB', ...]
 ```
 
-Available palettes: `okabe_ito`, `tol_bright`, `tol_muted`, `tol_vibrant`,
-`safe_grayscale`.
+Names accept either hyphens (`tol-bright`) or underscores (`tol_bright`).
+
+All available palettes:
+
+| Name | Colours |
+|------|---------|
+| `okabe-ito` | 8 |
+| `tol-bright` | 7 |
+| `tol-muted` | 10 |
+| `tol-vibrant` | 7 |
+| `tol-light` | 9 |
+| `tol-high-contrast` | 3 |
+| `tol-rainbow-4` | 4 |
+| `tol-rainbow-6` | 6 |
+| `tol-rainbow-8` | 8 |
+| `tol-rainbow-10` | 10 |
+| `tol-rainbow-12` | 12 |
+| `safe-grayscale` | 6 |
+
+To list all palettes programmatically:
+
+```python
+import plotstyle
+print(plotstyle.list_palettes())
+```

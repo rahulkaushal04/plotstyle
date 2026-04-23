@@ -30,9 +30,9 @@ def _fig_to_rgb_array(fig: Figure) -> NDArray[np.uint8]:
     """
     fig.canvas.draw()
 
-    width_in, height_in = fig.get_size_inches()
-    width = int(width_in * fig.dpi)
-    height = int(height_in * fig.dpi)
+    # get_width_height() reads actual canvas pixel dimensions — avoids
+    # off-by-one from float rounding in int(fig_in * dpi).
+    width, height = fig.canvas.get_width_height()
 
     # buffer_rgba() returns a read-only memoryview; .copy() makes it writeable
     rgba = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8).reshape(height, width, 4)

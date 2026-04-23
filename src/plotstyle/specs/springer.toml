@@ -1,35 +1,26 @@
 [metadata]
 name = "Springer"
-publisher = "Springer"
-source_url = "https://www.springer.com/gp/authors-editors/journal-author/journal-author-helpdesk/preparation/1276"
-last_verified = "2026-04-02"
-verified_by = "plotstyle"
+publisher = "Springer Nature"
+source_url = "https://support.springernature.com/en/support/solutions/articles/6000083109-artwork-submission-instructions"
+last_verified = "2026-04-22"
+verified_by = "rahulkaushal04"
 
 [dimensions]
-single_column_mm = 84.0
-double_column_mm = 174.0
-max_height_mm = 234.0
+# Springer Nature’s generic artwork instructions defer specific figure widths and heights to journal-level guidelines; no single standard single/double-column dimensions are imposed across all Springer journals.
 
 [typography]
-font_family = ["Helvetica", "Arial"]
-font_fallback = "sans-serif"
-min_font_pt = 6.0
-max_font_pt = 9.0
-panel_label_pt = 8.0
-panel_label_weight = "bold"
-panel_label_case = "lower"
+# No global Springer-wide prescriptions for specific in-figure font families or sizes are given beyond the expectation of legible, consistent labeling.
 
 [export]
 preferred_formats = ["tiff", "eps", "pdf"]
 min_dpi = 300
-color_space = "RGB"
 font_embedding = true
 editable_text = false
 
 [color]
-avoid_combinations = [["red", "green"]]
-colorblind_required = true
+avoid_combinations = []
+colorblind_required = false
 grayscale_required = false
 
 [line]
-min_weight_pt = 0.3
+# Springer and Palgrave artwork guidelines specify higher resolutions for line art (often 600–1200 dpi) but do not define a single minimum line weight in points across all titles.

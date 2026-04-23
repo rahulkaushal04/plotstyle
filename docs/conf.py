@@ -121,6 +121,7 @@ nitpick_ignore_regex = [
     (r"py:class", r"JournalSpec"),
     (r"py:class", r"ValidationReport"),
     (r"py:class", r"CheckResult"),
+    (r"py:class", r"StyleOverlay"),
 ]
 
 # -- HTML theme ----------------------------------------------------------------

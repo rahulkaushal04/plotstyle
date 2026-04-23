@@ -2,7 +2,7 @@
 
 How to create multi-panel figures with automatic panel labels.
 
-## Basic 2×2 grid
+## Basic 2x2 grid
 
 ```python
 import numpy as np
@@ -28,22 +28,30 @@ with plotstyle.use("science") as style:
     style.savefig(fig, "multi_panel.pdf")
 ```
 
-Panel labels are added automatically. For Science that's **A**, **B**, **C**,
-**D**; for Nature it's **a**, **b**, **c**, **d**.
+Panel labels are added automatically in the journal's style — all current specs
+use bold lowercase (**a**, **b**, **c**, **d**).
 
 **Output:**
 
 ![2x2 multi-panel figure styled for Science](../images/multi_panel_science.png)
 
-## Panel label styles by journal
+## Panel label styles
 
-| Journal | Style | Example |
-|---------|-------|---------|
-| Nature | bold lowercase | a, b, c |
-| Science | bold uppercase | A, B, C |
-| IEEE | parenthesised lowercase | (a), (b), (c) |
-| Cell | bold uppercase | A, B, C |
-| ACS | bold lowercase | a, b, c |
+All built-in journal specs use **bold lowercase** panel labels (a, b, c, …).
+The label format is controlled by the `panel_label_case` and
+`panel_label_weight` fields in each journal spec, so future specs can use
+different styles without code changes.
+
+Supported label formats:
+
+| `panel_label_case` | Example |
+|-------------------|---------|
+| `lower` | a, b, c |
+| `upper` | A, B, C |
+| `title` | A, B, C (alias for `upper`) |
+| `parens_lower` | (a), (b), (c) |
+| `parens_upper` | (A), (B), (C) |
+| `sentence` | A, b, c (first panel capitalised only) |
 
 PlotStyle picks the right style automatically from the journal spec.
 

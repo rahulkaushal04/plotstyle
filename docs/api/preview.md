@@ -18,7 +18,7 @@ Gallery and print-size preview utilities.
 
 ### Generate a gallery preview
 
-`gallery()` creates a 2×2 grid of representative plots (line, scatter, bar,
+`gallery()` creates a 2x2 grid of representative plots (line, scatter, bar,
 histogram) styled to match a journal's settings:
 
 ```python
@@ -67,8 +67,8 @@ Accuracy depends on `monitor_dpi` matching your display:
 | Display | Typical `monitor_dpi` |
 |---------|----------------------|
 | Windows / most Linux | `96` (default) |
-| macOS 1× logical | `144` |
-| macOS 2× Retina | `192` |
+| macOS 1x logical | `144` |
+| macOS 2x Retina | `192` |
 
 ```python
 plotstyle.preview_print_size(fig, journal="nature", monitor_dpi=144)
@@ -78,4 +78,8 @@ plotstyle.preview_print_size(fig, journal="nature", monitor_dpi=144)
 
 - `gallery()` applies the journal style internally and restores rcParams when
   it returns. It never permanently alters global state.
-- `preview_print_size()` restores the original DPI after `plt.show()` returns.
+- `preview_print_size()` calls `plt.show()` internally to open the preview
+  window. The original DPI and the width annotation are both restored
+  unconditionally after `plt.show()` returns, so the figure is unchanged on
+  exit. Because it drives the GUI event loop, it is not suitable for
+  non-interactive (headless) environments.

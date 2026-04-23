@@ -70,10 +70,6 @@ _DEFAULT_SPECS_DIR: Final[Path] = (
 REQUIRED_FIELDS: Final[tuple[str, ...]] = (
     "metadata.name",
     "metadata.source_url",
-    "dimensions.single_column_mm",
-    "dimensions.double_column_mm",
-    "dimensions.max_height_mm",
-    "typography.font_family",
     "export.min_dpi",
 )
 

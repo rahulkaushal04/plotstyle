@@ -36,7 +36,7 @@ _LUMA_B: Final[float] = 0.0722
 
 
 def rgb_to_luminance(r: float, g: float, b: float) -> float:
-    """Return the ITU-R BT.709 relative luminance for linear-light RGB values in ``[0, 1]``.
+    """Return an approximate luma value for sRGB inputs in ``[0, 1]`` using the ITU-R BT.709 coefficients.
 
     Parameters
     ----------
@@ -50,7 +50,14 @@ def rgb_to_luminance(r: float, g: float, b: float) -> float:
     Returns
     -------
     float
-        Relative luminance in ``[0, 1]``.
+        Luma approximation in ``[0, 1]``.
+
+    Notes
+    -----
+    This applies the BT.709 coefficients directly to sRGB (gamma-encoded) values without
+    prior linearisation.  Results are suitable for relative comparisons (e.g.
+    :func:`is_grayscale_safe`) but are not equivalent to the strictly defined WCAG
+    relative luminance, which requires gamma decoding first.
     """
     return _LUMA_R * r + _LUMA_G * g + _LUMA_B * b
 

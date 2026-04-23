@@ -1,0 +1,15 @@
+[metadata]
+name = "Turkish"
+category = "script"
+description = "Font configuration for Turkish labels (includes dotted-i and other glyphs)."
+
+[rcparams]
+"font.family" = ["DejaVu Sans", "Liberation Sans", "FreeSans"]
+
+[script]
+latex_preamble = [
+    "\\usepackage[turkish]{babel}",
+]
+
+[requires]
+fonts = ["DejaVu Sans", "Liberation Sans", "FreeSans"]

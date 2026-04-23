@@ -45,7 +45,7 @@ __all__: list[str] = [
 ]
 
 _KNOWN_FORMATS: Final[frozenset[str]] = frozenset(
-    {"pdf", "eps", "svg", "tiff", "tif", "png", "emf", "jpg", "jpeg", "ps"}
+    {"ai", "pdf", "eps", "svg", "tiff", "tif", "png", "emf", "jpg", "jpeg", "ps"}
 )
 
 _KNOWN_COLOR_SPACES: Final[frozenset[str]] = frozenset({"rgb", "cmyk", "grayscale"})
@@ -71,6 +71,19 @@ _KNOWN_LABEL_CASES: Final[frozenset[str]] = frozenset(
 _MIN_DPI_FLOOR: Final[int] = 72
 
 _ISO_DATE_RE: Final[re.Pattern[str]] = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+# Conservative, research-grade defaults for fields journals may not specify.
+# These are NOT journal-official values — they are library assumptions used only
+# when a journal's guidelines are silent on a particular requirement.
+_LIBRARY_DEFAULTS: Final[dict[str, Any]] = {
+    "typography.font_family": ["Helvetica", "Arial"],
+    "typography.font_fallback": "sans-serif",
+    "typography.min_font_pt": 6.0,
+    "typography.max_font_pt": 10.0,
+    "typography.panel_label_weight": "bold",
+    "typography.panel_label_case": "lower",
+    "line.min_weight_pt": 0.5,
+}
 
 
 class JournalSpecError(ValueError):
@@ -482,19 +495,26 @@ class MetadataSpec:
 class DimensionSpec:
     """Physical column-width and height constraints (all values in mm).
 
+    Fields are ``None`` when the journal's official guidelines do not specify
+    a value. Check ``JournalSpec.assumed_fields`` or call
+    ``JournalSpec.is_official()`` before relying on any dimension value.
+
     Attributes
     ----------
-    single_column_mm : float
-        Width in millimetres for a single-column figure.
-    double_column_mm : float
-        Width in millimetres for a double-column (full-page) figure.
-    max_height_mm : float
-        Maximum permitted figure height in millimetres.
+    single_column_mm : float | None
+        Width in millimetres for a single-column figure, or ``None`` if
+        the journal does not publish this value.
+    double_column_mm : float | None
+        Width in millimetres for a double-column (full-page) figure, or
+        ``None`` if the journal does not publish this value.
+    max_height_mm : float | None
+        Maximum permitted figure height in millimetres, or ``None`` if
+        the journal does not publish this value.
     """
 
-    single_column_mm: float
-    double_column_mm: float
-    max_height_mm: float
+    single_column_mm: float | None
+    double_column_mm: float | None
+    max_height_mm: float | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -620,7 +640,25 @@ class JournalSpec:
     color: ColorSpec
     line: LineSpec
     notes: str = field(default="")
+    assumed_fields: frozenset[str] = field(default_factory=frozenset)
     key: str = field(default="")
+
+    def is_official(self, field_path: str) -> bool:
+        """Return ``True`` if *field_path* came from the journal's official guidelines.
+
+        Parameters
+        ----------
+        field_path : str
+            Dot-notation field path, e.g. ``"typography.min_font_pt"`` or
+            ``"line.min_weight_pt"``.
+
+        Returns
+        -------
+        bool
+            ``False`` when the field was absent from the TOML and a library
+            default was used instead.
+        """
+        return field_path not in self.assumed_fields
 
     def _with_key(self, key: str) -> JournalSpec:
         """Return a copy of this spec with *key* set to the registry identifier.
@@ -661,14 +699,16 @@ class JournalSpec:
         FieldValueError
             If a field value violates a domain constraint.
         """
+        assumed: set[str] = set()
         return cls(
             metadata=cls._parse_metadata(_require(data, "root", "metadata")),
-            dimensions=cls._parse_dimensions(_require(data, "root", "dimensions")),
-            typography=cls._parse_typography(_require(data, "root", "typography")),
+            dimensions=cls._parse_dimensions(data.get("dimensions", {}), assumed),
+            typography=cls._parse_typography(_require(data, "root", "typography"), assumed),
             export=cls._parse_export(_require(data, "root", "export")),
             color=cls._parse_color(data.get("color", {})),
-            line=cls._parse_line(data.get("line", {})),
+            line=cls._parse_line(data.get("line", {}), assumed),
             notes=str(data.get("notes", "")),
+            assumed_fields=frozenset(assumed),
         )
 
     @staticmethod
@@ -710,38 +750,56 @@ class JournalSpec:
         )
 
     @staticmethod
-    def _parse_dimensions(raw: dict[str, Any]) -> DimensionSpec:
+    def _parse_dimensions(raw: dict[str, Any], assumed: set[str]) -> DimensionSpec:
         """Parse and validate the ``[dimensions]`` TOML sub-table.
+
+        All three fields are optional. Missing fields receive ``None`` and their
+        dot-notation paths are added to *assumed*. When both column widths are
+        present, cross-validation (``double > single``) is applied.
 
         Parameters
         ----------
         raw : dict[str, Any]
-            Raw ``[dimensions]`` dict.
+            Raw ``[dimensions]`` dict (may be empty when the journal does not
+            publish physical dimension constraints).
+        assumed : set[str]
+            Mutable set updated with the dot-notation path of each field that
+            was absent from the TOML (e.g. ``"dimensions.single_column_mm"``).
 
         Returns
         -------
         DimensionSpec
-            A validated ``DimensionSpec`` instance.
+            A validated ``DimensionSpec`` instance. Any field absent from
+            *raw* is set to ``None``.
 
         Raises
         ------
+        FieldTypeError
+            If a present field cannot be cast to ``float``.
         FieldValueError
-            If any dimension is not strictly positive, or if
-            ``double_column_mm`` is not greater than ``single_column_mm``.
+            If a present dimension is not strictly positive, or if both column
+            widths are present but ``double_column_mm`` ≤ ``single_column_mm``.
         """
         t = "dimensions"
-        single = _cast_float(raw, t, "single_column_mm")
-        if single <= 0:
-            raise FieldValueError(t, "single_column_mm", f"must be > 0, got {single}")
-        double = _cast_float(raw, t, "double_column_mm")
-        if double <= 0:
-            raise FieldValueError(t, "double_column_mm", f"must be > 0, got {double}")
-        height = _cast_float(raw, t, "max_height_mm")
-        if height <= 0:
-            raise FieldValueError(t, "max_height_mm", f"must be > 0, got {height}")
 
-        # Double-column width must exceed single-column width.
-        if double <= single:
+        def _optional_mm(key: str) -> float | None:
+            if key not in raw:
+                assumed.add(f"dimensions.{key}")
+                return None
+            val = raw[key]
+            try:
+                v = float(val)
+            except (TypeError, ValueError):
+                raise FieldTypeError(t, key, "float", val) from None
+            if v <= 0:
+                raise FieldValueError(t, key, f"must be > 0, got {v}")
+            return v
+
+        single = _optional_mm("single_column_mm")
+        double = _optional_mm("double_column_mm")
+        height = _optional_mm("max_height_mm")
+
+        if single is not None and double is not None and double <= single:
             raise FieldValueError(
                 t,
                 "double_column_mm",
@@ -755,13 +813,22 @@ class JournalSpec:
         )
 
     @staticmethod
-    def _parse_typography(raw: dict[str, Any]) -> TypographySpec:
+    def _parse_typography(raw: dict[str, Any], assumed: set[str]) -> TypographySpec:
         """Parse and validate the ``[typography]`` TOML sub-table.
+
+        Fields not present in the TOML fall back to :data:`_LIBRARY_DEFAULTS`
+        and their dot-notation paths are recorded in *assumed* so callers can
+        distinguish official values from library assumptions.
 
         Parameters
         ----------
         raw : dict[str, Any]
-            Raw ``[typography]`` dict.
+            Raw ``[typography]`` dict (may be empty when the journal does not
+            define typography constraints).
+        assumed : set[str]
+            Mutable set that receives the dot-notation paths of every field
+            that used a library default rather than an official journal value
+            (e.g. ``"typography.min_font_pt"``).
 
         Returns
         -------
@@ -775,8 +842,28 @@ class JournalSpec:
             ``panel_label_weight`` or ``panel_label_case`` is unrecognised.
         """
         t = "typography"
-        min_pt = _cast_float(raw, t, "min_font_pt", min_val=0.0)
-        max_pt = _cast_float(raw, t, "max_font_pt", min_val=0.0)
+
+        if "min_font_pt" not in raw:
+            assumed.add("typography.min_font_pt")
+        if "max_font_pt" not in raw:
+            assumed.add("typography.max_font_pt")
+        if "font_family" not in raw:
+            assumed.add("typography.font_family")
+
+        min_pt = _cast_float(
+            raw,
+            t,
+            "min_font_pt",
+            default=_LIBRARY_DEFAULTS["typography.min_font_pt"],
+            min_val=0.0,
+        )
+        max_pt = _cast_float(
+            raw,
+            t,
+            "max_font_pt",
+            default=_LIBRARY_DEFAULTS["typography.max_font_pt"],
+            min_val=0.0,
+        )
 
         if max_pt < min_pt:
             raise FieldValueError(
@@ -786,7 +873,13 @@ class JournalSpec:
             )
 
         return TypographySpec(
-            font_family=_cast_str_list(raw, t, "font_family", default=[], non_empty=True),
+            font_family=_cast_str_list(
+                raw,
+                t,
+                "font_family",
+                default=_LIBRARY_DEFAULTS["typography.font_family"],
+                non_empty=True,
+            ),
             font_fallback=_cast_str(raw, t, "font_fallback", default="sans-serif"),
             min_font_pt=min_pt,
             max_font_pt=max_pt,
@@ -886,21 +979,34 @@ class JournalSpec:
         )
 
     @staticmethod
-    def _parse_line(raw: dict[str, Any]) -> LineSpec:
+    def _parse_line(raw: dict[str, Any], assumed: set[str]) -> LineSpec:
         """Parse and validate the ``[line]`` TOML sub-table.
 
-        An empty dict is acceptable; ``min_weight_pt`` defaults to ``0.5``.
+        An empty dict is acceptable. When ``min_weight_pt`` is absent the
+        library default (``0.5 pt``) is used and ``"line.min_weight_pt"`` is
+        added to *assumed*.
 
         Parameters
         ----------
         raw : dict[str, Any]
             Raw ``[line]`` dict (may be empty).
+        assumed : set[str]
+            Mutable set updated when ``min_weight_pt`` falls back to the
+            library default.
 
         Returns
         -------
         LineSpec
             A validated ``LineSpec`` instance.
         """
+        if "min_weight_pt" not in raw:
+            assumed.add("line.min_weight_pt")
         return LineSpec(
-            min_weight_pt=_cast_float(raw, "line", "min_weight_pt", default=0.5, min_val=0.0),
+            min_weight_pt=_cast_float(
+                raw,
+                "line",
+                "min_weight_pt",
+                default=_LIBRARY_DEFAULTS["line.min_weight_pt"],
+                min_val=0.0,
+            ),
         )

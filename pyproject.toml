@@ -17,7 +17,7 @@ name = "plotstyle"
 dynamic = ["version"]
 description = "Matplotlib/seaborn style presets matching scientific journal requirements, with validation, export safety, and preview capabilities."
 readme = "README.md"
-license = { text = "MIT" }
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
 authors = [
     { name = "Rahul Kaushal" },
@@ -215,7 +215,7 @@ ignore = [
 unfixable = ["ERA"]   # never auto-delete commented code
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**"   = ["ANN", "D", "S101"]  # relax annotations/docs/asserts in tests
+"tests/**"   = ["ANN", "D"]  # relax annotations and docstrings in tests
 "src/plotstyle/cli/**" = ["ANN201"]  # CLI main() return type is implicit None
 
 [tool.ruff.lint.isort]
@@ -286,6 +286,7 @@ filterwarnings = [
     "error",                                       # treat warnings as errors
     "ignore::DeprecationWarning:matplotlib",       # upstream, not ours
     "ignore::PendingDeprecationWarning:matplotlib",
+    "ignore::plotstyle._utils.warnings.SpecAssumptionWarning",  # spec fixtures may omit optional fields
 ]
 markers = [
     "slow: tests that are slow to run",

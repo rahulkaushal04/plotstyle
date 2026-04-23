@@ -6,6 +6,8 @@ Steps:
 2. Inspect a full journal spec with plotstyle.registry.get(name) to read its
    dimensions, typography, export settings, and accessibility requirements.
 3. Compare column widths across all journals.
+4. Preload specs eagerly with registry.preload() for batch access.
+5. Clear the spec cache with registry.clear_cache().
 
 Output: (console only)
 """
@@ -64,4 +66,35 @@ print(f"\n{'Journal':<12} {'Single (mm)':<14} {'Double (mm)':<14}")
 print("-" * 40)
 for name in available:
     s = plotstyle.registry.get(name)
-    print(f"{name:<12} {s.dimensions.single_column_mm:<14} {s.dimensions.double_column_mm:<14}")
+    single = (
+        f"{s.dimensions.single_column_mm}" if s.dimensions.single_column_mm is not None else "—"
+    )
+    double = (
+        f"{s.dimensions.double_column_mm}" if s.dimensions.double_column_mm is not None else "—"
+    )
+    print(f"{name:<12} {single:<14} {double:<14}")
+
+# ==============================================================================
+# 4. Preload specs — eager load to avoid per-lookup I/O in batch workflows
+# ==============================================================================
+# preload() reads and caches all specs in one pass. Useful when a script
+# accesses many journals in a tight loop.
+
+plotstyle.registry.preload()  # load all journals
+# or: plotstyle.registry.preload(["nature", "ieee"])  # load a subset
+print("\nAll specs preloaded.")
+
+# ==============================================================================
+# 5. Clear the cache — force re-reads from disk on next access
+# ==============================================================================
+# clear_cache() discards all cached JournalSpec objects. The next registry.get()
+# call will read from disk again. Useful when TOML files are edited at runtime.
+
+plotstyle.registry.clear_cache()
+# len(registry) counts specs on disk, not cached in memory.
+# repr(registry) shows cached/total to distinguish the two.
+print(f"Cache cleared: {plotstyle.registry!r}")
+
+# Accessing the registry again repopulates the cache lazily.
+_ = plotstyle.registry.get("nature")
+print(f"After one access: {plotstyle.registry!r}")

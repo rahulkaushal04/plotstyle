@@ -6,13 +6,11 @@ resets ``matplotlib.rcParams``.  Seaborn is imported lazily.
 
 from __future__ import annotations
 
-from typing import Any, ParamSpec
+from typing import Any
 
 import matplotlib.pyplot as plt
 
 from plotstyle.core.style import use
-
-_P = ParamSpec("_P")
 
 _PLOTSTYLE_OVERRIDES: dict[str, Any] | None = None
 _ORIGINAL_SET_THEME: Any = None
@@ -41,7 +39,7 @@ def capture_overrides(params: dict[str, Any]) -> None:
 
 def reapply_overrides() -> None:
     """Re-apply the stored PlotStyle rcParams; no-op if none were captured."""
-    if _PLOTSTYLE_OVERRIDES:
+    if _PLOTSTYLE_OVERRIDES is not None:
         plt.rcParams.update(_PLOTSTYLE_OVERRIDES)
 
 
@@ -64,7 +62,7 @@ def patch_seaborn() -> None:
 
     _ORIGINAL_SET_THEME = sns.set_theme
 
-    def _patched_set_theme(*args: _P.args, **kwargs: _P.kwargs) -> None:
+    def _patched_set_theme(*args: object, **kwargs: object) -> None:
         _ORIGINAL_SET_THEME(*args, **kwargs)
         reapply_overrides()
 
@@ -73,7 +71,7 @@ def patch_seaborn() -> None:
 
 def unpatch_seaborn() -> None:
     """Restore the original ``sns.set_theme``; no-op if not patched."""
-    global _ORIGINAL_SET_THEME
+    global _ORIGINAL_SET_THEME, _PLOTSTYLE_OVERRIDES
 
     if _ORIGINAL_SET_THEME is None:
         return
@@ -82,6 +80,7 @@ def unpatch_seaborn() -> None:
 
     sns.set_theme = _ORIGINAL_SET_THEME  # type: ignore[assignment]
     _ORIGINAL_SET_THEME = None
+    _PLOTSTYLE_OVERRIDES = None
 
 
 def plotstyle_theme(

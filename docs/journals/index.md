@@ -8,16 +8,16 @@ Each spec is stored as a validated TOML file and loaded on demand via the
 
 | Key | Journal | Publisher | Column (mm) | Min DPI | Formats |
 |-----|---------|-----------|-------------|---------|---------|
-| `acs` | ACS (JACS) | American Chemical Society | 84.6 / 177.8 | 300 | PDF, EPS, TIFF |
-| `cell` | Cell | Cell Press | 85.0 / 174.0 | 300 | TIFF, PDF, EPS |
+| `acs` | ACS (JACS) | American Chemical Society | 82.6 / 177.8 | 300 | TIFF, EPS, PDF |
+| `cell` | Cell | Cell Press | 85.0 / 174.0 | 300 | TIFF, PDF, JPEG |
 | `elsevier` | Elsevier | Elsevier | 90.0 / 190.0 | 300 | TIFF, EPS, PDF |
-| `ieee` | IEEE Transactions | IEEE | 88.9 / 182.0 | 600 | PDF, EPS, PNG, TIFF |
-| `nature` | Nature | Springer Nature | 89.0 / 183.0 | 300 | TIFF, PDF, EPS |
-| `plos` | PLOS ONE | PLOS | 132.0 / 190.5 | 300 | TIFF, EPS, PDF |
-| `prl` | Physical Review Letters | APS | 86.0 / 178.0 | 600 | PDF, EPS |
-| `science` | Science | AAAS | 57.0 / 121.0 | 300 | TIFF, PDF, EPS |
-| `springer` | Springer | Springer | 84.0 / 174.0 | 300 | TIFF, EPS, PDF |
-| `wiley` | Wiley | Wiley | 85.0 / 178.0 | 300 | TIFF, EPS, PDF |
+| `ieee` | IEEE Transactions | IEEE | 88.9 / 182.0 | 300 | TIFF, EPS, PDF, PNG |
+| `nature` | Nature | Springer Nature | 89.0 / 183.0 | 300 | AI †, EPS, PDF |
+| `plos` | PLOS ONE | PLOS | 132.0 / 190.5 | 300 | TIFF, EPS |
+| `prl` | Physical Review Letters | APS | 86.0 / 178.0 | 300 | EPS, PDF, PNG, JPG |
+| `science` | Science | AAAS | 86.4 / 177.8 | 300 | AI †, EPS, PDF, TIFF |
+| `springer` | Springer | Springer | — ‡ | 300 | TIFF, EPS, PDF |
+| `wiley` | Wiley | Wiley | 80.0 / 180.0 | 300 | TIFF, EPS |
 
 *Column widths listed as single / double in mm.*
 
@@ -25,31 +25,43 @@ Each spec is stored as a validated TOML file and loaded on demand via the
 
 | Key | Font family | Size range (pt) | Panel labels |
 |-----|------------|-----------------|-------------|
-| `acs` | Helvetica, Arial | 4.5 – 8.0 | bold lowercase |
-| `cell` | Helvetica, Arial | 6.0 – 8.0 | bold uppercase |
-| `elsevier` | Helvetica, Arial, Times New Roman | 6.0 – 8.0 | bold uppercase |
-| `ieee` | Times New Roman, Times | 8.0 – 10.0 | normal (a), (b), (c) |
+| `acs` | Helvetica, Arial | 5.0 – 10.0 | bold lowercase |
+| `cell` | Helvetica, Arial | 6.0 – 8.0 | bold lowercase |
+| `elsevier` | Arial, Times New Roman | 8.0 – 12.0 | bold lowercase |
+| `ieee` | Times New Roman, Helvetica, Arial | 9.0 – 10.0 | bold lowercase |
 | `nature` | Helvetica, Arial | 5.0 – 7.0 | bold lowercase |
-| `plos` | Arial, Helvetica | 8.0 – 12.0 | bold uppercase |
-| `prl` | Times, Times New Roman | 6.0 – 10.0 | normal (a), (b), (c) |
-| `science` | Helvetica, Myriad Pro, Arial | 5.0 – 9.0 | bold uppercase |
-| `springer` | Helvetica, Arial | 6.0 – 9.0 | bold lowercase |
-| `wiley` | Helvetica, Arial | 8.0 – 12.0 | normal lowercase |
+| `plos` | Arial, Times | 8.0 – 12.0 | bold lowercase |
+| `prl` | Times New Roman, Times | 6.0 – 10.0 | bold lowercase |
+| `science` | Minion Pro, Benton Sans Condensed | 7.5 – 10.0 | bold lowercase |
+| `springer` | Helvetica, Arial ‡ | 6.0 – 10.0 ‡ | bold lowercase ‡ |
+| `wiley` | Helvetica, Arial ‡ | 6.0 – 10.0 ‡ | bold lowercase ‡ |
 
 ## Accessibility requirements
 
 | Key | Colorblind safe | Grayscale safe | Min line weight (pt) |
 |-----|----------------|----------------|---------------------|
-| `acs` | Required | — | 0.50 |
-| `cell` | Required | — | 0.50 |
-| `elsevier` | Required | — | 0.25 |
-| `ieee` | Required | **Required** | 0.50 |
-| `nature` | Required | — | 0.25 |
-| `plos` | Required | — | 0.50 |
-| `prl` | Required | — | 0.50 |
-| `science` | Required | — | 0.28 |
-| `springer` | Required | — | 0.30 |
-| `wiley` | Required | — | 0.50 |
+| `acs` | — | — | 0.50 |
+| `cell` | — | — | 0.50 |
+| `elsevier` | — | — | 0.50 ‡ |
+| `ieee` | Required | — | 0.50 ‡ |
+| `nature` | — | — | 0.50 ‡ |
+| `plos` | — | — | 0.57 |
+| `prl` | — | — | 0.50 |
+| `science` | Required | — | 0.50 ‡ |
+| `springer` | — | — | 0.50 ‡ |
+| `wiley` | — | — | 0.50 ‡ |
+
+‡ Library default or not defined — the journal's public guidelines do not specify
+this value. For dimension fields marked `—`, `style.figure()` will raise a
+`RuntimeError` directing you to set the size manually. For typography and line
+fields, PlotStyle applies conservative defaults and emits a `SpecAssumptionWarning`
+at load time. Use `spec.is_official(field)` to check any field programmatically,
+or inspect `spec.assumed_fields` for the full list.
+
+AI (Adobe Illustrator) format is listed in the spec for journals that accept it,
+but Matplotlib cannot produce `.ai` files. `export_submission()` skips AI
+automatically and notes it in the output. Use a vector editor to convert from
+PDF or EPS if your journal requires AI.
 
 ## Using a spec
 
@@ -70,9 +82,9 @@ from plotstyle.specs import registry
 
 spec = registry.get("ieee")
 print(spec.dimensions.single_column_mm)   # 88.9
-print(spec.typography.font_family)        # ['Times New Roman', 'Times']
-print(spec.export.preferred_formats)      # ['pdf', 'eps', 'png', 'tiff']
-print(spec.color.grayscale_required)      # True
+print(spec.typography.font_family)        # ['Times New Roman', 'Helvetica', 'Arial']
+print(spec.export.preferred_formats)      # ['tiff', 'eps', 'pdf', 'png']
+print(spec.color.grayscale_required)      # False
 ```
 
 ## Inspect via CLI

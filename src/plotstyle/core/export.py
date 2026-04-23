@@ -39,6 +39,7 @@ __all__: list[str] = [
 
 #: Maps canonical format names to their standard file extensions.
 FORMAT_EXTENSIONS: Final[dict[str, str]] = {
+    "ai": ".ai",
     "pdf": ".pdf",
     "eps": ".eps",
     "tiff": ".tiff",
@@ -49,6 +50,13 @@ FORMAT_EXTENSIONS: Final[dict[str, str]] = {
     "jpeg": ".jpeg",
     "ps": ".ps",
 }
+
+#: Formats that Matplotlib's savefig() can actually produce.
+#: Journal specs may list additional formats (e.g. "ai") that require
+#: external tools; these are skipped during export with a warning.
+_MATPLOTLIB_FORMATS: Final[frozenset[str]] = frozenset(
+    {"pdf", "eps", "svg", "tiff", "tif", "png", "jpg", "jpeg", "ps"}
+)
 
 _RESTORE_KEYS: Final[frozenset[str]] = frozenset(SAFETY_PARAMS) | {
     "savefig.dpi",
@@ -145,7 +153,7 @@ def _print_compliance_summary(
             else:
                 print("✓ TrueType fonts embedded (pdf.fonttype=42)", file=out)
         else:
-            print("✓ TrueType fonts embedded (pdf.fonttype=42)", file=out)
+            print("✓ TrueType fonts embedded (ps.fonttype=42)", file=out)
     print(f"✓ Resolution: {dpi_value} DPI", file=out)
     print(f"✓ Dimensions: {width_in:.2f}in x {height_in:.2f}in", file=out)
     print(f"✓ Saved: {output_path}", file=out)
@@ -338,8 +346,12 @@ def export_submission(
         fmt_list = ["pdf"]
 
     created: list[Path] = []
+    skipped: list[str] = []
 
     for fmt in fmt_list:
+        if fmt.lower() not in _MATPLOTLIB_FORMATS:
+            skipped.append(fmt)
+            continue
         filename = _build_filename(
             stem,
             fmt,
@@ -358,5 +370,10 @@ def export_submission(
         )
         for p in created:
             print(f"  ✓ {p.name}", file=sys.stderr)
+        for fmt in skipped:
+            print(
+                f"  ⊘ {fmt} skipped (requires external tool, not supported by Matplotlib)",
+                file=sys.stderr,
+            )
 
     return created

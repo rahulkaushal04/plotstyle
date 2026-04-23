@@ -47,15 +47,12 @@ Nature → IEEE Transactions
 Column Width (single):  89.0mm → 88.9mm
 Column Width (double):  183.0mm → 182.0mm
 Max Height:             247.0mm → 216.0mm
-Font Family:            Helvetica, Arial → Times New Roman, Times
-Min Font Size:          5.0pt → 8.0pt
+Font Family:            Helvetica, Arial → Times New Roman, Helvetica, Arial
+Min Font Size:          5.0pt → 9.0pt
 Max Font Size:          7.0pt → 10.0pt
-Panel Label Weight:     bold → normal
-Panel Label Case:       lower → parens_lower
-Min DPI:                300 → 600
-Preferred Formats:      tiff, pdf, eps → pdf, eps, png, tiff
-Grayscale Required:     No → Yes
-Min Line Weight:        0.25pt → 0.5pt
+Panel Label Size:       5.0pt → 9.0pt
+Preferred Formats:      ai, eps, pdf → tiff, eps, pdf, png
+Colorblind Required:    No → Yes
 ```
 
 ### Check if specs differ

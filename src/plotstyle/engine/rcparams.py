@@ -13,11 +13,13 @@ from plotstyle.engine.latex import configure_latex, detect_latex
 from plotstyle.specs.units import Dimension
 
 if TYPE_CHECKING:
+    from plotstyle.overlays.schema import StyleOverlay
     from plotstyle.specs.schema import JournalSpec
 
 __all__: list[str] = [
     "SAFETY_PARAMS",
     "LatexNotFoundError",
+    "apply_overlays",
     "build_rcparams",
 ]
 
@@ -92,8 +94,14 @@ def _resolve_latex_mode(latex: _LatexMode) -> bool:
     return latex_available
 
 
-def _compute_figure_size(spec: JournalSpec) -> tuple[float, float]:
-    """Return ``(width_in, height_in)`` for the spec's single-column width."""
+def _compute_figure_size(spec: JournalSpec) -> tuple[float, float] | None:
+    """Return ``(width_in, height_in)`` for the spec's single-column width.
+
+    Returns ``None`` when the journal does not publish column widths, so
+    ``build_rcparams`` can skip ``figure.figsize`` rather than crashing.
+    """
+    if spec.dimensions.single_column_mm is None:
+        return None
     width_in = Dimension(spec.dimensions.single_column_mm, "mm").to_inches()
     height_in = width_in / _GOLDEN_RATIO
     return width_in, height_in
@@ -113,6 +121,7 @@ def build_rcparams(
     spec: JournalSpec,
     *,
     latex: _LatexMode = False,
+    detect_fonts: bool = True,
 ) -> dict[str, Any]:
     """Build a complete ``matplotlib.rcParams`` mapping from a journal spec.
 
@@ -127,6 +136,14 @@ def build_rcparams(
         - ``True`` — require LaTeX; raises :class:`LatexNotFoundError` if
           no ``latex`` binary is found on ``PATH``.
         - ``"auto"`` — enable LaTeX when available, fall back to MathText.
+    detect_fonts : bool
+        When ``True`` *(default)*, probe the system font cache via
+        :func:`~plotstyle.engine.fonts.select_best` to pick the best
+        available font family.  When ``False``, skip probing and use
+        ``spec.typography.font_fallback`` directly — useful for snapshot
+        builds at import time where the filesystem overhead is unacceptable.
+        Ignored when *latex* resolves to ``True``; LaTeX font selection is
+        driven by the TeX preamble, so ``font_fallback`` is always used.
 
     Returns
     -------
@@ -144,37 +161,99 @@ def build_rcparams(
     if latex not in (True, False, "auto"):
         raise ValueError(f"Invalid latex value {latex!r}. Expected True, False, or 'auto'.")
 
-    font_name, _font_meta = select_best(spec)
-    width_in, height_in = _compute_figure_size(spec)
+    # Resolve LaTeX mode before font detection: raises LatexNotFoundError immediately
+    # when latex=True but unavailable, and lets us skip font probing when LaTeX is active
+    # (LaTeX font selection is driven by the TeX preamble, not matplotlib's font.family).
+    use_latex = _resolve_latex_mode(latex)
+
+    if use_latex:
+        font_name = spec.typography.font_fallback
+    elif detect_fonts:
+        font_name, _ = select_best(spec)
+    else:
+        font_name = spec.typography.font_fallback
+
+    figsize = _compute_figure_size(spec)
     font_size = _compute_base_font_size(spec)
 
-    params = {
+    params: dict[str, Any] = {
         "pdf.fonttype": _FONTTYPE_TRUETYPE,
         "ps.fonttype": _FONTTYPE_TRUETYPE,
         "figure.dpi": _DISPLAY_DPI,
         "savefig.dpi": spec.export.min_dpi,
-        "figure.figsize": [width_in, height_in],
         "figure.constrained_layout.use": True,
-        "font.family": font_name,
-        "font.size": font_size,
-        "axes.titlesize": font_size,
-        "axes.labelsize": font_size,
-        "xtick.labelsize": font_size,
-        "ytick.labelsize": font_size,
-        "legend.fontsize": font_size,
-        # Clamped to physically reproducible minimums; thinner lines vanish in print.
-        "lines.linewidth": max(spec.line.min_weight_pt, 1.0),
-        "axes.linewidth": max(spec.line.min_weight_pt, 0.5),
-        # "none" keeps text editable in SVG; "path" converts to outlines (more portable).
-        "svg.fonttype": "none" if spec.export.editable_text else "path",
-        "axes.grid": False,
     }
-
-    use_latex = _resolve_latex_mode(latex)
+    if figsize is not None:
+        params["figure.figsize"] = list(figsize)
+    params.update(
+        {
+            "font.family": font_name,
+            "font.size": font_size,
+            "axes.titlesize": font_size,
+            "axes.labelsize": font_size,
+            "xtick.labelsize": font_size,
+            "ytick.labelsize": font_size,
+            "legend.fontsize": font_size,
+            # Clamped to physically reproducible minimums; thinner lines vanish in print.
+            "lines.linewidth": max(spec.line.min_weight_pt, 1.0),
+            "axes.linewidth": max(spec.line.min_weight_pt, 0.5),
+            # "none" keeps text editable in SVG; "path" converts to outlines (more portable).
+            "svg.fonttype": "none" if spec.export.editable_text else "path",
+            "axes.grid": False,
+        }
+    )
 
     if use_latex:
         params.update(configure_latex(spec))
     else:
         params["text.usetex"] = False
 
+    # Re-enforce after configure_latex (or any future extension) to guarantee
+    # TrueType embedding is never downgraded by the merge above.
+    for key in SAFETY_PARAMS:
+        params[key] = _FONTTYPE_TRUETYPE
+
     return params
+
+
+def apply_overlays(base: dict[str, Any], overlays: list[StyleOverlay]) -> dict[str, Any]:
+    """Merge overlay rcParams on top of *base*; last overlay wins on conflict.
+
+    Parameters
+    ----------
+    base : dict[str, Any]
+        Base rcParams dict (e.g. from :func:`build_rcparams`).
+    overlays : list[StyleOverlay]
+        Ordered list of overlays to apply.  Earlier overlays are applied
+        first; later entries win on key conflicts.
+
+    Returns
+    -------
+    dict[str, Any]
+        New dict containing *base* with all overlay patches merged in.
+
+    Notes
+    -----
+    Overlay TOML files may include a special ``_palette`` key (a list of hex
+    colour strings) under ``[rcparams]``.  This is converted to a
+    ``cycler('color', ...)`` object and stored under ``axes.prop_cycle``
+    before merging.  This convention exists because TOML has no native type
+    for matplotlib's ``cycler`` objects.
+
+    Keys in :data:`SAFETY_PARAMS` (``pdf.fonttype``, ``ps.fonttype``) are
+    silently stripped from every overlay before merging — overlays cannot
+    downgrade TrueType font embedding.
+    """
+    from cycler import cycler
+
+    result = {k: list(v) if isinstance(v, list) else v for k, v in base.items()}
+    for overlay in overlays:
+        rcparams = dict(overlay.rcparams)
+        if "_palette" in rcparams:
+            colors = rcparams.pop("_palette")
+            rcparams["axes.prop_cycle"] = cycler("color", colors)
+        # Overlays must never downgrade font-embedding safety keys.
+        for key in SAFETY_PARAMS:
+            rcparams.pop(key, None)
+        result.update({k: list(v) if isinstance(v, list) else v for k, v in rcparams.items()})
+    return result

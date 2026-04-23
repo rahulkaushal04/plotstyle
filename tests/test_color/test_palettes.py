@@ -289,7 +289,7 @@ class TestLoadPalette:
         Scenario: Trigger PaletteNotFoundError and inspect message.
         Expectation: At least one known palette name appears.
         """
-        with pytest.raises(PaletteNotFoundError, match="okabe_ito"):
+        with pytest.raises(PaletteNotFoundError, match="okabe-ito"):
             load_palette("no_such_palette")
 
     def test_load_palette_error_message_contains_palette_name(self) -> None:
@@ -593,7 +593,8 @@ class TestBuildNotFoundMessage:
             load_palette("totally_missing")
         msg = str(exc_info.value)
         for name in ALL_PALETTE_NAMES:
-            assert name in msg
+            # Error message uses kebab-case (okabe-ito), not underscore (okabe_ito)
+            assert name.replace("_", "-") in msg
 
     def test_message_when_no_palettes_exist(self, tmp_path: Path) -> None:
         """

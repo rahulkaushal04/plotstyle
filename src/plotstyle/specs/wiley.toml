@@ -1,35 +1,27 @@
 [metadata]
 name = "Wiley"
 publisher = "Wiley"
-source_url = "https://onlinelibrary.wiley.com/page/journal/16136829/homepage/graphics-faq"
-last_verified = "2026-04-02"
-verified_by = "plotstyle"
+source_url = "https://onlinelibrary.wiley.com/pb-assets/assets/16000722/Guidelines_for_the_Preparation_of_Figures_-_Final-1606232992880.pdf"
+last_verified = "2026-04-22"
+verified_by = "rahulkaushal04"
 
 [dimensions]
-single_column_mm = 85.0
-double_column_mm = 178.0
-max_height_mm = 230.0
+single_column_mm = 80.0
+double_column_mm = 180.0
 
 [typography]
-font_family = ["Helvetica", "Arial"]
-font_fallback = "sans-serif"
-min_font_pt = 8.0
-max_font_pt = 12.0
-panel_label_pt = 12.0
-panel_label_weight = "normal"
-panel_label_case = "lower"
+# Wiley’s generic figure guidelines stress legibility of all labels at 80 mm width but do not prescribe explicit font families or point-size bands for all journals.
 
 [export]
-preferred_formats = ["tiff", "eps", "pdf"]
+preferred_formats = ["tiff", "eps"]
 min_dpi = 300
-color_space = "RGB"
 font_embedding = true
 editable_text = false
 
 [color]
-avoid_combinations = [["red", "green"]]
-colorblind_required = true
+avoid_combinations = []
+colorblind_required = false
 grayscale_required = false
 
 [line]
-min_weight_pt = 0.5
+# Line-art resolution requirements (>600 dpi) are specified, but not a universal numeric minimum stroke width in points.

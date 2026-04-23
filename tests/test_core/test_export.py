@@ -112,11 +112,11 @@ class TestFormatExtensions:
 
     def test_format_extensions_has_expected_count(self) -> None:
         """
-        Description: The mapping must contain exactly 9 known formats.
+        Description: The mapping must contain exactly 10 known formats.
         Scenario: Check len(FORMAT_EXTENSIONS).
-        Expectation: Exactly 9 entries.
+        Expectation: Exactly 10 entries (pdf, eps, tiff, tif, png, svg, jpg, jpeg, ps, ai).
         """
-        assert len(FORMAT_EXTENSIONS) == 9
+        assert len(FORMAT_EXTENSIONS) == 10
 
 
 # ---------------------------------------------------------------------------

@@ -13,6 +13,38 @@ _Nothing yet._
 
 ---
 
+## [1.2.0] - 2026-04-23
+
+Feature release: **overlays**, **units & conversions**, **Seaborn integration**, improved **font/LaTeX controls**, plus major CLI/docs/example expansion.
+
+### Added
+
+- **Style overlays** (`plotstyle.overlays`, `plotstyle.list_overlays()`): additive layers that can be composed with a base journal preset.
+  - Categories: `color`, `context`, `rendering`, `plot-type`, `script`.
+  - Built-in overlays include `minimal`, `notebook`, `presentation`, `high-vis`, `grid`, `bar`, `scatter`, `no-latex`, `pgf`, `latex-sans`, `okabe-ito`, `safe-grayscale`, and `tol-*` palette overlays, plus CJK/Turkish/Russian script overlays.
+- **New CLI commands for overlays**
+  - `plotstyle overlays [--category <category>]` to list overlays.
+  - `plotstyle overlay-info <overlay>` to inspect overlay metadata and `rcParams`.
+- **Font checks for overlays**: `plotstyle fonts --overlay <overlay>` (in addition to `--journal`).
+- **Seaborn integration**: helpers to keep PlotStyle `rcParams` consistent when using Seaborn themes (`patch_seaborn()`, `plotstyle_theme()`, `unpatch_seaborn()`).
+- **Units & conversions**: new/expanded utilities and docs for consistent size specification across specs and helpers.
+- **Matplotlib-native styles compatibility**: support for registering/using PlotStyle presets as Matplotlib styles where applicable.
+- **New examples & previews**: additional example scripts including overlays, Seaborn integration, units/conversions, print-size preview, Matplotlib native styles, and LaTeX/fonts.
+
+### Changed
+
+- **CLI UX improvements**
+  - `plotstyle fonts` now supports `--journal` *or* `--overlay` (mutually exclusive, required).
+  - More robust argument parsing (e.g. ignores empty entries in `--formats`).
+  - Friendlier output for empty registries (journals/overlays) and clearer reporting for overlay font availability.
+- **Docs & README expansion**: new/expanded guides and API reference for overlays, units, warnings, Seaborn, preview tooling, and updated patterns/examples.
+
+### Fixed
+
+- **CLI stability**: avoid noisy/unclear behavior in edge cases (empty registry listings, malformed format lists) and improve error messaging around missing overlay keys.
+
+---
+
 ## [1.1.0] - 2026-04-16
 
 Minor feature release : ergonomics improvements, hardened error handling, and spec updates.
@@ -95,7 +127,8 @@ First public alpha release.
 - **Dynamic versioning** — version derived from git tags via `hatch-vcs` and `importlib.metadata`.
 - **CI/CD pipeline** — GitHub Actions workflows for lint, type-check, test matrix, and automated PyPI release via OIDC Trusted Publishing.
 
-[Unreleased]: https://github.com/rahulkaushal04/plotstyle/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/rahulkaushal04/plotstyle/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/rahulkaushal04/plotstyle/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/rahulkaushal04/plotstyle/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/rahulkaushal04/plotstyle/compare/v0.1.0a2...v1.0.0
 [0.1.0a2]: https://github.com/rahulkaushal04/plotstyle/compare/v0.1.0a1...v0.1.0a2

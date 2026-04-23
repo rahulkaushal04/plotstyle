@@ -1,0 +1,10 @@
+[metadata]
+name = "Grid"
+category = "rendering"
+description = "Enable major grid lines with a subtle dashed style."
+
+[rcparams]
+"axes.grid" = true
+"grid.alpha" = 0.3
+"grid.linestyle" = "--"
+"grid.linewidth" = 0.5

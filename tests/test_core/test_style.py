@@ -407,11 +407,11 @@ class TestUse:
         """
         Description: savefig.dpi must match the journal spec.
         Scenario: use('ieee').
-        Expectation: savefig.dpi == 600 (IEEE min_dpi).
+        Expectation: savefig.dpi == 300 (IEEE min_dpi).
         """
         style = use("ieee")
         try:
-            assert mpl.rcParams["savefig.dpi"] == 600
+            assert mpl.rcParams["savefig.dpi"] == 300
         finally:
             style.restore()
 
@@ -501,7 +501,7 @@ class TestUse:
             nature_dpi = mpl.rcParams["savefig.dpi"]
             with use("ieee"):
                 ieee_dpi = mpl.rcParams["savefig.dpi"]
-                assert ieee_dpi == 600
+                assert ieee_dpi == 300
             # After inner restore, should be back to nature params
             assert mpl.rcParams["savefig.dpi"] == nature_dpi
         # After outer restore, should be back to original

@@ -1,9 +1,9 @@
 """Apply and restore journal style presets.
 
 ``use``
-    Apply a journal preset and return a :class:`JournalStyle` handle that
-    stores the prior rcParams state and exposes a context manager interface
-    for automatic restoration.
+    Apply a journal preset (and optional overlays) and return a
+    :class:`JournalStyle` handle that stores the prior rcParams state and
+    exposes a context manager interface for automatic restoration.
 
 ``JournalStyle``
     A lightweight handle returned by :func:`use`.  Provides delegation methods
@@ -20,8 +20,8 @@ from typing import TYPE_CHECKING, Any, Final
 
 import matplotlib as mpl
 
-from plotstyle.engine.rcparams import build_rcparams
-from plotstyle.specs import registry
+from plotstyle.engine.rcparams import apply_overlays, build_rcparams
+from plotstyle.specs import SpecNotFoundError, registry
 
 if TYPE_CHECKING:
     import types
@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
     from plotstyle.color.palettes import PaletteResult
+    from plotstyle.overlays.schema import StyleOverlay
     from plotstyle.specs.schema import JournalSpec
     from plotstyle.validation.report import ValidationReport
 
@@ -44,11 +45,13 @@ __all__: list[str] = [
 # Module-level constants
 # ---------------------------------------------------------------------------
 
-# Warning constant for when seaborn_compatible=True but seaborn is absent.
 _SEABORN_MISSING_WARNING: Final[str] = (
     "seaborn is not installed — 'seaborn_compatible=True' has no effect. "
     "Install seaborn to enable compatibility mode."
 )
+
+_GOLDEN_RATIO: Final[float] = (1.0 + 5.0**0.5) / 2.0
+_DEFAULT_FIGURE_WIDTH: Final[float] = 6.4
 
 # ---------------------------------------------------------------------------
 # JournalStyle
@@ -58,72 +61,51 @@ _SEABORN_MISSING_WARNING: Final[str] = (
 class JournalStyle:
     """Handle returned by :func:`use` for managing applied style state.
 
-    Stores the active journal specification and a snapshot of the rcParams
-    values that were in effect before :func:`use` was called.  Supports both
-    explicit restoration via :meth:`restore` and automatic restoration via the
-    context manager protocol (``with`` statement).
+    Stores the active journal specification (if any), a snapshot of the
+    rcParams values in effect before :func:`use` was called, and the list of
+    overlay keys that were applied.  Supports both explicit restoration via
+    :meth:`restore` and automatic restoration via the context manager protocol.
 
     Attributes
     ----------
-    spec : ~plotstyle.specs.schema.JournalSpec
-        The journal specification that was applied to ``mpl.rcParams``.
+    spec : ~plotstyle.specs.schema.JournalSpec | None
+        The journal specification that was applied, or ``None`` when
+        :func:`use` was called with overlays only (no journal key).
 
     Notes
     -----
-    The rcParams snapshot is *surgical*: only the keys that were actually
-    modified by :func:`use` are stored.  Keys absent from the snapshot were
-    not changed and therefore do not need to be restored.
-
-    :meth:`restore` is idempotent — calling it more than once is safe
-    because ``mpl.rcParams.update`` with identical values has no observable
-    effect.
+    When ``spec`` is ``None`` (overlay-only mode), the methods
+    :meth:`validate`, :meth:`export_submission`, and :meth:`palette` are
+    unavailable and will raise :exc:`RuntimeError`.  :meth:`figure` and
+    :meth:`subplots` fall back to matplotlib's default figure size.
 
     Examples
     --------
-    Delegation methods — journal key is never repeated::
+    Journal + overlays::
 
-        with plotstyle.use("nature") as style:
+        with plotstyle.use(["nature", "notebook"]) as style:
             fig, ax = style.figure(columns=1)
-            colors = style.palette(n=2)
-            ax.plot([1, 2, 3], color=colors[0])
-            report = style.validate(fig)
-            style.savefig(fig, "figure.pdf")
+            ax.plot([1, 2, 3])
 
-    Manual restore (use when the context manager is impractical)::
+    Overlay-only (no journal spec)::
 
-        style = plotstyle.use("nature")
-        try:
+        with plotstyle.use(["notebook", "grid"]) as style:
             fig, ax = style.figure()
             ax.plot([1, 2, 3])
-        finally:
-            style.restore()
     """
 
     def __init__(
         self,
-        spec: JournalSpec,
+        spec: JournalSpec | None,
         previous_rcparams: dict[str, Any],
         *,
         seaborn_patched: bool = False,
+        overlays: list[str] | None = None,
     ) -> None:
-        """Initialise the style handle.
-
-        Parameters
-        ----------
-        spec : JournalSpec
-            The journal specification applied to ``mpl.rcParams``.
-        previous_rcparams : dict[str, Any]
-            Surgical snapshot of rcParams values prior to modification.
-            Contains only the keys that were changed.
-        seaborn_patched : bool
-            ``True`` if the seaborn compatibility patch was applied.
-            When ``True``, :meth:`restore` will also reverse the patch.
-        """
-        self.spec: JournalSpec = spec
-
-        # Private: callers should not depend on the snapshot structure.
+        self.spec: JournalSpec | None = spec
         self._previous_rcparams: dict[str, Any] = previous_rcparams
         self._seaborn_patched: bool = seaborn_patched
+        self._overlays: list[str] = overlays or []
 
     # ------------------------------------------------------------------
     # Public interface
@@ -162,7 +144,8 @@ class JournalStyle:
         """Create a figure sized to this journal's column width.
 
         Delegates to :func:`~plotstyle.core.figure.figure` with the journal key
-        bound from this style handle.  All keyword arguments are forwarded.
+        bound from this style handle.  When no journal spec is set (overlay-only
+        mode), falls back to matplotlib's default figure width (6.4 in).
 
         Parameters
         ----------
@@ -175,43 +158,50 @@ class JournalStyle:
         Returns
         -------
         tuple[Figure, Axes]
-            A ``(fig, ax)`` tuple.
-
-        Raises
-        ------
-        ValueError
-            If *columns* is not ``1`` or ``2``.
         """
+        if self.spec is None:
+            import matplotlib.pyplot as plt
+
+            if columns not in (1, 2):
+                raise ValueError(f"'columns' must be 1 or 2, got {columns!r}.")
+            width_in = _DEFAULT_FIGURE_WIDTH * columns
+            ratio = aspect if aspect is not None else _GOLDEN_RATIO
+            fig, ax = plt.subplots(figsize=(width_in, width_in / ratio), constrained_layout=True)
+            return fig, ax
+
         from plotstyle.core.figure import figure as _figure
 
         return _figure(self.spec.key, columns=columns, aspect=aspect)
 
     def palette(
         self,
-        n: int = 6,
+        n: int | None = None,
         *,
         with_markers: bool = False,
     ) -> PaletteResult:
-        """Return *n* colours from this journal's recommended palette.
+        """Return colours from this journal's recommended palette.
+
+        Parameters
+        ----------
+        n : int | None
+            Number of colours to return.  When ``None`` (the default), all
+            colours in the underlying palette are returned.  When *n* exceeds
+            the palette size, colours cycle from the beginning.
 
         Delegates to :func:`~plotstyle.color.palettes.palette` with the journal
         key bound from this style handle.
 
-        Parameters
-        ----------
-        n : int
-            Number of colours to return (cycles if *n* exceeds the
-            palette length).
-        with_markers : bool
-            When ``True``, return ``(colour, marker)`` pairs
-            instead of plain colour strings.
-
-        Returns
-        -------
-        PaletteResult
-            A list of colour strings, or a list of ``(colour, marker)``
-            tuples when *with_markers* is ``True``.
+        Raises
+        ------
+        RuntimeError
+            If no journal spec is set (overlay-only mode).
         """
+        if self.spec is None:
+            raise RuntimeError(
+                "palette() requires a journal spec. "
+                "Include a journal key in the use() call, e.g. use(['nature', 'notebook'])."
+            )
+
         from plotstyle.color.palettes import palette as _palette
 
         return _palette(self.spec.key, n=n, with_markers=with_markers)
@@ -222,16 +212,17 @@ class JournalStyle:
         Delegates to :func:`~plotstyle.validation.validate` with the journal
         key bound from this style handle.
 
-        Parameters
-        ----------
-        fig : Figure
-            The Matplotlib figure to validate.
-
-        Returns
-        -------
-        ValidationReport
-            A :class:`~plotstyle.validation.report.ValidationReport`.
+        Raises
+        ------
+        RuntimeError
+            If no journal spec is set (overlay-only mode).
         """
+        if self.spec is None:
+            raise RuntimeError(
+                "validate() requires a journal spec. "
+                "Include a journal key in the use() call, e.g. use(['nature', 'notebook'])."
+            )
+
         from plotstyle.validation import validate as _validate
 
         return _validate(fig, journal=self.spec.key)
@@ -249,7 +240,9 @@ class JournalStyle:
         """Create a multi-panel figure sized to this journal's column width.
 
         Delegates to :func:`~plotstyle.core.figure.subplots` with the journal
-        key bound from this style handle.
+        key bound from this style handle.  When no journal spec is set
+        (overlay-only mode), falls back to matplotlib's default figure width
+        and panel labels are suppressed.
 
         Parameters
         ----------
@@ -262,29 +255,37 @@ class JournalStyle:
             ``2`` for double-column width.
         panels : bool
             When ``True`` (default), annotates each axes with a
-            spec-accurate panel label (a, b, c, …).
+            spec-accurate panel label.  Silently ignored in overlay-only mode.
         aspect : float | None
             Width-to-height ratio.  Defaults to the golden ratio.
         squeeze : bool
-            When ``False`` (default), *axes* is always a 2-D
-            :class:`numpy.ndarray` with shape ``(nrows, ncols)``.
-            When ``True``, size-1 dimensions are dropped —
-            matching :func:`matplotlib.pyplot.subplots` behaviour:
-            a ``(1, 1)`` grid returns a bare
-            :class:`~matplotlib.axes.Axes`, a single-row or
-            single-column grid returns a 1-D ``ndarray``.
-
-        Returns
-        -------
-        tuple[Figure, np.ndarray | Axes]
-            A ``(fig, axes)`` tuple.  The shape of *axes* depends on
-            *squeeze* (see above).
-
-        Raises
-        ------
-        ValueError
-            If *columns* is not ``1`` or ``2``.
+            When ``False`` (default), *axes* is always a 2-D ndarray.
         """
+        if self.spec is None:
+            import matplotlib.pyplot as plt
+
+            if columns not in (1, 2):
+                raise ValueError(f"'columns' must be 1 or 2, got {columns!r}.")
+            width_in = _DEFAULT_FIGURE_WIDTH * columns
+            ratio = aspect if aspect is not None else _GOLDEN_RATIO
+            # squeeze=False guarantees a 2-D ndarray for all (nrows, ncols) combinations.
+            fig, axes_2d = plt.subplots(
+                nrows,
+                ncols,
+                figsize=(width_in, width_in / ratio),
+                constrained_layout=True,
+                squeeze=False,
+            )
+
+            if squeeze:
+                if nrows == 1 and ncols == 1:
+                    return fig, axes_2d[0, 0]
+                if nrows == 1:
+                    return fig, axes_2d[0]
+                if ncols == 1:
+                    return fig, axes_2d[:, 0]
+            return fig, axes_2d
+
         from plotstyle.core.figure import subplots as _subplots
 
         return _subplots(
@@ -306,8 +307,9 @@ class JournalStyle:
         """Save *fig* with this journal's DPI and export settings.
 
         Delegates to :func:`~plotstyle.core.export.savefig` with the journal
-        key bound from this style handle.  All extra keyword arguments are
-        forwarded to :meth:`~matplotlib.figure.Figure.savefig`.
+        key bound from this style handle.  When no journal spec is set
+        (overlay-only mode), delegates directly to
+        :meth:`~matplotlib.figure.Figure.savefig`.
 
         Parameters
         ----------
@@ -317,12 +319,11 @@ class JournalStyle:
             Output file path.
         **kwargs : dict
             Forwarded to :meth:`~matplotlib.figure.Figure.savefig`.
-
-        Raises
-        ------
-        OSError
-            If the output path is not writable.
         """
+        if self.spec is None:
+            fig.savefig(path, **kwargs)
+            return
+
         from plotstyle.core.export import savefig as _savefig
 
         _savefig(fig, path, journal=self.spec.key, **kwargs)
@@ -339,40 +340,17 @@ class JournalStyle:
     ) -> list[Path]:
         """Export *fig* in multiple formats for journal submission.
 
-        Delegates to :func:`~plotstyle.core.export.export_submission` with the
-        journal key bound from this style handle.
-
-        Parameters
-        ----------
-        fig : Figure
-            Matplotlib figure to export.
-        stem : str
-            Base filename stem shared by all output files (no extension).
-        formats : list[str] | None
-            Explicit format list (e.g. ``["pdf", "tiff"]``).
-            Overrides the journal spec's preferred formats when supplied.
-        output_dir : str | Path
-            Directory to write output files into.  Created if it
-            does not exist.  Defaults to the current working directory.
-        author_surname : str | None
-            Submitting author's surname, used by journals with
-            surname-prefix filename conventions (currently only IEEE).
-        quiet : bool
-            When ``True``, per-file compliance summaries and the final
-            submission manifest are not printed.  Type 3 font warnings
-            are still emitted via :mod:`warnings` regardless of this flag.
-
-        Returns
-        -------
-        list[Path]
-            An ordered list of :class:`~pathlib.Path` objects, one per file
-            created.
-
         Raises
         ------
-        OSError
-            If *output_dir* cannot be created or any file cannot be written.
+        RuntimeError
+            If no journal spec is set (overlay-only mode).
         """
+        if self.spec is None:
+            raise RuntimeError(
+                "export_submission() requires a journal spec. "
+                "Include a journal key in the use() call, e.g. use(['nature', 'notebook'])."
+            )
+
         from plotstyle.core.export import export_submission as _export_submission
 
         return _export_submission(
@@ -390,13 +368,7 @@ class JournalStyle:
     # ------------------------------------------------------------------
 
     def __enter__(self) -> JournalStyle:
-        """Enter the context manager scope.
-
-        Returns
-        -------
-        JournalStyle
-            *self*, enabling ``as style`` binding in ``with`` statements.
-        """
+        """Enter the context manager scope, returning *self*."""
         return self
 
     def __exit__(
@@ -414,11 +386,12 @@ class JournalStyle:
 
     def __repr__(self) -> str:
         """Return an unambiguous string representation of this handle."""
-        return (
-            f"JournalStyle("
-            f"journal={self.spec.metadata.name!r}, "
-            f"seaborn_patched={self._seaborn_patched!r})"
-        )
+        journal = self.spec.metadata.name if self.spec is not None else None
+        parts = [f"journal={journal!r}"]
+        if self._overlays:
+            parts.append(f"overlays={self._overlays!r}")
+        parts.append(f"seaborn_patched={self._seaborn_patched!r}")
+        return f"JournalStyle({', '.join(parts)})"
 
 
 # ---------------------------------------------------------------------------
@@ -427,18 +400,7 @@ class JournalStyle:
 
 
 def _validate_latex(latex: bool | str) -> None:
-    """Raise :exc:`ValueError` for unsupported *latex* parameter values.
-
-    Parameters
-    ----------
-    latex : bool | str
-        The value to validate.
-
-    Raises
-    ------
-    ValueError
-        If *latex* is not ``True``, ``False``, or ``"auto"``.
-    """
+    """Raise :exc:`ValueError` for unsupported *latex* parameter values."""
     if latex is not True and latex is not False and latex != "auto":
         raise ValueError(
             f"'latex' must be True, False, or \"auto\", got {latex!r}. "
@@ -452,23 +414,225 @@ def _snapshot_rcparams(keys: dict[str, Any]) -> dict[str, Any]:
     return {key: mpl.rcParams[key] for key in keys if key in mpl.rcParams}
 
 
-def _apply_seaborn_patch(params: dict[str, Any]) -> bool:
-    """Apply the seaborn compatibility patch, returning ``True`` on success.
+def _warn_if_overlay_oversizes_journal(
+    spec: JournalSpec,
+    overlays: list[StyleOverlay],
+) -> None:
+    """Emit :class:`~plotstyle._utils.warnings.OverlaySizeWarning` when needed.
 
-    Emits a :class:`UserWarning` and returns ``False`` if seaborn is not
-    installed.
+    Warns when an overlay's ``figure.figsize`` width exceeds the journal's
+    double-column width.
+    """
+    from plotstyle._utils.warnings import OverlaySizeWarning
+    from plotstyle.specs.units import Dimension
 
-    Parameters
-    ----------
-    params : dict[str, Any]
-        The rcParams dict applied by :func:`use`, passed to
-        :func:`~plotstyle.integrations.seaborn.capture_overrides`.
+    journal_double_in = Dimension(spec.dimensions.double_column_mm, "mm").to_inches()
+
+    for overlay in overlays:
+        figsize = overlay.rcparams.get("figure.figsize")
+        if not isinstance(figsize, (list, tuple)) or len(figsize) < 1:
+            continue
+        overlay_width_in = figsize[0]
+        if not isinstance(overlay_width_in, (int, float)):
+            continue
+        if overlay_width_in > journal_double_in:
+            warnings.warn(
+                f"The '{overlay.key}' overlay sets figure.figsize width to "
+                f"{overlay_width_in:.1f} in, which exceeds the '{spec.key}' "
+                f"journal's double-column width ({journal_double_in:.2f} in). "
+                "The figure will not conform to journal column dimensions.",
+                OverlaySizeWarning,
+                stacklevel=4,
+            )
+
+
+def _warn_if_grayscale_palette_on_colorblind_journal(
+    spec: JournalSpec,
+    overlays: list[StyleOverlay],
+) -> None:
+    """Emit :class:`~plotstyle._utils.warnings.PaletteColorblindWarning` when needed.
+
+    Warns when the ``safe-grayscale`` palette overlay is combined with a
+    journal that requires colorblind-safe colours.
+    """
+    if not spec.color.colorblind_required:
+        return
+
+    from plotstyle._utils.warnings import PaletteColorblindWarning
+
+    for overlay in overlays:
+        if overlay.key == "safe-grayscale":
+            warnings.warn(
+                f"The 'safe-grayscale' palette overlay is used with '{spec.key}', "
+                "which requires colorblind-safe colours. "
+                "Grayscale palettes may not pass colorblind accessibility checks.",
+                PaletteColorblindWarning,
+                stacklevel=4,
+            )
+            break
+
+
+def _warn_if_latex_sans_on_serif_journal(
+    spec: JournalSpec,
+    overlays: list[StyleOverlay],
+) -> None:
+    """Emit :class:`~plotstyle._utils.warnings.PlotStyleWarning` when needed.
+
+    Warns when a rendering overlay requests a sans-serif LaTeX font family
+    on a journal whose typography specifies a serif font.
+    """
+    from plotstyle._utils.warnings import PlotStyleWarning
+
+    for overlay in overlays:
+        if overlay.rendering is None:
+            continue
+        if overlay.rendering.get("font_family") == "sans-serif":
+            if getattr(spec.typography, "font_fallback", None) == "serif":
+                warnings.warn(
+                    f"The '{overlay.key}' overlay uses a sans-serif LaTeX font, "
+                    f"but '{spec.key}' specifies a serif font. "
+                    "The sans-serif override may not meet the journal's typography requirements.",
+                    PlotStyleWarning,
+                    stacklevel=4,
+                )
+            break
+
+
+def _resolve_rendering_overlays(
+    overlays: list[StyleOverlay],
+    latex_kwarg: bool | str,
+) -> tuple[bool | str, bool]:
+    """Determine effective latex mode and PGF flag from rendering overlays.
+
+    Kwarg wins when it is not the default ``False``; emits
+    :class:`~plotstyle._utils.warnings.PlotStyleWarning` on conflict.
 
     Returns
     -------
-    bool
-        ``True`` if the patch was applied, ``False`` otherwise.
+    tuple[bool | str, bool]
+        ``(effective_latex, pgf_mode)`` where *pgf_mode* is ``True`` when
+        the PGF backend should be activated.
     """
+    from plotstyle._utils.warnings import PlotStyleWarning
+
+    rendering_overlays = [o for o in overlays if o.rendering is not None]
+
+    if len(rendering_overlays) > 1:
+        keys = [o.key for o in rendering_overlays]
+        warnings.warn(
+            f"Multiple rendering overlays specified: {keys!r}. Only '{keys[-1]}' takes effect.",
+            PlotStyleWarning,
+            stacklevel=4,
+        )
+
+    if not rendering_overlays:
+        return latex_kwarg, False
+
+    last = rendering_overlays[-1]
+    overlay_latex_raw = last.rendering.get("latex", False)
+    pgf_mode = overlay_latex_raw == "pgf"
+
+    if latex_kwarg is not False:
+        # Caller explicitly set latex=True or "auto" — kwarg wins.
+        if overlay_latex_raw != latex_kwarg:
+            warnings.warn(
+                f"The '{last.key}' rendering overlay sets latex={overlay_latex_raw!r}, "
+                f"but the explicit latex={latex_kwarg!r} kwarg takes precedence.",
+                PlotStyleWarning,
+                stacklevel=4,
+            )
+        return latex_kwarg, False
+
+    # Overlay wins.
+    if pgf_mode:
+        return True, True
+    return overlay_latex_raw, False
+
+
+def _warn_if_scatter_loses_line_distinction(
+    spec: JournalSpec | None,
+    overlays: list[StyleOverlay],
+) -> None:
+    """Emit :class:`~plotstyle._utils.warnings.PlotStyleWarning` when needed.
+
+    Warns when the ``scatter`` overlay removes line style differentiation that
+    the IEEE journal or the ``safe-grayscale`` palette relies on for accessibility.
+    """
+    if not any(o.key == "scatter" for o in overlays):
+        return
+
+    from plotstyle._utils.warnings import PlotStyleWarning
+
+    if spec is not None and spec.key == "ieee":
+        warnings.warn(
+            "The 'scatter' overlay sets lines.linestyle='none', removing line style "
+            "differentiation. IEEE figures rely on line styles for print accessibility. "
+            "Use palette(with_markers=True) to restore per-series distinction.",
+            PlotStyleWarning,
+            stacklevel=4,
+        )
+        return
+
+    if any(o.key == "safe-grayscale" for o in overlays):
+        warnings.warn(
+            "The 'scatter' overlay sets lines.linestyle='none', but 'safe-grayscale' "
+            "uses line style variation for accessibility. Line style differentiation will be lost.",
+            PlotStyleWarning,
+            stacklevel=4,
+        )
+
+
+def _warn_if_script_fonts_missing(overlays: list[StyleOverlay]) -> None:
+    """Emit :class:`~plotstyle._utils.warnings.FontFallbackWarning` when needed.
+
+    Warns when a script overlay is applied and none of its required fonts are
+    installed on the current system.
+    """
+    from plotstyle._utils.warnings import FontFallbackWarning
+    from plotstyle.engine.fonts import check_overlay_fonts
+
+    for overlay in overlays:
+        if overlay.category != "script" or overlay.requires is None:
+            continue
+        status = check_overlay_fonts(overlay)
+        if status and not any(status.values()):
+            required = list(status)
+            warnings.warn(
+                f"The '{overlay.key}' script overlay requires fonts that are not installed: "
+                f"{required!r}. "
+                "Non-Latin characters may not render correctly. "
+                "Install one of the listed fonts for this overlay to take effect.",
+                FontFallbackWarning,
+                stacklevel=4,
+            )
+
+
+def _apply_script_latex_preambles(
+    params: dict[str, Any],
+    overlays: list[StyleOverlay],
+) -> None:
+    """Append script overlay LaTeX preamble lines to ``params`` when LaTeX is active.
+
+    Only runs when ``params["text.usetex"]`` is ``True``.  Lines from each
+    script overlay's ``[script].latex_preamble`` list are appended to any
+    existing ``text.latex.preamble`` value rather than replacing it.
+    """
+    if not params.get("text.usetex"):
+        return
+
+    for overlay in overlays:
+        if overlay.script is None:
+            continue
+        preamble_lines: list[str] = overlay.script.get("latex_preamble", [])
+        if not preamble_lines:
+            continue
+        existing = params.get("text.latex.preamble", "")
+        addition = "\n".join(preamble_lines)
+        params["text.latex.preamble"] = f"{existing}\n{addition}".strip() if existing else addition
+
+
+def _apply_seaborn_patch(params: dict[str, Any]) -> bool:
+    """Apply the seaborn compatibility patch, returning ``True`` on success."""
     try:
         from plotstyle.integrations.seaborn import capture_overrides, patch_seaborn
 
@@ -476,7 +640,9 @@ def _apply_seaborn_patch(params: dict[str, Any]) -> bool:
         patch_seaborn()
         return True
     except ImportError:
-        warnings.warn(_SEABORN_MISSING_WARNING, stacklevel=3)
+        from plotstyle._utils.warnings import PlotStyleWarning
+
+        warnings.warn(_SEABORN_MISSING_WARNING, PlotStyleWarning, stacklevel=3)
         return False
 
 
@@ -486,89 +652,178 @@ def _apply_seaborn_patch(params: dict[str, Any]) -> bool:
 
 
 def use(
-    journal: str,
+    style: str | list[str],
     *,
     latex: bool | str = False,
     seaborn_compatible: bool = False,
 ) -> JournalStyle:
-    """Apply a journal-specific Matplotlib style preset.
+    """Apply a journal-specific Matplotlib style preset, with optional overlays.
 
-    Looks up the journal specification from the built-in registry, builds the
-    corresponding rcParams dict, snapshots the current values for all keys
-    about to be changed, and applies the new params.
+    Accepts either a single journal name (backward-compatible) or a list of
+    keys that may include one journal name and any number of overlay names.
+    Overlays are applied in declaration order on top of the journal's base
+    rcParams; the last overlay wins on any key conflict.
 
     Parameters
     ----------
-    journal : str
-        Journal preset name (e.g. ``"nature"``, ``"ieee"``).
-        Case-insensitive; matched against the TOML file stems in the
-        built-in specs directory.
+    style : str | list[str]
+        A journal preset name (e.g. ``"nature"``), or a list that may
+        contain one journal name and/or any number of overlay names.
+        Overlays are applied in declaration order; the last overlay wins on
+        any key conflict.  Valid forms:
+
+        - ``"nature"`` — journal only (backward-compatible)
+        - ``["nature", "notebook"]`` — journal + overlay
+        - ``["nature", "no-latex", "grid"]`` — journal + multiple overlays
+        - ``["notebook", "grid"]`` — overlays only (no journal spec)
+        - ``[]`` — empty; no rcParams changed
+
     latex : bool | str
         LaTeX rendering mode:
 
-        - ``False`` (default) — use Matplotlib's built-in MathText
-          renderer.
+        - ``False`` (default) — use Matplotlib's built-in MathText renderer.
         - ``True`` — force LaTeX; raises :exc:`RuntimeError` if no
-          ``latex`` binary is found on ``PATH``.
+          ``latex`` binary is found on ``PATH``.  Overrides a ``no-latex``
+          overlay.
         - ``"auto"`` — enable LaTeX when a binary is available, silently
           falling back to MathText otherwise.
     seaborn_compatible : bool
-        When ``True``, monkey-patches
-        ``seaborn.set_theme`` so that PlotStyle's rcParams survive
-        subsequent seaborn theme changes.  Emits a :class:`UserWarning`
-        and continues silently if seaborn is not installed.
+        When ``True``, monkey-patches ``seaborn.set_theme`` so that
+        PlotStyle's rcParams survive subsequent seaborn theme changes.
 
     Returns
     -------
     JournalStyle
-        A :class:`JournalStyle` handle providing access to the applied spec
-        and allowing rcParams restoration via :meth:`~JournalStyle.restore`
-        or the ``with`` statement.
+        A handle providing access to the applied spec and allowing rcParams
+        restoration via :meth:`~JournalStyle.restore` or the ``with``
+        statement.
 
     Raises
     ------
     plotstyle.specs.SpecNotFoundError
-        If *journal* does not match any built-in or registered spec.
+        If a single journal name is given and is not found in the registry.
+    plotstyle.overlays.OverlayNotFoundError
+        If a list is given and an item is not found in either the journal
+        registry or the overlay registry.
     ValueError
-        If *latex* is not ``True``, ``False``, or ``"auto"``.
+        If more than one journal key is present in *style*, or if *latex* is
+        not ``True``, ``False``, or ``"auto"``.
     RuntimeError
         If ``latex=True`` but no ``latex`` binary is found on ``PATH``.
 
     Notes
     -----
-    Only the rcParams keys actually modified by this call are captured in
-    the restoration snapshot.  Keys absent from ``mpl.rcParams`` at call
-    time are silently skipped and will not be restored.
+    Only the rcParams keys actually modified by this call are captured in the
+    restoration snapshot.
 
     Examples
     --------
-    Context manager (preferred — guarantees restoration)::
-
-        import plotstyle
+    Backward-compatible single-journal call::
 
         with plotstyle.use("nature") as style:
-            fig, ax = style.figure(columns=1)
-            colors = style.palette(n=3)
-            ax.plot([1, 2, 3], color=colors[0])
-            report = style.validate(fig)
-            style.savefig(fig, "figure.pdf")
-        # mpl.rcParams are restored automatically on exit.
-
-    One-shot application with manual restore::
-
-        style = plotstyle.use("nature")
-        try:
             fig, ax = style.figure()
-            ax.plot([1, 2, 3])
-        finally:
-            style.restore()
+
+    Journal with overlays::
+
+        with plotstyle.use(["nature", "notebook"]) as style:
+            fig, ax = style.figure()
+
+    Overlay-only (no journal spec)::
+
+        with plotstyle.use(["notebook", "grid"]) as style:
+            fig, ax = style.figure()
     """
     _validate_latex(latex)
 
-    spec = registry.get(journal)
-    params = build_rcparams(spec, latex=latex)
-    previous = _snapshot_rcparams(params)
+    from plotstyle.engine.rcparams import _resolve_latex_mode
+    from plotstyle.overlays import OverlayNotFoundError, overlay_registry
 
+    is_single_string = isinstance(style, str)
+    items: list[str] = [style] if is_single_string else list(style)
+
+    journal_key: str | None = None
+    resolved_overlays: list[StyleOverlay] = []
+    overlay_keys: list[str] = []
+
+    for item in items:
+        if item in registry:
+            if journal_key is not None:
+                raise ValueError(
+                    f"Only one journal preset may be specified; "
+                    f"got multiple: {journal_key!r} and {item!r}."
+                )
+            journal_key = item
+        elif item in overlay_registry:
+            resolved_overlays.append(overlay_registry.get(item))
+            overlay_keys.append(item.lower())
+        else:
+            if is_single_string:
+                # Maintain backward compatibility: single string → SpecNotFoundError.
+                raise SpecNotFoundError(item, available=registry.list_available())
+            raise OverlayNotFoundError(
+                item,
+                available=overlay_registry.list_available(),
+                journals=registry.list_available(),
+            )
+
+    effective_latex, pgf_mode = _resolve_rendering_overlays(resolved_overlays, latex)
+
+    if journal_key is not None:
+        spec = registry.get(journal_key)
+        params = build_rcparams(spec, latex=effective_latex)
+    else:
+        spec = None
+        use_latex = _resolve_latex_mode(effective_latex)
+        params = {"text.usetex": use_latex}
+
+    if resolved_overlays:
+        params = apply_overlays(params, resolved_overlays)
+        if spec is not None:
+            _warn_if_overlay_oversizes_journal(spec, resolved_overlays)
+            _warn_if_grayscale_palette_on_colorblind_journal(spec, resolved_overlays)
+            _warn_if_latex_sans_on_serif_journal(spec, resolved_overlays)
+        _warn_if_script_fonts_missing(resolved_overlays)
+        _warn_if_scatter_loses_line_distinction(spec, resolved_overlays)
+
+    # Apply font_family overrides from rendering overlays (e.g. latex-sans).
+    for overlay in resolved_overlays:
+        if overlay.rendering is None:
+            continue
+        font_family = overlay.rendering.get("font_family")
+        if font_family is not None:
+            from plotstyle.engine.latex import _FALLBACK_TO_PREAMBLE
+
+            params["font.family"] = font_family
+            preamble = _FALLBACK_TO_PREAMBLE.get(font_family)
+            if preamble is not None:
+                params["text.latex.preamble"] = preamble
+
+    # Activate PGF backend when a pgf rendering overlay was requested.
+    # Setting rcParams["backend"] after pyplot import has no effect; switch_backend is required.
+    if pgf_mode:
+        try:
+            import matplotlib.pyplot as plt
+
+            plt.switch_backend("pgf")
+        except Exception as exc:
+            from plotstyle._utils.warnings import PlotStyleWarning
+
+            warnings.warn(
+                f"Could not activate the PGF backend: {exc}. "
+                "Call matplotlib.use('pgf') before importing pyplot.",
+                PlotStyleWarning,
+                stacklevel=2,
+            )
+
+    # latex=True kwarg always wins over any overlay that might disable it.
+    if latex is True:
+        params["text.usetex"] = True
+
+    # Append script overlay LaTeX preambles after all other params are settled.
+    if resolved_overlays:
+        _apply_script_latex_preambles(params, resolved_overlays)
+
+    previous = _snapshot_rcparams(params)
     mpl.rcParams.update(params)
 
     seaborn_patched = _apply_seaborn_patch(params) if seaborn_compatible else False
@@ -577,4 +832,5 @@ def use(
         spec=spec,
         previous_rcparams=previous,
         seaborn_patched=seaborn_patched,
+        overlays=overlay_keys,
     )

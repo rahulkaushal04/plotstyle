@@ -1,0 +1,14 @@
+[metadata]
+name = "Presentation"
+category = "context"
+description = "Large text and thick lines for slide decks and posters."
+
+[rcparams]
+"figure.figsize" = [10.0, 7.0]
+"font.size" = 20.0
+"axes.labelsize" = 20.0
+"xtick.labelsize" = 16.0
+"ytick.labelsize" = 16.0
+"legend.fontsize" = 18.0
+"lines.linewidth" = 3.0
+"axes.linewidth" = 2.0

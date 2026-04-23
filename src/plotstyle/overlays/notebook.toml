@@ -1,0 +1,16 @@
+[metadata]
+name = "Notebook"
+category = "context"
+description = "Enlarged figures and larger fonts for Jupyter and interactive sessions."
+
+[rcparams]
+"figure.figsize" = [8.0, 5.5]
+"font.size" = 14.0
+"axes.labelsize" = 14.0
+"xtick.labelsize" = 12.0
+"ytick.labelsize" = 12.0
+"legend.fontsize" = 12.0
+"lines.linewidth" = 2.0
+"axes.linewidth" = 1.5
+"xtick.major.width" = 1.5
+"ytick.major.width" = 1.5

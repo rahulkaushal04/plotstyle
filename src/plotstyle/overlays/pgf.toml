@@ -1,0 +1,9 @@
+[metadata]
+name = "PGF Backend"
+category = "rendering"
+description = "Use the PGF LaTeX backend for publication-quality vector output."
+
+[rcparams]
+
+[rendering]
+latex = "pgf"

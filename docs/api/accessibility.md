@@ -28,6 +28,12 @@ Simulate how your figure looks under different types of colour vision deficiency
 .. autoexception:: plotstyle.color.accessibility.CVDSimulationError
 ```
 
+## `SIMULATION_MATRICES`
+
+```{eval-rst}
+.. autodata:: plotstyle.color.accessibility.SIMULATION_MATRICES
+```
+
 ## Supported deficiency types
 
 | Type | Affects | Prevalence |
@@ -80,7 +86,9 @@ result = simulate_cvd(img, CVDType.PROTANOPIA)
 
 ## Notes
 
-- The simulation uses Machado et al. (2009) matrices on linear sRGB input.
-  Matplotlib renders in gamma-encoded sRGB, so results are an approximation.
+- The simulation applies Machado et al. (2009) matrices directly to
+  gamma-encoded sRGB values (as rendered by Matplotlib's Agg backend).
+  Results are a visual approximation; they are not equivalent to a
+  strictly linearised simulation.
 - The source figure is never modified. `preview_colorblind()` returns a new
   figure.

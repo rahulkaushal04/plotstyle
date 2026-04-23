@@ -849,38 +849,10 @@ class TestEmitMigrationWarnings:
         font_warnings = [x for x in w if "Font family" in str(x.message)]
         assert len(font_warnings) == 0
 
-    def test_grayscale_newly_required_emits_warning(self) -> None:
+    def test_no_dpi_warning_when_dpi_equal(self) -> None:
         """
-        Description: Warning when target requires grayscale but source does not.
-        Scenario: Nature (grayscale_required=false) → IEEE (grayscale_required=true).
-        Expectation: Grayscale warning emitted.
-        """
-        from_spec = registry.get("nature")
-        to_spec = registry.get("ieee")
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            _emit_migration_warnings(from_spec, to_spec)
-        gray_warnings = [x for x in w if "grayscale" in str(x.message).lower()]
-        assert len(gray_warnings) >= 1
-
-    def test_dpi_increase_emits_warning(self) -> None:
-        """
-        Description: Warning when target requires higher DPI than source.
-        Scenario: Nature (300 DPI) → IEEE (600 DPI).
-        Expectation: DPI warning emitted.
-        """
-        from_spec = registry.get("nature")
-        to_spec = registry.get("ieee")
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            _emit_migration_warnings(from_spec, to_spec)
-        dpi_warnings = [x for x in w if "DPI" in str(x.message)]
-        assert len(dpi_warnings) >= 1
-
-    def test_no_dpi_warning_when_dpi_decreases(self) -> None:
-        """
-        Description: No DPI warning when target has lower or equal DPI.
-        Scenario: IEEE (600 DPI) → Nature (300 DPI).
+        Description: No DPI warning when target has equal DPI.
+        Scenario: IEEE (300 DPI) → Nature (300 DPI).
         Expectation: No DPI warning.
         """
         from_spec = registry.get("ieee")
@@ -894,7 +866,7 @@ class TestEmitMigrationWarnings:
     def test_all_warnings_are_plotstyle_warning(self) -> None:
         """
         Description: All warnings must be PlotStyleWarning subclass.
-        Scenario: Migrate from nature to ieee to generate multiple warnings.
+        Scenario: Migrate from nature to ieee to generate warnings.
         Expectation: Every caught warning is PlotStyleWarning.
         """
         from_spec = registry.get("nature")

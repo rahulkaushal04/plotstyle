@@ -1,0 +1,7 @@
+[metadata]
+name = "Tol Muted"
+category = "color"
+description = "Paul Tol's muted 10-color qualitative palette, colorblind-safe."
+
+[rcparams]
+_palette = ["#CC6677", "#332288", "#DDCC77", "#117733", "#88CCEE", "#882255", "#44AA99", "#999933", "#AA4499", "#DDDDDD"]
