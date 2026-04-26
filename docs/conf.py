@@ -87,14 +87,14 @@ nitpick_ignore = [
 # sphinx_autodoc_typehints / Napoleon auto-generates from type annotations
 # but that are not registered in any Sphinx inventory:
 #
-#  • Generic container types  — list[T], dict[K,V], tuple[...], etc.
-#  • Union / Optional forms   — X | Y, str | None, etc.
+#  • Generic container types: list[T], dict[K,V], tuple[...], etc.
+#  • Union / Optional forms: X | Y, str | None, etc.
 #  • Orphaned bracket fragments caused by multi-element tuple splitting
 #    (e.g. "tuple[Figure, Axes]"  →  "tuple[Figure"  +  "Axes]")
-#  • Matplotlib Figure / Axes  — only available in RTD / INTERSPHINX_FULL mode
-#  • NumPy NDArray aliases     — NDArray[np.float64] etc.
-#  • pathlib.Path unqualified  — "Path" alone is not in the Python inventory
-#  • Internal plotstyle types  — PaletteResult, JournalSpec, ValidationReport,
+#  • Matplotlib Figure / Axes: only available in RTD / INTERSPHINX_FULL mode
+#  • NumPy NDArray aliases: NDArray[np.float64] etc.
+#  • pathlib.Path unqualified: "Path" alone is not in the Python inventory
+#  • Internal plotstyle types: PaletteResult, JournalSpec, ValidationReport,
 #                                CheckResult referenced by short name from Napoleon
 nitpick_ignore_regex = [
     # Generic containers: list[...], dict[...], tuple[...], set[...], etc.
@@ -106,7 +106,7 @@ nitpick_ignore_regex = [
     # NumPy typed array aliases and fully-qualified numpy types
     (r"py:class", r"NDArray.*"),
     (r"py:class", r"numpy\..*"),
-    # Matplotlib types — intersphinx only loaded on RTD / INTERSPHINX_FULL;
+    # Matplotlib types: intersphinx only loaded on RTD / INTERSPHINX_FULL;
     # matches both bare names ("Figure") and fully-qualified forms
     # ("matplotlib.figure.Figure", "matplotlib.axes._axes.Axes").
     (r"py:class", r"Figure"),
@@ -114,7 +114,7 @@ nitpick_ignore_regex = [
     (r"py:class", r"matplotlib\..*"),
     (r"py:meth", r"matplotlib\..*"),
     (r"py:func", r"matplotlib\..*"),
-    # pathlib.Path — intersphinx entry is "pathlib.Path", not bare "Path"
+    # pathlib.Path: intersphinx entry is "pathlib.Path", not bare "Path"
     (r"py:class", r"Path"),
     # Internal plotstyle types referenced by unqualified short name
     (r"py:class", r"PaletteResult"),

@@ -1,5 +1,5 @@
 """
-Validation — check a figure against journal requirements before submission.
+Validation: check a figure against journal requirements before submission.
 
 Steps:
 1. Create a figure using plotstyle.use() and plotstyle.figure().
@@ -42,7 +42,7 @@ with plotstyle.use("nature") as style:
             if result.fix_suggestion:
                 print(f"    Fix: {result.fix_suggestion}")
 
-    # JSON-serializable dict — useful for CI quality gates
+    # JSON-serializable dict, useful for CI quality gates
     report_dict = report.to_dict()
     print(f"\nReport keys: {list(report_dict.keys())}")
 

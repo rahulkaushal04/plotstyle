@@ -1,4 +1,4 @@
-# Grayscale — `plotstyle.color.grayscale`
+# Grayscale: `plotstyle.color.grayscale`
 
 Grayscale simulation and luminance analysis for print safety checks.
 
@@ -50,7 +50,7 @@ for idx_a, idx_b, delta in pairs:
     print(f"Pair ({idx_a}, {idx_b}): delta = {delta:.3f}")
 ```
 
-Results are sorted ascending — the most problematic pair comes first.
+Results are sorted ascending; the most problematic pair comes first.
 
 ### Visual grayscale preview
 
@@ -69,7 +69,7 @@ Creates a side-by-side `[Original | Grayscale]` comparison.
 
 **Output:**
 
-![Grayscale preview — original vs grayscale](../images/accessibility_grayscale.png)
+![Grayscale preview: original vs grayscale](../images/accessibility_grayscale.png)
 
 ## Notes
 

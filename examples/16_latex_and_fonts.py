@@ -1,5 +1,5 @@
 """
-LaTeX modes and font inspection — control text rendering and verify fonts.
+LaTeX modes and font inspection: control text rendering and verify fonts.
 
 Steps:
 1. Use latex="auto" for automatic LaTeX detection and fallback.
@@ -31,13 +31,13 @@ else:
     print("No TeX distribution detected")
 
 # ==============================================================================
-# 2. latex="auto" — one-line LaTeX with graceful fallback
+# 2. latex="auto": one-line LaTeX with graceful fallback
 # ==============================================================================
 # "auto" enables LaTeX when available and silently falls back to MathText
 # otherwise. This replaces the manual detect + conditional pattern.
 
 with plotstyle.use("nature", latex="auto") as style:
-    print(f"\nLaTeX mode 'auto' — journal: {style.spec.metadata.name}")
+    print(f"\nLaTeX mode 'auto', journal: {style.spec.metadata.name}")
     fig, ax = style.figure()
     ax.set_xlabel(r"$\alpha$ (rad)")
     ax.set_ylabel(r"$\beta$ (a.u.)")

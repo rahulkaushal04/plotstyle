@@ -22,7 +22,7 @@ with plotstyle.use("nature") as style:
 if report.passed:
     print("Ready to submit!")
 else:
-    print("Issues found — see below.")
+    print("Issues found: see below.")
 ```
 
 ### Print the full report
@@ -35,7 +35,7 @@ Example output:
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│      PlotStyle Validation Report — Nature            │
+│      PlotStyle Validation Report: Nature             │
 ├──────────┬───────────────────────────────────────────┤
 │ ✓ PASS   │ Figure width: 89.0mm (single column)      │
 │ ✓ PASS   │ Height within max allowed (247.0mm)        │
@@ -56,10 +56,10 @@ for failure in report.failures:
 
 Each `CheckResult` has:
 
-- `status` — `PASS`, `FAIL`, or `WARN`
-- `check_name` — dot-namespaced id (e.g. `dimensions.width`)
-- `message` — what the check found
-- `fix_suggestion` — how to fix it (for FAIL/WARN)
+- `status`: `PASS`, `FAIL`, or `WARN`
+- `check_name`: dot-namespaced id (e.g. `dimensions.width`)
+- `message`: what the check found
+- `fix_suggestion`: how to fix it (for FAIL/WARN)
 
 ### Warnings vs failures
 

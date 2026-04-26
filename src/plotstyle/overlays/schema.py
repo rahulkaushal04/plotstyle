@@ -1,4 +1,4 @@
-"""StyleOverlay dataclass — a named, flat rcParam patch."""
+"""StyleOverlay dataclass: a named, flat rcParam patch."""
 
 from __future__ import annotations
 
@@ -43,9 +43,9 @@ class StyleOverlay:
         Optional rendering directives parsed from the ``[rendering]`` TOML
         section.  Supported keys:
 
-        - ``latex``: ``false`` / ``true`` / ``"pgf"`` — the LaTeX mode to
+        - ``latex``: ``false`` / ``true`` / ``"pgf"``: the LaTeX mode to
           activate.  ``"pgf"`` enables the PGF backend in addition to LaTeX.
-        - ``font_family``: ``"sans-serif"`` / ``"serif"`` / ``"monospace"`` —
+        - ``font_family``: ``"sans-serif"`` / ``"serif"`` / ``"monospace"``:
           overrides the font family used for LaTeX rendering.
 
         ``None`` when the TOML file has no ``[rendering]`` section.

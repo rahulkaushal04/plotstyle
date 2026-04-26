@@ -1,4 +1,4 @@
-# Validation — `plotstyle.validation`
+# Validation: `plotstyle.validation`
 
 Pre-submission figure validation against journal specifications.
 
@@ -94,5 +94,5 @@ for warning in report.warnings:
 - The `journal` parameter is keyword-only to prevent accidental positional
   argument confusion.
 - Validation does **not** modify the figure or any global Matplotlib state.
-- `WARN` results do not affect `report.passed` — a report with warnings but
+- `WARN` results do not affect `report.passed`; a report with warnings but
   no failures is still considered passing.

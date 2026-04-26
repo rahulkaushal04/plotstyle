@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import logging
 import sys
 import warnings
 from pathlib import Path
@@ -147,9 +148,7 @@ def _print_compliance_summary(
             hits = type3_hits if type3_hits is not None else verify_embedded(output_path)
             type3_found = any(h.get("type") == "Type3" for h in hits)
             if type3_found:
-                print(
-                    "✗ Type 3 font detected — many submission portals will reject this.", file=out
-                )
+                print("✗ Type 3 font detected: many submission portals will reject this.", file=out)
             else:
                 print("✓ TrueType fonts embedded (pdf.fonttype=42)", file=out)
         else:
@@ -177,10 +176,10 @@ def savefig(
     Acts as a drop-in replacement for :meth:`~matplotlib.figure.Figure.savefig`
     with two additional guarantees:
 
-    1. **TrueType font embedding** — ``pdf.fonttype`` and ``ps.fonttype`` are
+    1. **TrueType font embedding**: ``pdf.fonttype`` and ``ps.fonttype`` are
        set to ``42`` for the duration of the save, ensuring fonts are embedded
        as TrueType rather than Type 3 bitmaps.
-    2. **Journal DPI enforcement** — when *journal* is provided, the journal
+    2. **Journal DPI enforcement**: when *journal* is provided, the journal
        spec's ``min_dpi`` is applied as ``savefig.dpi`` for this call only.
 
     Both overrides are scoped to this function call: original ``mpl.rcParams``
@@ -227,7 +226,7 @@ def savefig(
     saved_rc = _snapshot_rcparams(_RESTORE_KEYS)
 
     try:
-        # Force TrueType embedding — Matplotlib's default (Type 3) is rejected by most submission portals.
+        # Force TrueType embedding; Matplotlib's default (Type 3) is rejected by most submission portals.
         mpl.rcParams["pdf.fonttype"] = 42
         mpl.rcParams["ps.fonttype"] = 42
 
@@ -241,7 +240,13 @@ def savefig(
         # An explicit dpi= kwarg overrides both the journal minimum and the rcParam.
         dpi_value = kwargs.get("dpi", mpl.rcParams.get("savefig.dpi", "figure"))
 
-        fig.savefig(str(output_path), **kwargs)
+        _fonttools_logger = logging.getLogger("fontTools")
+        _prev_level = _fonttools_logger.level
+        _fonttools_logger.setLevel(logging.ERROR)
+        try:
+            fig.savefig(str(output_path), **kwargs)
+        finally:
+            _fonttools_logger.setLevel(_prev_level)
 
         type3_hits: list[dict[str, Any]] | None = None
         if output_path.suffix.lower() == ".pdf":

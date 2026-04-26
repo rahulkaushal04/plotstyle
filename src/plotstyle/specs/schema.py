@@ -1,4 +1,4 @@
-"""Journal specification schema — typed dataclasses for TOML spec data.
+"""Journal specification schema: typed dataclasses for TOML spec data.
 
 Defines frozen dataclasses representing a parsed journal specification,
 exception types raised during validation, and private parsing helpers
@@ -73,7 +73,7 @@ _MIN_DPI_FLOOR: Final[int] = 72
 _ISO_DATE_RE: Final[re.Pattern[str]] = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 # Conservative, research-grade defaults for fields journals may not specify.
-# These are NOT journal-official values — they are library assumptions used only
+# These are NOT journal-official values; they are library assumptions used only
 # when a journal's guidelines are silent on a particular requirement.
 _LIBRARY_DEFAULTS: Final[dict[str, Any]] = {
     "typography.font_family": ["Helvetica", "Arial"],

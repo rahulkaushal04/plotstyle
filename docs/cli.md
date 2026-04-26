@@ -1,7 +1,7 @@
 # CLI Reference
 
 PlotStyle includes a command-line tool for inspecting journal specs, checking
-fonts, and validating saved files — without writing any Python.
+fonts, and validating saved files, without writing any Python.
 
 ## Commands
 
@@ -75,7 +75,7 @@ Preferred Formats:      ai, eps, pdf → tiff, eps, pdf, png
 Colorblind Required:    No → Yes
 ```
 
-If two journals have identical specs the command prints `Specs are identical`.
+If two journals have identical specs the command prints `No differences.` (preceded by the `A → B` header line).
 
 ---
 
@@ -162,7 +162,7 @@ Note: Full validation requires a live Matplotlib Figure object.
 
 This command checks only the PDF file for font embedding. For a full
 validation covering dimensions, font sizes, line weights, and colours, use
-`plotstyle.validate(fig, journal=...)` in Python — this requires the live
+`plotstyle.validate(fig, journal=...)` in Python; this requires the live
 Matplotlib `Figure` object.
 
 ---
@@ -170,7 +170,7 @@ Matplotlib `Figure` object.
 ### `plotstyle export <file> --journal <journal>`
 
 Print a Python code snippet for re-exporting a figure in all journal-required
-formats. No files are created — re-exporting requires the original Matplotlib
+formats. No files are created; re-exporting requires the original Matplotlib
 `Figure` object, which cannot be recovered from a saved file.
 
 ```bash
@@ -199,4 +199,4 @@ $ plotstyle export figure1.pdf --journal ieee --formats pdf,eps --author Smith
 | `0` | Success |
 | `1` | Error (bad arguments, unknown journal, file not found, etc.) |
 
-Standard POSIX convention — suitable for use in shell scripts and CI pipelines.
+Standard POSIX convention, suitable for use in shell scripts and CI pipelines.

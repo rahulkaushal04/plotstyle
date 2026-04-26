@@ -4,7 +4,7 @@ Spec comparison and figure migration between journals.
 Steps:
 1. Compare two journal specs with plotstyle.diff() to see what changes.
 2. Create a figure styled for the source journal (Nature).
-3. Migrate it to a new journal with plotstyle.migrate() — resizes the figure,
+3. Migrate it to a new journal with plotstyle.migrate(). Resizes the figure,
    rescales text, and applies the target journal's rcParams in-place.
 
 Output:

@@ -12,7 +12,7 @@
     LaTeX-based text rendering for a given
     :class:`~plotstyle.specs.schema.JournalSpec`.
 
-All functions are read-only or pure — no side effects.
+All functions are read-only or pure; no side effects.
 """
 
 from __future__ import annotations
@@ -91,7 +91,7 @@ def detect_distribution() -> str | None:
     Notes
     -----
     The ``"texlive"`` fallback when only ``latex`` is present is an
-    assumption — it reflects the prevalence of TeX Live in CI environments.
+    assumption; it reflects the prevalence of TeX Live in CI environments.
     """
     if _binary_exists("tlmgr"):
         return "texlive"

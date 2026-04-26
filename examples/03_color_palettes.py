@@ -1,5 +1,5 @@
 """
-Color palettes — journal-specific, colorblind-safe color schemes.
+Color palettes: journal-specific, colorblind-safe color schemes.
 
 Steps:
 1. Get a list of hex colors with plotstyle.palette(journal, n=...).
@@ -27,7 +27,7 @@ OUTPUT_DIR = Path(__file__).parent / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 # ==============================================================================
-# 1. Basic palette — list of hex color strings
+# 1. Basic palette: list of hex color strings
 # ==============================================================================
 
 colors = plotstyle.palette("nature", n=4)
@@ -46,7 +46,7 @@ with plotstyle.use("nature") as style:
     plt.close(fig)
 
 # ==============================================================================
-# 2. Styled tuples — (color, linestyle, marker) for grayscale-safe line plots
+# 2. Styled tuples: (color, linestyle, marker) for grayscale-safe line plots
 # ==============================================================================
 
 # with_markers=True is important for IEEE, which prints in grayscale.
@@ -91,10 +91,10 @@ fig.savefig(OUTPUT_DIR / "palette_comparison.png", dpi=150)
 plt.close(fig)
 
 # ==============================================================================
-# 4. apply_palette — set the default color cycle for automatic coloring
+# 4. apply_palette: set the default color cycle for automatic coloring
 # ==============================================================================
 # apply_palette() sets axes.prop_cycle so every subsequent plot() call picks
-# colors from the named palette automatically — no color= kwarg needed.
+# colors from the named palette automatically; no color= kwarg needed.
 # Call it BEFORE plotting; it does not retroactively recolor existing artists.
 
 with plotstyle.use("nature") as style:
@@ -122,7 +122,7 @@ with plotstyle.use("nature") as style:
     plt.close(fig)
 
 # ==============================================================================
-# 5. list_palettes — discover all built-in palette names
+# 5. list_palettes: discover all built-in palette names
 # ==============================================================================
 
 available = plotstyle.list_palettes()

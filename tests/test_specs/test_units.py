@@ -697,14 +697,14 @@ class TestIsClose:
         """
         Description: Comparison happens in mm, so unit mismatch must not
         produce false positives or negatives.
-        Scenario: 1 cm vs 9.9 mm — clearly NOT close at default tol.
+        Scenario: 1 cm vs 9.9 mm; clearly NOT close at default tol.
         Expectation: False.
         """
         assert not Dimension(1.0, "cm").is_close(Dimension(9.9, "mm"))
 
 
 # ---------------------------------------------------------------------------
-# Arithmetic — addition
+# Arithmetic - addition
 # ---------------------------------------------------------------------------
 
 
@@ -807,7 +807,7 @@ class TestAddition:
         Description: a + b and b + a must give numerically equal mm totals
         (though they may differ in stored unit since the result unit follows
         the left operand).
-        Scenario: 10mm + 1cm vs 1cm + 10mm — both should sum to 20mm equivalent.
+        Scenario: 10mm + 1cm vs 1cm + 10mm; both should sum to 20mm equivalent.
         Expectation: Both convert to ≈ 20mm.
         """
         ab = Dimension(10.0, "mm") + Dimension(1.0, "cm")
@@ -816,7 +816,7 @@ class TestAddition:
 
 
 # ---------------------------------------------------------------------------
-# Arithmetic — subtraction
+# Arithmetic - subtraction
 # ---------------------------------------------------------------------------
 
 
@@ -900,7 +900,7 @@ class TestSubtraction:
 
 
 # ---------------------------------------------------------------------------
-# Arithmetic — multiplication
+# Arithmetic - multiplication
 # ---------------------------------------------------------------------------
 
 
@@ -992,7 +992,7 @@ class TestMultiplication:
 
 
 # ---------------------------------------------------------------------------
-# Arithmetic — division
+# Arithmetic - division
 # ---------------------------------------------------------------------------
 
 
@@ -1283,7 +1283,7 @@ class TestEqualityAndHash:
     def test_unequal_objects_may_have_different_hash(self) -> None:
         """
         Description: Unequal objects should (in practice) have different
-        hashes to avoid collisions in sets/dicts — not a contractual
+        hashes to avoid collisions in sets/dicts; not a contractual
         requirement, but a quality signal.
         Scenario: Dimension(10, 'mm') vs Dimension(10, 'cm').
         Expectation: Different hashes (practically guaranteed by tuple hash).
@@ -1352,7 +1352,7 @@ class TestRepr:
     def test_repr_shows_coerced_float(self) -> None:
         """
         Description: Integer inputs are coerced to float; repr must reflect that.
-        Scenario: Dimension(10, 'mm') — int input.
+        Scenario: Dimension(10, 'mm'): int input.
         Expectation: '10.0' appears in repr, not '10'.
         """
         assert "10.0" in repr(Dimension(10, "mm"))

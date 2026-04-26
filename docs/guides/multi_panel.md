@@ -28,7 +28,7 @@ with plotstyle.use("science") as style:
     style.savefig(fig, "multi_panel.pdf")
 ```
 
-Panel labels are added automatically in the journal's style — all current specs
+Panel labels are added automatically in the journal's style; all current specs
 use bold lowercase (**a**, **b**, **c**, **d**).
 
 **Output:**
@@ -66,10 +66,10 @@ fig, axes = style.subplots(nrows=1, ncols=3, panels=False)
 ## Single-column vs double-column
 
 ```python
-# Single-column — fits within one text column
+# Single-column: fits within one text column
 fig, axes = style.subplots(nrows=1, ncols=2, columns=1)
 
-# Double-column — spans the full page width
+# Double-column: spans the full page width
 fig, axes = style.subplots(nrows=1, ncols=2, columns=2)
 ```
 
@@ -89,7 +89,7 @@ lets you use `axes[i, j]` indexing and `axes.flat` iteration consistently:
 ```python
 fig, axes = style.subplots(nrows=2, ncols=3)
 
-# Flat iteration — works for any shape
+# Flat iteration: works for any shape
 for ax in axes.flat:
     ax.plot([1, 2, 3])
 

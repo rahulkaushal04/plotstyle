@@ -1,6 +1,6 @@
 # plotstyle
 
-**Publication-ready scientific figures — one line of code.**
+**Publication-ready scientific figures: one line of code.**
 
 [![PyPI](https://img.shields.io/pypi/v/plotstyle?color=blue)](https://pypi.org/project/plotstyle/)
 [![Python](https://img.shields.io/pypi/pyversions/plotstyle)](https://pypi.org/project/plotstyle/)
@@ -11,7 +11,7 @@
 
 PlotStyle sets up [Matplotlib](https://matplotlib.org/) (and optionally
 [Seaborn](https://seaborn.pydata.org/)) so your figures match what each
-scientific journal expects — the right size, font, line weights, DPI, and
+scientific journal expects: the right size, font, line weights, DPI, and
 export format.
 
 ```python
@@ -25,17 +25,17 @@ with plotstyle.use("nature") as style:
 
 ## What it does
 
-- **Journal presets** — `plotstyle.use("nature")` sets fonts, sizes, line widths, and DPI for you.
-- **Correct figure sizes** — `figure()` / `subplots()` create figures at the exact column width a journal requires.
-- **Panel labels** — multi-panel figures automatically get bold lowercase panel labels (a, b, c) based on the journal spec.
-- **Overlays** — additive patches for colour palettes, context (notebook, presentation), rendering, and chart types.
-- **Colorblind-safe palettes** — Okabe–Ito, Tol, and grayscale-safe palettes are built in.
-- **Accessibility previews** — see how your figure looks under deuteranopia, protanopia, and tritanopia.
-- **Pre-submission validation** — check dimensions, fonts, line weights, and colours before you submit.
-- **Export for submission** — save in all formats a journal accepts, with correct DPI and embedded fonts.
-- **Spec diffing & migration** — compare two journals side-by-side and migrate a figure from one to another.
-- **Seaborn support** — PlotStyle's settings survive `sns.set_theme()` calls.
-- **CLI** — `plotstyle list`, `plotstyle info`, `plotstyle validate`, and more.
+- **Journal presets**: `plotstyle.use("nature")` sets fonts, sizes, line widths, and DPI for you.
+- **Correct figure sizes**: `figure()` / `subplots()` create figures at the exact column width a journal requires.
+- **Panel labels**: multi-panel figures automatically get bold lowercase panel labels (a, b, c) based on the journal spec.
+- **Overlays**: additive patches for colour palettes, context (notebook, presentation), rendering, and chart types.
+- **Colorblind-safe palettes**: Okabe-Ito, Tol, and grayscale-safe palettes are built in.
+- **Accessibility previews**: see how your figure looks under deuteranopia, protanopia, and tritanopia.
+- **Pre-submission validation**: check dimensions, fonts, line weights, and colours before you submit.
+- **Export for submission**: save in all formats a journal accepts, with correct DPI and embedded fonts.
+- **Spec diffing & migration**: compare two journals side-by-side and migrate a figure from one to another.
+- **Seaborn support**: PlotStyle's settings survive `sns.set_theme()` calls.
+- **CLI**: `plotstyle list`, `plotstyle info`, `plotstyle validate`, and more.
 
 ## Supported journals
 

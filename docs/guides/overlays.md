@@ -8,7 +8,7 @@ See the working example: [`examples/12_overlays.py`](../../examples/12_overlays.
 
 Overlays are additive rcParam patches that layer on top of a journal preset
 (or on their own, without any journal). They let you adjust one aspect of the
-figure — the colour palette, the scale, the plot type — without touching the
+figure (the colour palette, the scale, the plot type) without touching the
 base journal settings.
 
 Pass overlay names in the same list as the journal key:
@@ -29,7 +29,7 @@ last one wins.
 
 | Category | Purpose | Examples |
 |----------|---------|---------|
-| `color` | Change the default colour cycle | `okabe-ito`, `tol-bright`, `safe-grayscale` |
+| `color` | Change the default colour cycle | `okabe-ito`, `tol-bright`, `tol-vibrant`, `tol-muted`, `tol-light`, `tol-high-contrast`, `tol-rainbow-4/6/8/10/12`, `safe-grayscale` |
 | `context` | Adjust scale for a different medium | `notebook`, `presentation`, `minimal`, `high-vis` |
 | `rendering` | Control text rendering and grids | `no-latex`, `grid`, `latex-sans`, `pgf` |
 | `plot-type` | Optimise for a chart type | `bar`, `scatter` |
@@ -37,7 +37,7 @@ last one wins.
 
 ## Context overlays
 
-### `minimal` — clean editorial look
+### `minimal`: clean editorial look
 
 Removes the top and right spines and hides the grid. Useful for blog posts,
 editorial figures, or any context where heavy axis boxes look out of place.
@@ -49,7 +49,7 @@ with plotstyle.use(["nature", "minimal"]) as style:
     style.savefig(fig, "figure.pdf")
 ```
 
-### `notebook` — Jupyter scale
+### `notebook`: Jupyter scale
 
 Sets `figure.figsize` to 8 x 5.5 in and increases font sizes to 14 pt for
 on-screen readability in Jupyter notebooks.
@@ -68,15 +68,15 @@ with plotstyle.use(["nature", "notebook"]) as style:
 
 > **Note:** An `OverlaySizeWarning` is raised when using `notebook` with a
 > journal preset because 8 in exceeds most journal double-column widths. This
-> is expected — the notebook overlay is for interactive exploration, not
+> is expected; the notebook overlay is for interactive exploration, not
 > submission.
 
-### `presentation` — slides and posters
+### `presentation`: slides and posters
 
 Similar to `notebook` but scaled for projected displays: 10 x 7 in,
 20 pt font, thick lines.
 
-### `high-vis` — projectors
+### `high-vis`: projectors
 
 Maximum contrast, bold lines, and oversized ticks for projected figures where
 fine detail is lost.
@@ -137,7 +137,7 @@ with plotstyle.use(["nature", "pgf"]) as style:
 
 ### `bar`
 
-Removes markers and sets a 0.5 pt patch border — standard for bar charts in
+Removes markers and sets a 0.5 pt patch border, standard for bar charts in
 most journals:
 
 ```python
@@ -149,7 +149,7 @@ with plotstyle.use(["nature", "bar"]) as style:
 
 ### `scatter`
 
-Enables markers, removes connecting lines, and turns on the grid — a good
+Enables markers, removes connecting lines, and turns on the grid, a good
 starting point for scatter plots:
 
 ```python
@@ -203,8 +203,25 @@ with plotstyle.use(["ieee", "okabe-ito"]) as style:
     ax.plot(x, y)
 ```
 
-> **Note:** Using `safe-grayscale` with a colorblind-required journal raises a
-> `PaletteColorblindWarning`.
+> **Note:** Using `safe-grayscale` with a colorblind-required journal (e.g.
+> `ieee`, `science`) raises a `PaletteColorblindWarning`.
+
+All available color overlays:
+
+| Key | Colors | Description |
+|-----|--------|-------------|
+| `okabe-ito` | 8 | Colorblind-safe qualitative palette by Okabe & Ito (2008) |
+| `tol-bright` | 7 | Paul Tol's bright qualitative palette, colorblind-safe |
+| `tol-vibrant` | 7 | Paul Tol's vibrant qualitative palette, colorblind-safe |
+| `tol-muted` | 10 | Paul Tol's muted qualitative palette, colorblind-safe |
+| `tol-light` | 9 | Paul Tol's light qualitative palette, for light backgrounds |
+| `tol-high-contrast` | 3 | Paul Tol's high-contrast palette, optimised for black/white print |
+| `tol-rainbow-4` | 4 | Paul Tol's discrete rainbow palette, 4 stops |
+| `tol-rainbow-6` | 6 | Paul Tol's discrete rainbow palette, 6 stops |
+| `tol-rainbow-8` | 8 | Paul Tol's discrete rainbow palette, 8 stops |
+| `tol-rainbow-10` | 10 | Paul Tol's discrete rainbow palette, 10 stops |
+| `tol-rainbow-12` | 12 | Paul Tol's discrete rainbow palette, 12 stops |
+| `safe-grayscale` | 6 | Grayscale steps distinguishable in black-and-white print |
 
 ## List and inspect overlays
 
@@ -247,11 +264,11 @@ styling plots in a notebook or script without worrying about column widths:
 
 ```python
 with plotstyle.use("notebook") as style:
-    # No spec attached — style.figure() falls back to default 6.4in width
+    # No spec attached; style.figure() falls back to default 6.4in width
     fig, ax = style.figure()   # OK: uses default figsize
     ax.plot(x, y)
-    # style.validate(fig)  # raises RuntimeError — needs a journal spec
-    # style.palette()      # raises RuntimeError — needs a journal spec
+    # style.validate(fig)  # raises RuntimeError: needs a journal spec
+    # style.palette()      # raises RuntimeError: needs a journal spec
 ```
 
 When no journal is given, `style.palette()`, `style.validate()`, and

@@ -1,4 +1,4 @@
-# Warnings — `plotstyle._utils.warnings`
+# Warnings: `plotstyle._utils.warnings`
 
 All warnings emitted by PlotStyle derive from `PlotStyleWarning`. None of these
 classes are re-exported from the top-level `plotstyle` namespace; import them
@@ -50,7 +50,7 @@ journal's double-column width. Expected when using `notebook` or
 ### `PaletteColorblindWarning`
 
 Emitted when the `safe-grayscale` colour overlay is combined with a journal
-that requires colorblind-safe colours (e.g. `nature`, `ieee`).
+that requires colorblind-safe colours (e.g. `ieee`, `science`).
 
 ### `SpecAssumptionWarning`
 
@@ -76,6 +76,6 @@ spec = registry.get("wiley")
 print(spec.assumed_fields)
 # frozenset({'typography.font_family', 'typography.min_font_pt', ...})
 
-spec.is_official("dimensions.single_column_mm")  # True — from official guidelines
-spec.is_official("typography.min_font_pt")        # False — library default
+spec.is_official("dimensions.single_column_mm")  # True: from official guidelines
+spec.is_official("typography.min_font_pt")        # False: library default
 ```

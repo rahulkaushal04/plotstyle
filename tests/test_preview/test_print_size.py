@@ -56,7 +56,7 @@ def _close_figs():
 
 @pytest.fixture
 def simple_fig():
-    """Return a plain 6Ã—4-inch figure for use in preview tests."""
+    """Return a plain 6x4-inch figure for use in preview tests."""
     fig, ax = plt.subplots(figsize=(6.0, 4.0))
     ax.plot([1, 2, 3], [1, 4, 9])
     return fig

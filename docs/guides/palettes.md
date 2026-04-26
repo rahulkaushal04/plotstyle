@@ -58,7 +58,7 @@ for i, (color, ls, marker) in enumerate(styled):
 ## Apply a palette to the colour cycle
 
 `apply_palette()` sets the default colour cycle so every new plot on those
-axes uses the palette automatically — no need to pass `color=` manually:
+axes uses the palette automatically; no need to pass `color=` manually:
 
 ```python
 import plotstyle

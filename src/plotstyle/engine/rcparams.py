@@ -132,15 +132,15 @@ def build_rcparams(
     latex : _LatexMode
         Controls LaTeX-based text rendering:
 
-        - ``False`` *(default)* — use Matplotlib's MathText engine.
-        - ``True`` — require LaTeX; raises :class:`LatexNotFoundError` if
+        - ``False`` *(default)*: use Matplotlib's MathText engine.
+        - ``True``: require LaTeX; raises :class:`LatexNotFoundError` if
           no ``latex`` binary is found on ``PATH``.
-        - ``"auto"`` — enable LaTeX when available, fall back to MathText.
+        - ``"auto"``: enable LaTeX when available, fall back to MathText.
     detect_fonts : bool
         When ``True`` *(default)*, probe the system font cache via
         :func:`~plotstyle.engine.fonts.select_best` to pick the best
         available font family.  When ``False``, skip probing and use
-        ``spec.typography.font_fallback`` directly — useful for snapshot
+        ``spec.typography.font_fallback`` directly, useful for snapshot
         builds at import time where the filesystem overhead is unacceptable.
         Ignored when *latex* resolves to ``True``; LaTeX font selection is
         driven by the TeX preamble, so ``font_fallback`` is always used.
@@ -241,7 +241,7 @@ def apply_overlays(base: dict[str, Any], overlays: list[StyleOverlay]) -> dict[s
     for matplotlib's ``cycler`` objects.
 
     Keys in :data:`SAFETY_PARAMS` (``pdf.fonttype``, ``ps.fonttype``) are
-    silently stripped from every overlay before merging — overlays cannot
+    silently stripped from every overlay before merging; overlays cannot
     downgrade TrueType font embedding.
     """
     from cycler import cycler

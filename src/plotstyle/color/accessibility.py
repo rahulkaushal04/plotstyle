@@ -72,7 +72,7 @@ class CVDType(str, enum.Enum):
 
 
 # ---------------------------------------------------------------------------
-# Simulation matrices (Machado et al., 2009 — severity = 1.0)
+# Simulation matrices (Machado et al., 2009, severity = 1.0)
 # ---------------------------------------------------------------------------
 
 #: Raw 3x3 CVD simulation matrices keyed by :class:`CVDType` (Machado et al., 2009, severity = 1.0).

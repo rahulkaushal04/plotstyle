@@ -423,7 +423,7 @@ class TestIsGrayscaleSafe:
         Scenario: Similar colours that differ by less than 0.1 luminance.
         Expectation: is_grayscale_safe returns False.
         """
-        # Two very similar greys — difference < 0.1
+        # Two very similar greys; difference < 0.1
         assert is_grayscale_safe(["#808080", "#858585"]) is False
 
     def test_safe_grayscale_palette_is_safe(self) -> None:

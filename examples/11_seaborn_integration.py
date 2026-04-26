@@ -1,5 +1,5 @@
 """
-Seaborn integration — keep PlotStyle settings intact through sns.set_theme().
+Seaborn integration: keep PlotStyle settings intact through sns.set_theme().
 
 Seaborn and PlotStyle both write to matplotlib.rcParams. Calling
 sns.set_theme() after plotstyle.use() resets fonts, sizes, and line widths.
@@ -60,7 +60,7 @@ with plotstyle.use("nature", seaborn_compatible=True) as style:
     plt.close(fig)
 
 # ==============================================================================
-# Pattern 2: plotstyle_theme() — one-shot combined setup
+# Pattern 2: plotstyle_theme(): one-shot combined setup
 # ==============================================================================
 # plotstyle_theme() applies the seaborn theme first, then overlays PlotStyle's
 # journal rcParams on top. Use this when sns.set_theme() is called once upfront.

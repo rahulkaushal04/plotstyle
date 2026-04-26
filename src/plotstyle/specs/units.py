@@ -83,7 +83,7 @@ class UnsupportedUnitError(DimensionError):
 class IncompatibleUnitsError(DimensionError):
     """Raised when two measurements with incompatible types are combined.
 
-    Guards against accidentally adding a `Dimension` to a `FontSize` —
+    Guards against accidentally adding a `Dimension` to a `FontSize`;
     they are semantically distinct even though both store a (value, unit) pair.
 
     Parameters
@@ -345,7 +345,7 @@ class _Measurement:
         """Return a new measurement expressed in *target_unit*.
 
         Unlike `to`, which returns a plain ``float``, this returns a typed
-        measurement object — useful for normalising a collection to one unit.
+        measurement object, useful for normalising a collection to one unit.
 
         Parameters
         ----------

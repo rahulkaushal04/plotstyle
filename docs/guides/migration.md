@@ -81,10 +81,10 @@ plotstyle.savefig(fig, "figure_ieee.pdf", journal="ieee")
 
 When notable changes are detected, PlotStyle emits `PlotStyleWarning` instances to guide you:
 
-- **Font family change** (e.g. Helvetica → Times New Roman) — update any
+- **Font family change** (e.g. Helvetica → Times New Roman): update any
   hardcoded font references.
-- **Grayscale now required** — verify all colours are distinguishable in print.
-- **Increased DPI floor** — re-export at the higher resolution.
+- **Grayscale now required**: verify all colours are distinguishable in print.
+- **Increased DPI floor**: re-export at the higher resolution.
 
 ## Full workflow
 
@@ -106,8 +106,8 @@ if diff:
 
 ## Notes
 
-- `migrate()` modifies the figure **in-place**. Clone it first if you need
-  to keep the original:
+- `migrate()` modifies the figure **in-place** and returns the same `Figure`
+  instance. Clone it first if you need to keep the original:
 
   ```python
   import copy

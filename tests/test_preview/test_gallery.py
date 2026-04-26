@@ -1,7 +1,7 @@
 """Comprehensive test suite for plotstyle.preview.gallery.
 
 Covers: module constants, synthetic data generators, panel drawing helpers,
-and the public gallery() API — including happy paths, column-span variations,
+and the public gallery() API: including happy paths, column-span variations,
 invalid inputs, style isolation, and deteminism guarantees.
 """
 

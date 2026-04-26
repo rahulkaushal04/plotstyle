@@ -1,4 +1,4 @@
-# Font Engine — `plotstyle.engine.fonts`
+# Font Engine: `plotstyle.engine.fonts`
 
 Font detection, selection, and PDF font-embedding verification.
 
@@ -82,9 +82,9 @@ from plotstyle.engine.fonts import verify_embedded
 
 issues = verify_embedded(Path("figure.pdf"))
 if issues:
-    print("Type 3 fonts detected — journal portal may reject this file.")
+    print("Type 3 fonts detected: journal portal may reject this file.")
 else:
-    print("No Type 3 fonts found — TrueType embedding OK.")
+    print("No Type 3 fonts found: TrueType embedding OK.")
 ```
 
 ## Notes

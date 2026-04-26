@@ -1,5 +1,5 @@
 """
-Batch export — write a figure in multiple formats for journal submission.
+Batch export: write a figure in multiple formats for journal submission.
 
 Steps:
 1. Create a figure with plotstyle.use() and plotstyle.figure().
@@ -7,9 +7,9 @@ Steps:
    Pass author_surname for journals (e.g. IEEE) that require author-prefix filenames.
 
 Output:
-    output/submission_nature/   — Nature preferred formats
-    output/submission_ieee/     — IEEE with "smit_" author prefix
-    output/submission_science/  — Science with explicit format override
+    output/submission_nature/   (Nature preferred formats)
+    output/submission_ieee/     (IEEE with "smit_" author prefix)
+    output/submission_science/  (Science with explicit format override)
 """
 
 from pathlib import Path
@@ -23,7 +23,7 @@ OUTPUT_DIR = Path(__file__).parent / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 # ==============================================================================
-# 1. Nature — uses the journal's preferred formats automatically
+# 1. Nature: uses the journal's preferred formats automatically
 # ==============================================================================
 
 with plotstyle.use("nature") as style:
@@ -46,7 +46,7 @@ with plotstyle.use("nature") as style:
 plt.close(fig)
 
 # ==============================================================================
-# 2. IEEE — author-surname prefix for filename compliance
+# 2. IEEE: author-surname prefix for filename compliance
 # ==============================================================================
 
 with plotstyle.use("ieee") as style:
@@ -70,7 +70,7 @@ with plotstyle.use("ieee") as style:
 plt.close(fig)
 
 # ==============================================================================
-# 3. Science — explicit format list overrides the spec
+# 3. Science: explicit format list overrides the spec
 # ==============================================================================
 
 with plotstyle.use("science") as style:

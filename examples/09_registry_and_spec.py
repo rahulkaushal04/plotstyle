@@ -1,5 +1,5 @@
 """
-Registry exploration — list, inspect, and compare journal specifications.
+Registry exploration: list, inspect, and compare journal specifications.
 
 Steps:
 1. List all available journal presets with plotstyle.registry.list_available().
@@ -75,7 +75,7 @@ for name in available:
     print(f"{name:<12} {single:<14} {double:<14}")
 
 # ==============================================================================
-# 4. Preload specs — eager load to avoid per-lookup I/O in batch workflows
+# 4. Preload specs: eager load to avoid per-lookup I/O in batch workflows
 # ==============================================================================
 # preload() reads and caches all specs in one pass. Useful when a script
 # accesses many journals in a tight loop.
@@ -85,7 +85,7 @@ plotstyle.registry.preload()  # load all journals
 print("\nAll specs preloaded.")
 
 # ==============================================================================
-# 5. Clear the cache — force re-reads from disk on next access
+# 5. Clear the cache: force re-reads from disk on next access
 # ==============================================================================
 # clear_cache() discards all cached JournalSpec objects. The next registry.get()
 # call will read from disk again. Useful when TOML files are edited at runtime.

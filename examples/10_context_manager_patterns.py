@@ -1,12 +1,12 @@
 """
-Style management — three patterns for controlling Matplotlib rcParams lifetime.
+Style management: three patterns for controlling Matplotlib rcParams lifetime.
 
 Steps:
-1. Pattern 1 (recommended): Use plotstyle.use() as a context manager — rcParams
+1. Pattern 1 (recommended): Use plotstyle.use() as a context manager. rcParams
    are restored automatically when the block exits, even on exception.
 2. Pattern 2: Call style.restore() manually inside a try/finally block.
 3. Pattern 3: Values you set before calling use() are captured in a snapshot and
-   restored on exit — so your customisations survive the styled block.
+   restored on exit, so your customisations survive the styled block.
 
 Output:
     output/ctx_nature.pdf
@@ -35,7 +35,7 @@ x = np.linspace(0, 2 * np.pi, 100)
 original_fontsize = mpl.rcParams["font.size"]
 
 with plotstyle.use("nature") as style:
-    print(f"Inside 'nature' block — journal: {style.spec.metadata.name}")
+    print(f"Inside 'nature' block, journal: {style.spec.metadata.name}")
     fig, ax = style.figure()
     ax.plot(x, np.sin(x))
     ax.set_xlabel("x")

@@ -1,4 +1,4 @@
-"""Base check infrastructure — registration decorator and type definitions.
+"""Base check infrastructure: registration decorator and type definitions.
 
 Internal module; not part of the public API.
 """

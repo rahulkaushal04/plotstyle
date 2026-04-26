@@ -77,7 +77,7 @@ class TestWarningHierarchy:
     def test_font_fallback_is_catchable_as_plotstyle_warning(self) -> None:
         """
         Description: A FontFallbackWarning raise must be catchable using the
-        PlotStyleWarning base class — enabling single-filter silencing.
+        PlotStyleWarning base class, enabling single-filter silencing.
         Scenario: Raise FontFallbackWarning and catch as PlotStyleWarning.
         Expectation: No uncaught exception.
         """

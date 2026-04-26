@@ -324,7 +324,7 @@ def subplots(
     squeeze : bool
         When ``False`` (default), *axes* is always a 2-D
         ``ndarray`` with shape ``(nrows, ncols)``.  When ``True``,
-        dimensions of size 1 are removed — matching
+        dimensions of size 1 are removed, matching
         :func:`matplotlib.pyplot.subplots` behaviour: a single-panel
         figure returns a bare :class:`~matplotlib.axes.Axes`, a
         single-row or single-column grid returns a 1-D ``ndarray``,
@@ -345,7 +345,7 @@ def subplots(
 
     Notes
     -----
-    **Default return shape** — by default this function always returns
+    **Default return shape**: by default this function always returns
     a 2-D ``ndarray``, including the ``nrows=1, ncols=1`` case.
     This lets callers use ``.flat`` iteration and ``axes[i, j]``
     indexing without special-casing single-panel figures.
@@ -364,7 +364,7 @@ def subplots(
         for ax in axes.flat:
             ax.plot([1, 2, 3])
 
-    With ``squeeze=True`` — Matplotlib-compatible iteration over a single row::
+    With ``squeeze=True``, Matplotlib-compatible iteration over a single row::
 
         fig, axes = plotstyle.subplots("nature", nrows=1, ncols=3, squeeze=True)
         for ax in axes:  # axes is 1-D here

@@ -208,7 +208,7 @@ class TestExceptionHierarchy:
 
 
 # ---------------------------------------------------------------------------
-# Happy path — full valid data
+# Happy path: full valid data
 # ---------------------------------------------------------------------------
 
 
@@ -553,7 +553,7 @@ class TestFieldTypeErrors:
     def test_max_height_bool_raises_type_error(self, valid_data):
         """
         Description: Validates that a boolean for max_height_mm (non-numeric bool as float check).
-        Scenario: max_height_mm set to True — booleans are a subtype of int in Python and
+        Scenario: max_height_mm set to True; booleans are a subtype of int in Python and
                   can be coerced to float, so this tests the boundary; True == 1.0 which is > 0.
         Expectation: Parsed as 1.0 float (no error) since bool subclasses int in Python.
         """
@@ -991,7 +991,7 @@ class TestFieldValueErrors:
     def test_color_combination_with_single_color_raises(self, valid_data):
         """
         Description: Validates that a single-colour combination group raises FieldValueError.
-        Scenario: avoid_combinations = [['red']] (only one colour — meaningless contrast rule).
+        Scenario: avoid_combinations = [['red']] (only one colour, meaningless contrast rule).
         Expectation: FieldValueError referencing 'avoid_combinations'.
         """
         valid_data["color"] = {"avoid_combinations": [["red"]]}
@@ -1052,7 +1052,7 @@ class TestFieldValueErrors:
 
 
 # ---------------------------------------------------------------------------
-# Normalisation — case-insensitive string fields
+# Normalisation: case-insensitive string fields
 # ---------------------------------------------------------------------------
 
 
@@ -1262,7 +1262,7 @@ class TestImmutability:
         """
         Description: Validates that JournalSpec is NOT hashable because it contains list fields.
         Scenario: Attempt to hash a spec instance.
-        Expectation: TypeError is raised — frozen=True alone does not guarantee hashability;
+        Expectation: TypeError is raised; frozen=True alone does not guarantee hashability;
                     all contained types must also be hashable, and list is not.
         """
         spec = JournalSpec.from_toml(valid_data)
@@ -1461,7 +1461,7 @@ class TestEdgeCases:
         """
         Description: Validates colour name strings inside avoid_combinations are NOT normalised.
         Scenario: avoid_combinations = [['Red', 'Green']] (capitalised).
-        Expectation: Stored as-is — the schema does not normalise colour names.
+        Expectation: Stored as-is; the schema does not normalise colour names.
         """
         valid_data["color"] = {"avoid_combinations": [["Red", "Green"]]}
         spec = JournalSpec.from_toml(valid_data)

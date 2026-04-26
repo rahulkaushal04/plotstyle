@@ -331,7 +331,7 @@ class TestPatchUnpatch:
         original = fake_sns.set_theme
         ps_sns.patch_seaborn()
         wrapper_after_first_patch = fake_sns.set_theme
-        ps_sns.patch_seaborn()  # Second call — must not double-wrap
+        ps_sns.patch_seaborn()  # Second call; must not double-wrap
         assert ps_sns._ORIGINAL_SET_THEME is original
         assert fake_sns.set_theme is wrapper_after_first_patch
 
@@ -626,12 +626,12 @@ class TestIntegrationRoundTrip:
         ps_sns.patch_seaborn()
         ps_sns.unpatch_seaborn()
 
-        # At this point set_theme is the original mock — no reapply side effect.
+        # At this point set_theme is the original mock; no reapply side effect.
         # Manually change font.size to something different.
         plt.rcParams["font.size"] = 99.0
         fake_sns.set_theme(style="dark")  # original mock; no reapply
 
-        # Font size should remain 99.0 — reapply was NOT called.
+        # Font size should remain 99.0; reapply was NOT called.
         assert plt.rcParams["font.size"] == pytest.approx(99.0)
 
     def test_capture_then_reapply_without_patch(self, ps_sns):

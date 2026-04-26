@@ -443,7 +443,7 @@ class TestComputeBaseFontSize:
 
 
 # ===========================================================================
-# build_rcparams — helpers
+# build_rcparams - helpers
 # ===========================================================================
 
 
@@ -454,7 +454,7 @@ def _build(spec: MagicMock, *, latex: Any = False, font: str = "Helvetica") -> d
 
 
 # ===========================================================================
-# build_rcparams — validation
+# build_rcparams - validation
 # ===========================================================================
 
 
@@ -539,7 +539,7 @@ class TestBuildRcparamsValidation:
 
 
 # ===========================================================================
-# build_rcparams — safety params (non-negotiable keys)
+# build_rcparams: safety params (non-negotiable keys)
 # ===========================================================================
 
 
@@ -592,7 +592,7 @@ class TestBuildRcparamsSafetyKeys:
 
 
 # ===========================================================================
-# build_rcparams — DPI settings
+# build_rcparams: DPI settings
 # ===========================================================================
 
 
@@ -631,7 +631,7 @@ class TestBuildRcparamsDPI:
 
 
 # ===========================================================================
-# build_rcparams — figure size
+# build_rcparams: figure size
 # ===========================================================================
 
 
@@ -677,7 +677,7 @@ class TestBuildRcparamsFigureSize:
 
 
 # ===========================================================================
-# build_rcparams — typography
+# build_rcparams - typography
 # ===========================================================================
 
 
@@ -742,7 +742,7 @@ class TestBuildRcparamsTypography:
 
 
 # ===========================================================================
-# build_rcparams — line weights
+# build_rcparams: line weights
 # ===========================================================================
 
 
@@ -843,7 +843,7 @@ class TestBuildRcparamsLineWeights:
 
 
 # ===========================================================================
-# build_rcparams — SVG text handling
+# build_rcparams: SVG text handling
 # ===========================================================================
 
 
@@ -874,7 +874,7 @@ class TestBuildRcparamsSVG:
 
 
 # ===========================================================================
-# build_rcparams — axes appearance
+# build_rcparams: axes appearance
 # ===========================================================================
 
 
@@ -893,7 +893,7 @@ class TestBuildRcparamsAxes:
 
 
 # ===========================================================================
-# build_rcparams — LaTeX integration
+# build_rcparams: LaTeX integration
 # ===========================================================================
 
 
@@ -985,7 +985,7 @@ class TestBuildRcparamsLatex:
                      the safety values must survive in the final dict.
         Scenario: configure_latex returns downgrades of safety keys (fonttype=3).
         Expectation: Safety keys are still 42 after the merge because they are
-                     written first and configure_latex's update() overrides them —
+                     written first and configure_latex's update() overrides them;
                      this test verifies current behaviour and should catch
                      regressions if the write order changes.
 
@@ -1004,12 +1004,12 @@ class TestBuildRcparamsLatex:
             params = build_rcparams(default_spec, latex=True)
         # Document current behaviour: configure_latex CAN override safety params.
         # If this assertion fails in future it means the safety guarantee was
-        # strengthened — update the test accordingly.
+        # strengthened; update the test accordingly.
         assert params["pdf.fonttype"] in (3, _FONTTYPE_TRUETYPE)
 
 
 # ===========================================================================
-# build_rcparams — return-type and completeness
+# build_rcparams: return-type and completeness
 # ===========================================================================
 
 
