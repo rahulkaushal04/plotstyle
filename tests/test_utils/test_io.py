@@ -1,6 +1,6 @@
 """Comprehensive test suite for plotstyle._utils.io.
 
-Covers: load_toml() — happy paths, nested structures, edge cases, and every
+Covers: load_toml(): happy paths, nested structures, edge cases, and every
 documented error condition.
 """
 
@@ -34,7 +34,7 @@ def valid_toml_file(tmp_path: Path) -> Path:
     p = tmp_path / "valid.toml"
     p.write_bytes(
         b'[metadata]\nname = "Test"\nvalue = 42\n',
-        # explicit binary write — matches load_toml's open mode
+        # explicit binary write; matches load_toml's open mode
     )
     return p
 
@@ -174,7 +174,7 @@ class TestLoadTomlHappyPath:
     def test_unicode_strings_are_preserved(self, unicode_toml_file: Path) -> None:
         """
         Description: UTF-8 encoded Unicode characters must survive round-trip
-        parsing without corruption — important for journal names and author metadata.
+        parsing without corruption; important for journal names and author metadata.
         Scenario: TOML file with German Umlauts and special scientific symbols.
         Expectation: Decoded string matches the original Unicode content.
         """
@@ -259,7 +259,7 @@ class TestLoadTomlErrors:
     ) -> None:
         """
         Description: Multiple categories of TOML syntax errors must all result
-        in TOMLDecodeError — not generic Python exceptions.
+        in TOMLDecodeError, not generic Python exceptions.
         Scenario: Write each malformed content variant and attempt to load it.
         Expectation: TOMLDecodeError raised for each variant.
         """
@@ -329,5 +329,5 @@ class TestLoadTomlCrossPlatform:
             result = load_toml(p)
             assert result["x"]["val"] == 1
         except (OSError, UnicodeEncodeError):
-            # Some CI filesystems reject non-ASCII paths — skip gracefully.
+            # Some CI filesystems reject non-ASCII paths; skip gracefully.
             pytest.skip("Filesystem does not support non-ASCII directory names.")

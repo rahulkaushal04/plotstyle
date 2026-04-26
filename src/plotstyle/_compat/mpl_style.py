@@ -89,7 +89,7 @@ def build_overlay_snapshot(overlay: StyleOverlay) -> dict[str, Any]:
 def register_all_styles() -> None:
     """Inject all plotstyle journal presets and overlays into ``matplotlib.style.core.library``.
 
-    Called once at ``import plotstyle``.  Re-calling is safe — existing keys
+    Called once at ``import plotstyle``.  Re-calling is safe; existing keys
     are overwritten with identical values.  Wrapped in a broad ``try/except``
     in the caller so a matplotlib internal API change never breaks the import.
 
@@ -115,7 +115,7 @@ def register_all_styles() -> None:
     for key in registry.list_available():
         full_key = f"{_PREFIX}{key}"
         with contextlib.suppress(Exception):
-            library[full_key] = build_style_snapshot(registry.get(key))
+            library[full_key] = build_style_snapshot(registry.get(key, _silent=True))
             registered_journal_keys.add(full_key)
 
     for key in overlay_registry.list_available():

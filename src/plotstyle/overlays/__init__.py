@@ -1,4 +1,4 @@
-"""Style overlay registry — discovers, loads, and caches :class:`.StyleOverlay` instances.
+"""Style overlay registry: discovers, loads, and caches :class:`.StyleOverlay` instances.
 
 A module-level :data:`overlay_registry` singleton is exposed for convenience and
 is the primary entry-point used by :func:`~plotstyle.core.style.use` when
@@ -6,7 +6,7 @@ resolving overlay keys.
 
 Notes
 -----
-* Overlay file names are treated **case-insensitively** — ``"Notebook"`` and
+* Overlay file names are treated **case-insensitively**: ``"Notebook"`` and
   ``"notebook"`` both resolve to ``notebook.toml``.
 * Files whose name starts with an underscore are considered *private* and
   excluded from :meth:`OverlayRegistry.list_available`.

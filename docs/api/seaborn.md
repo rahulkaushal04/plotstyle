@@ -1,4 +1,4 @@
-# Seaborn Integration — `plotstyle.integrations.seaborn`
+# Seaborn Integration: `plotstyle.integrations.seaborn`
 
 Keeps PlotStyle's rcParams intact when `sns.set_theme()` is called.
 
@@ -23,14 +23,14 @@ Keeps PlotStyle's rcParams intact when `sns.set_theme()` is called.
 ## The problem
 
 Both PlotStyle and Seaborn write to `matplotlib.rcParams`. When you call
-`sns.set_theme()`, Seaborn resets fonts, sizes, and line widths — undoing
+`sns.set_theme()`, Seaborn resets fonts, sizes, and line widths, undoing
 everything PlotStyle set. This module solves that conflict.
 
 ## Recommended usage
 
 ### Automatic patch (via context manager)
 
-The easiest approach — pass `seaborn_compatible=True` to `plotstyle.use()`:
+The easiest approach: pass `seaborn_compatible=True` to `plotstyle.use()`:
 
 ```python
 import plotstyle
@@ -70,11 +70,11 @@ plotstyle_theme("nature", seaborn_style="ticks")
 
 ## Notes
 
-- Seaborn is imported lazily — this module can be imported without seaborn
+- Seaborn is imported lazily; this module can be imported without seaborn
   installed. `ImportError` is raised only when a function that requires it is
   called.
 - The patch is **not thread-safe**.
-- `patch_seaborn()` is idempotent — calling it more than once is safe.
+- `patch_seaborn()` is idempotent; calling it more than once is safe.
 - `capture_overrides()` and `reapply_overrides()` are called internally by
   `plotstyle.use(seaborn_compatible=True)`. You rarely need to call them
   directly.

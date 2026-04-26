@@ -19,7 +19,7 @@ double_column_mm = 0.0     # Width of a double-column (full-width) figure in mm
 max_height_mm = 0.0        # Maximum figure height in mm
 
 [typography]
-font_family = []           # e.g. ["Helvetica", "Arial"]  — in order of preference
+font_family = []           # e.g. ["Helvetica", "Arial"]: in order of preference
 font_fallback = ""         # Generic CSS family: "sans-serif" or "serif"
 min_font_pt = 0.0          # Minimum allowed font size in points
 max_font_pt = 0.0          # Maximum / recommended font size in points

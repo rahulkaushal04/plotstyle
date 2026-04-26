@@ -1,4 +1,4 @@
-# Style — `plotstyle.core.style`
+# Style: `plotstyle.core.style`
 
 Apply and restore journal style presets.
 

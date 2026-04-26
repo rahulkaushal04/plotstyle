@@ -5,7 +5,7 @@ Five minutes to your first publication-ready figure.
 ## 1. Apply a journal style
 
 Call `plotstyle.use()` with a journal name. This sets the right fonts, sizes,
-and line widths for that journal. Use it as a context manager — the original
+and line widths for that journal. Use it as a context manager; the original
 Matplotlib settings are restored automatically when the block ends.
 
 ```python
@@ -76,7 +76,7 @@ for color, linestyle, marker in styled:
 
 ## 4. Validate before submitting
 
-`style.validate()` checks your figure against the journal's requirements —
+`style.validate()` checks your figure against the journal's requirements:
 dimensions, font sizes, line weights, and colour rules:
 
 ```python
@@ -89,7 +89,7 @@ print(report)           # formatted table
 ## 5. Save for submission
 
 `style.savefig()` saves with TrueType font embedding and the journal's
-required DPI — two things that journal submission portals often check:
+required DPI, two things that journal submission portals often check:
 
 ```python
 style.savefig(fig, "figure1.pdf")
@@ -126,4 +126,4 @@ with plotstyle.use("nature") as style:
 
 **Output:**
 
-![Quickstart figure — sin and cos curves styled for Nature](images/quickstart_nature.png)
+![Quickstart figure: sin and cos curves styled for Nature](images/quickstart_nature.png)

@@ -1,4 +1,4 @@
-# Preview — `plotstyle.preview`
+# Preview: `plotstyle.preview`
 
 Gallery and print-size preview utilities.
 

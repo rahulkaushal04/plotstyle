@@ -163,44 +163,94 @@ fig.savefig("palette_comparison.png", dpi=150)
 Pass `with_markers=True` to get `(color, linestyle, marker)` tuples, useful for journals like IEEE that print in grayscale:
 
 ```python
-styled = plotstyle.palette("ieee", n=4, with_markers=True)
-for color, ls, marker in styled:
-    ax.plot(x, y, color=color, linestyle=ls, marker=marker)
+import numpy as np
+import plotstyle
+
+x = np.linspace(0, 2 * np.pi, 100)
+curves = [np.sin(x + i * 0.5) for i in range(4)]
+
+with plotstyle.use("ieee") as style:
+    fig, ax = style.figure(columns=1)
+    styled = plotstyle.palette("ieee", n=4, with_markers=True)
+    for i, (color, ls, marker) in enumerate(styled):
+        ax.plot(x, curves[i], color=color, linestyle=ls, marker=marker,
+                markevery=20, label=f"Series {i + 1}")
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.legend()
+    style.savefig(fig, "ieee_markers.pdf")
 ```
 
 ```text
-# styled — one (color, linestyle, marker) tuple per series:
+# styled: one (color, linestyle, marker) tuple per series:
 [('#000000', '-', 'o'), ('#333333', '--', 's'), ('#666666', '-.', '^'), ('#999999', ':', 'D')]
 ```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/palette_styled_ieee.png" width="55%" alt="IEEE figure with per-series color, linestyle, and marker combinations">
+</p>
 
 ---
 
 ### Overlays
 
-Overlays are additive patches that layer on top of a journal preset. They let you adjust one aspect of a figure — the colour palette, the context, the chart type — without changing the base journal settings.
+Overlays are additive patches that layer on top of a journal preset. They let you adjust one aspect of a figure (the colour palette, the context, the chart type) without changing the base journal settings.
 
 Pass overlay names in the same list as the journal key:
 
 ```python
+import matplotlib.pyplot as plt
 import plotstyle
 
 # Strip top/right spines for a clean editorial look
 with plotstyle.use(["nature", "minimal"]) as style:
     fig, ax = style.figure(columns=1)
-    ax.plot([1, 2, 3])
-    style.savefig(fig, "figure.pdf")
+    ax.plot([1, 2, 3], label="data")
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.legend()
+    style.savefig(fig, "minimal_figure.pdf")
+```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/overlay_minimal.png" width="45%" alt="Nature figure with minimal overlay: no top/right spines">
+</p>
+
+```python
+import matplotlib.pyplot as plt
+import plotstyle
 
 # Larger figure and fonts for Jupyter notebooks
 with plotstyle.use(["nature", "notebook"]) as style:
-    import matplotlib.pyplot as plt
     fig, ax = plt.subplots()   # plt.subplots() picks up the notebook figsize
-    ax.plot([1, 2, 3])
+    ax.plot([1, 2, 3], label="data")
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.legend()
+    style.savefig(fig, "notebook_figure.pdf")
+```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/overlay_notebook.png" width="60%" alt="Nature figure with notebook overlay: larger fonts and figure size">
+</p>
+
+```python
+import matplotlib.pyplot as plt
+import plotstyle
 
 # Swap the colour cycle to a specific palette
 with plotstyle.use(["ieee", "okabe-ito"]) as style:
     fig, ax = style.figure(columns=1)
-    ax.plot([1, 2, 3])
+    ax.plot([1, 2, 3], label="data")
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.legend()
+    style.savefig(fig, "okabe_ito_figure.pdf")
 ```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/overlay_okabe_ito.png" width="55%" alt="IEEE figure with okabe-ito colorblind-safe palette">
+</p>
 
 | Category | Purpose | Examples |
 |----------|---------|---------|
@@ -272,18 +322,44 @@ with plotstyle.use("nature") as style:
 Validate a figure against the journal's requirements, then export in all required formats at once.
 
 ```python
+import numpy as np
+import matplotlib.pyplot as plt
+import plotstyle
+
+x = np.linspace(0, 2 * np.pi, 100)
+
+# Outside plotstyle.use() — some checks will fail
+fig, ax = plt.subplots()
+ax.plot(x, np.sin(x), label="sin(x)")
+ax.set_xlabel("Phase (rad)")
+ax.set_ylabel("Amplitude")
+ax.legend()
+
 report = plotstyle.validate(fig, journal="nature")
 print(report)          # formatted compliance table
-print(report.passed)   # True if everything is OK
+print(report.passed)   # False — rcParams not configured
 
 for failure in report.failures:
     print(failure.message)         # what failed
     print(failure.fix_suggestion)  # how to fix it
+plt.close(fig)
+
+# Inside plotstyle.use() — all checks pass
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure(columns=1)
+    ax.plot(x, np.sin(x), label="sin(x)")
+    ax.set_xlabel("Phase (rad)")
+    ax.set_ylabel("Amplitude")
+    ax.legend()
+
+    report = plotstyle.validate(fig, journal="nature")
+    print(report)
+    print(report.passed)   # True
 ```
 
 ```text
 ┌──────────────────────────────────────────────────────┐
-│         PlotStyle Validation Report — Nature         │
+│         PlotStyle Validation Report: Nature          │
 ├──────────┬───────────────────────────────────────────┤
 │ ✓ PASS   │ Figure width 89.0mm matches single colu...│
 │ ✓ PASS   │ Figure height 55.0mm is within the Natu...│
@@ -306,7 +382,7 @@ When called inside `plotstyle.use()`, all checks pass:
 
 ```text
 ┌──────────────────────────────────────────────────────┐
-│         PlotStyle Validation Report — Nature         │
+│         PlotStyle Validation Report: Nature          │
 ├──────────┬───────────────────────────────────────────┤
 │ ✓ PASS   │ Figure width 89.0mm matches single colu...│
 │ ✓ PASS   │ Figure height 55.0mm is within the Natu...│
@@ -322,14 +398,28 @@ passed: True
 ```
 
 ```python
-paths = plotstyle.export_submission(
-    fig,
-    "figure1",
-    journal="ieee",
-    author_surname="Smith",     # IEEE prepends the surname prefix to filenames
-    output_dir="submission/",
-)
-print(paths)
+import numpy as np
+import os
+import plotstyle
+
+os.makedirs("submission", exist_ok=True)
+
+with plotstyle.use("ieee") as style:
+    fig, ax = style.figure(columns=1)
+    x = np.linspace(0, 2 * np.pi, 100)
+    ax.plot(x, np.sin(x), label="sin(x)")
+    ax.set_xlabel("Phase (rad)")
+    ax.set_ylabel("Amplitude")
+    ax.legend()
+
+    paths = plotstyle.export_submission(
+        fig,
+        "figure1",
+        journal="ieee",
+        author_surname="Smith",     # IEEE prepends the surname prefix to filenames
+        output_dir="submission/",
+    )
+    print(paths)
 ```
 
 ```text
@@ -417,7 +507,7 @@ Nature → Science
 ──────────────────────────────────────────────────
 Column Width (single):  89.0mm → 86.4mm
 Column Width (double):  183.0mm → 177.8mm
-Max Height:             247.0mm → —
+Max Height:             247.0mm → -
 Font Family:            Helvetica, Arial → Minion Pro, Benton Sans Condensed
 Min Font Size:          5.0pt → 7.5pt
 Max Font Size:          7.0pt → 10.0pt
@@ -502,7 +592,7 @@ If PlotStyle helps your research, a citation or star is appreciated:
   title   = {PlotStyle: Publication-ready scientific figure presets for Matplotlib},
   year    = {2026},
   url     = {https://github.com/rahulkaushal04/plotstyle},
-  note    = {Version 1.2.0},
+  note    = {Version 1.2.1},
 }
 ```
 

@@ -1,5 +1,5 @@
 """
-Print-size preview — see your figure at its actual physical size on screen.
+Print-size preview: see your figure at its actual physical size on screen.
 
 plotstyle.preview_print_size() scales a figure's DPI so it appears at its
 approximate physical dimensions on your monitor. This helps verify that text
@@ -9,7 +9,7 @@ Steps:
 1. Create a figure with plotstyle.use() and style.figure().
 2. Call plotstyle.preview_print_size() to open an interactive preview window.
 3. The figure is displayed at its true physical size (e.g. 89 mm wide).
-4. Close the preview window — the figure is restored to its original state.
+4. Close the preview window. The figure is restored to its original state.
 
 Note: This example opens an interactive Matplotlib window. It cannot run in
 headless (non-GUI) environments. Run it locally with a display.

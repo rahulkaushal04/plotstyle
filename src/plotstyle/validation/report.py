@@ -135,7 +135,7 @@ class ValidationReport:
             Multi-line string with a header, one line per check, and a
             ``N/total passed, W warning(s), F failure(s)`` footer.
         """
-        header = f" PlotStyle Validation Report — {self.journal} "
+        header = f" PlotStyle Validation Report: {self.journal} "
         width = max(len(header) + 4, _TABLE_MIN_WIDTH)
         col_width = width - 14
 

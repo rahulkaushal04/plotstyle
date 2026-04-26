@@ -7,7 +7,7 @@ See the working example: [`examples/11_seaborn_integration.py`](../../examples/1
 ## The problem
 
 Both PlotStyle and Seaborn write to `matplotlib.rcParams`. When you call
-`sns.set_theme()`, Seaborn resets fonts, sizes, and line widths — undoing
+`sns.set_theme()`, Seaborn resets fonts, sizes, and line widths, undoing
 everything PlotStyle set.
 
 ## Solution 1: Automatic patch (recommended)
@@ -55,12 +55,12 @@ After this call, Matplotlib's rcParams reflect both the seaborn theme and the
 journal's PlotStyle settings. Create figures directly with `plt.subplots()` or
 use a separate `plotstyle.use()` call to get a handle for `style.figure()`,
 `style.validate()`, and `style.savefig()`. Note that `plotstyle_theme()` does
-not return a handle and does not restore rcParams on exit — it is a global,
+not return a handle and does not restore rcParams on exit; it is a global,
 persistent configuration call.
 
 ## Tips
 
 - Apply `plotstyle.use()` **before** `sns.set_theme()` when using the patch.
-- Calling `patch_seaborn()` more than once is safe — it won't double-wrap.
+- Calling `patch_seaborn()` more than once is safe; it won't double-wrap.
 - The patch is **not thread-safe**. Avoid concurrent use from multiple threads.
 - Seaborn is an optional dependency. Install it with `pip install "plotstyle[seaborn]"`.

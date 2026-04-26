@@ -1,4 +1,4 @@
-"""Print-size preview — display a figure at its approximate physical print dimensions."""
+"""Print-size preview: display a figure at its approximate physical print dimensions."""
 
 from __future__ import annotations
 

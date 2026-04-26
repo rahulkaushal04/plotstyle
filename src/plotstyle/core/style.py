@@ -46,7 +46,7 @@ __all__: list[str] = [
 # ---------------------------------------------------------------------------
 
 _SEABORN_MISSING_WARNING: Final[str] = (
-    "seaborn is not installed — 'seaborn_compatible=True' has no effect. "
+    "seaborn is not installed; 'seaborn_compatible=True' has no effect. "
     "Install seaborn to enable compatibility mode."
 )
 
@@ -437,10 +437,10 @@ def _warn_if_overlay_oversizes_journal(
             continue
         if overlay_width_in > journal_double_in:
             warnings.warn(
-                f"The '{overlay.key}' overlay sets figure.figsize width to "
-                f"{overlay_width_in:.1f} in, which exceeds the '{spec.key}' "
-                f"journal's double-column width ({journal_double_in:.2f} in). "
-                "The figure will not conform to journal column dimensions.",
+                f"Figure too wide for '{spec.key}': the '{overlay.key}' overlay "
+                f"sets the width to {overlay_width_in:.1f} in, but the max "
+                f"double-column width is {journal_double_in:.2f} in. "
+                f"Reduce figure.figsize[0] to {journal_double_in:.2f} or less.",
                 OverlaySizeWarning,
                 stacklevel=4,
             )
@@ -533,7 +533,7 @@ def _resolve_rendering_overlays(
     pgf_mode = overlay_latex_raw == "pgf"
 
     if latex_kwarg is not False:
-        # Caller explicitly set latex=True or "auto" — kwarg wins.
+        # Caller explicitly set latex=True or "auto"; kwarg wins.
         if overlay_latex_raw != latex_kwarg:
             warnings.warn(
                 f"The '{last.key}' rendering overlay sets latex={overlay_latex_raw!r}, "
@@ -672,20 +672,20 @@ def use(
         Overlays are applied in declaration order; the last overlay wins on
         any key conflict.  Valid forms:
 
-        - ``"nature"`` — journal only (backward-compatible)
-        - ``["nature", "notebook"]`` — journal + overlay
-        - ``["nature", "no-latex", "grid"]`` — journal + multiple overlays
-        - ``["notebook", "grid"]`` — overlays only (no journal spec)
-        - ``[]`` — empty; no rcParams changed
+        - ``"nature"``: journal only (backward-compatible)
+        - ``["nature", "notebook"]``: journal + overlay
+        - ``["nature", "no-latex", "grid"]``: journal + multiple overlays
+        - ``["notebook", "grid"]``: overlays only (no journal spec)
+        - ``[]``: empty; no rcParams changed
 
     latex : bool | str
         LaTeX rendering mode:
 
-        - ``False`` (default) — use Matplotlib's built-in MathText renderer.
-        - ``True`` — force LaTeX; raises :exc:`RuntimeError` if no
+        - ``False`` (default): use Matplotlib's built-in MathText renderer.
+        - ``True``: force LaTeX; raises :exc:`RuntimeError` if no
           ``latex`` binary is found on ``PATH``.  Overrides a ``no-latex``
           overlay.
-        - ``"auto"`` — enable LaTeX when a binary is available, silently
+        - ``"auto"``: enable LaTeX when a binary is available, silently
           falling back to MathText otherwise.
     seaborn_compatible : bool
         When ``True``, monkey-patches ``seaborn.set_theme`` so that

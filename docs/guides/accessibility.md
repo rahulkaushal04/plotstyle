@@ -34,7 +34,7 @@ to a different palette or adding markers, patterns, or direct labels.
 
 **Output:**
 
-![Colorblind simulation — original vs three CVD types](../images/accessibility_colorblind.png)
+![Colorblind simulation: original vs three CVD types](../images/accessibility_colorblind.png)
 
 ### Preview specific deficiency types
 
@@ -59,7 +59,7 @@ This produces a two-panel figure: `[Original | Grayscale]`.
 
 **Output:**
 
-![Grayscale preview — original vs grayscale](../images/accessibility_grayscale.png)
+![Grayscale preview: original vs grayscale](../images/accessibility_grayscale.png)
 
 ## Programmatic grayscale check
 
@@ -94,9 +94,9 @@ Common threshold values:
 
 1. Check your journal's spec to see if colorblind or grayscale safety is
    required (`spec.color.colorblind_required`, `spec.color.grayscale_required`).
-2. Use `plotstyle.palette()` — the built-in palettes are already optimised for
+2. Use `plotstyle.palette()`: the built-in palettes are already optimised for
    each journal's requirements.
 3. Add redundant encoding (markers, linestyles, or direct labels) so that
    colour is not the only way to tell series apart.
-4. Run `plotstyle.validate()` as a final check — it flags colour accessibility
+4. Run `plotstyle.validate()` as a final check; it flags colour accessibility
    issues automatically.

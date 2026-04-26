@@ -1,4 +1,4 @@
-# Overlays — `plotstyle.overlays`
+# Overlays: `plotstyle.overlays`
 
 Style overlay registry and data types.
 
@@ -77,6 +77,7 @@ try:
 except OverlayNotFoundError as exc:
     print(exc.name)       # "unknown"
     print(exc.available)  # ['bar', 'grid', 'minimal', ...]
+    print(exc.journals)   # available journal keys when raised from a combined lookup; None otherwise
 ```
 
 ## Notes

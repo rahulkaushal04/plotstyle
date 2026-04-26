@@ -1,4 +1,4 @@
-# Units — `plotstyle.specs.units`
+# Units: `plotstyle.specs.units`
 
 Type-safe physical measurements with automatic unit conversion.
 
@@ -75,7 +75,7 @@ diff = a - b        # Dimension(value=63.6, unit='mm')
 
 ### Cross-unit comparison
 
-Comparisons work across units — values are converted automatically:
+Comparisons work across units; values are converted automatically:
 
 ```python
 from plotstyle.specs.units import Dimension

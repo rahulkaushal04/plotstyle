@@ -95,7 +95,7 @@ def select_best(spec: JournalSpec) -> tuple[str, bool]:
     Returns
     -------
     tuple[str, bool]
-        ``(font_name, is_exact_match)`` — ``is_exact_match`` is ``True`` only
+        ``(font_name, is_exact_match)``: ``is_exact_match`` is ``True`` only
         when the first-preference font was selected without substitution.
     """
     preferred_families = spec.typography.font_family
@@ -121,14 +121,15 @@ def select_best(spec: JournalSpec) -> tuple[str, bool]:
     generic_fallback = spec.typography.font_fallback
 
     install_hint = (
-        f"Install {preferred_families[0]!r} for exact compliance." if preferred_families else ""
+        f"Install {preferred_families[0]!r} for exact compliance."
+        " If you recently installed it, rebuild matplotlib's font cache:"
+        " matplotlib.font_manager._rebuild()"
+        if preferred_families
+        else ""
     )
+    font_list = ", ".join(f"'{f}'" for f in preferred_families)
     warnings.warn(
-        (
-            f"None of {preferred_families!r} found. "
-            f"Falling back to generic {generic_fallback!r}. "
-            f"{install_hint}"
-        ),
+        (f"Fonts {font_list} not found; using {generic_fallback!r} as fallback. {install_hint}"),
         FontFallbackWarning,
         stacklevel=2,
     )
@@ -161,7 +162,7 @@ def verify_embedded(pdf_path: Path) -> list[dict[str, Any]]:
     """Scan *pdf_path* for Type 3 fonts via heuristic byte search.
 
     Uses a byte-pattern search for ``/Type3`` in the raw PDF data.  This is a
-    *presence check*, not an enumeration — at most one issue dict is returned
+    *presence check*, not an enumeration; at most one issue dict is returned
     regardless of how many Type 3 fonts the file contains.  I/O errors emit a
     ``PlotStyleWarning`` and return an empty
     list rather than raising.

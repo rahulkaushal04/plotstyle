@@ -1,4 +1,4 @@
-# Migration — `plotstyle.core.migrate`
+# Migration: `plotstyle.core.migrate`
 
 Compare journal specs and migrate figures between journals.
 

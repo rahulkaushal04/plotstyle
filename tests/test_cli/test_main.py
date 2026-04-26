@@ -1,7 +1,7 @@
 """Comprehensive test suite for plotstyle.cli.main.
 
 Covers: _build_parser, _cmd_list, _cmd_info, _cmd_diff, _cmd_fonts,
-_cmd_validate, _cmd_export, and main() dispatch — including happy paths,
+_cmd_validate, _cmd_export, and main() dispatch: including happy paths,
 unknown journals, missing files, and argument-validation edge cases.
 """
 
@@ -240,7 +240,7 @@ class TestMainDispatch:
     def test_diff_known_journals_returns_zero(self, capsys) -> None:
         """
         Description: 'plotstyle diff <a> <b>' must return 0 for two registered
-        journals — this is a key discoverability feature.
+        journals; this is a key discoverability feature.
         Scenario: main(["diff", "nature", "ieee"]).
         Expectation: Returns 0.
         """
@@ -556,7 +556,7 @@ class TestCmdExport:
     def test_returns_zero(self, capsys) -> None:
         """
         Description: _cmd_export() always returns 0 because it only prints
-        guidance — no actual work is performed.
+        guidance; no actual work is performed.
         Scenario: Call with typical arguments.
         Expectation: Returns 0.
         """

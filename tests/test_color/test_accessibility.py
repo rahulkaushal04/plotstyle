@@ -264,7 +264,7 @@ class TestSimulateCvd:
     def test_invalid_shape_2d_raises(self) -> None:
         """
         Description: 2D array must raise CVDSimulationError.
-        Scenario: Shape (4, 4) — no channel dimension.
+        Scenario: Shape (4, 4): no channel dimension.
         Expectation: CVDSimulationError.
         """
         bad = np.zeros((4, 4), dtype=np.float64)

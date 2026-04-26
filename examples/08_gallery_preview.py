@@ -1,5 +1,5 @@
 """
-Gallery preview — render a journal's style as a 2x2 sample figure.
+Gallery preview: render a journal's style as a 2x2 sample figure.
 
 Steps:
 1. Call plotstyle.gallery(journal, columns=) to get a ready-made sample figure

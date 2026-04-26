@@ -212,7 +212,7 @@ class TestSpecNotFoundError:
 
     def test_catchable_as_key_error(self, reg):
         """
-        Description: Verifies backward compatibility — handlers catching KeyError
+        Description: Verifies backward compatibility; handlers catching KeyError
                      still work when SpecNotFoundError is raised.
         Scenario: Call reg.get() with a nonexistent journal inside an
                   'except KeyError' block.
@@ -605,7 +605,7 @@ class TestCaching:
 
     def test_cache_is_empty_before_any_get(self, tmp_specs_dir):
         """
-        Description: Validates lazy-loading — nothing is cached at construction.
+        Description: Validates lazy-loading; nothing is cached at construction.
         Scenario: Create a fresh SpecRegistry without calling get().
         Expectation: Internal cache is empty.
         """
@@ -1114,7 +1114,7 @@ class TestSpecRegistryInit:
 
     def test_slots_prevent_arbitrary_attribute_assignment(self, reg):
         """
-        Description: Validates that __slots__ is enforced — arbitrary attribute
+        Description: Validates that __slots__ is enforced; arbitrary attribute
                      assignment should raise AttributeError.
         Scenario: Try to assign reg.unexpected_attr = 42.
         Expectation: AttributeError is raised.

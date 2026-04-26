@@ -185,7 +185,7 @@ def _cmd_validate(file: str, journal: str) -> int:
         hits = verify_embedded(path)
         type3_found = any(h.get("type") == "Type3" for h in hits)
         if type3_found:
-            print("✗ FAIL  Type 3 fonts detected — submission systems may reject this.")
+            print("✗ FAIL  Type 3 fonts detected: submission systems may reject this.")
         else:
             print("✓ PASS  No Type 3 fonts detected (TrueType embedding OK).")
     else:
@@ -292,7 +292,7 @@ def _build_parser() -> argparse.ArgumentParser:
     """Build and return the top-level argument parser with all sub-commands."""
     parser = argparse.ArgumentParser(
         prog="plotstyle",
-        description="PlotStyle — journal-compliant Matplotlib figure toolkit",
+        description="PlotStyle: journal-compliant Matplotlib figure toolkit",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
@@ -398,7 +398,7 @@ def _build_parser() -> argparse.ArgumentParser:
         description=(
             "Prints a ready-to-run Python snippet that calls "
             "plotstyle.export_submission() with the requested settings. "
-            "No file is created — re-export requires the original Matplotlib "
+            "No file is created; re-export requires the original Matplotlib "
             "Figure object, which cannot be recovered from a saved file."
         ),
     )

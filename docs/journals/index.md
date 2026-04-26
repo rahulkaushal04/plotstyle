@@ -16,7 +16,7 @@ Each spec is stored as a validated TOML file and loaded on demand via the
 | `plos` | PLOS ONE | PLOS | 132.0 / 190.5 | 300 | TIFF, EPS |
 | `prl` | Physical Review Letters | APS | 86.0 / 178.0 | 300 | EPS, PDF, PNG, JPG |
 | `science` | Science | AAAS | 86.4 / 177.8 | 300 | AI †, EPS, PDF, TIFF |
-| `springer` | Springer | Springer | — ‡ | 300 | TIFF, EPS, PDF |
+| `springer` | Springer | Springer | - ‡ | 300 | TIFF, EPS, PDF |
 | `wiley` | Wiley | Wiley | 80.0 / 180.0 | 300 | TIFF, EPS |
 
 *Column widths listed as single / double in mm.*
@@ -40,19 +40,19 @@ Each spec is stored as a validated TOML file and loaded on demand via the
 
 | Key | Colorblind safe | Grayscale safe | Min line weight (pt) |
 |-----|----------------|----------------|---------------------|
-| `acs` | — | — | 0.50 |
-| `cell` | — | — | 0.50 |
-| `elsevier` | — | — | 0.50 ‡ |
-| `ieee` | Required | — | 0.50 ‡ |
-| `nature` | — | — | 0.50 ‡ |
-| `plos` | — | — | 0.57 |
-| `prl` | — | — | 0.50 |
-| `science` | Required | — | 0.50 ‡ |
-| `springer` | — | — | 0.50 ‡ |
-| `wiley` | — | — | 0.50 ‡ |
+| `acs` | - | - | 0.50 |
+| `cell` | - | - | 0.50 |
+| `elsevier` | - | - | 0.50 ‡ |
+| `ieee` | Required | - | 0.50 ‡ |
+| `nature` | - | - | 0.50 ‡ |
+| `plos` | - | - | 0.57 |
+| `prl` | - | - | 0.50 |
+| `science` | Required | - | 0.50 ‡ |
+| `springer` | - | - | 0.50 ‡ |
+| `wiley` | - | - | 0.50 ‡ |
 
-‡ Library default or not defined — the journal's public guidelines do not specify
-this value. For dimension fields marked `—`, `style.figure()` will raise a
+‡ Library default or not defined: the journal's public guidelines do not specify
+this value. For dimension fields marked `-`, `style.figure()` will raise a
 `RuntimeError` directing you to set the size manually. For typography and line
 fields, PlotStyle applies conservative defaults and emits a `SpecAssumptionWarning`
 at load time. Use `spec.is_official(field)` to check any field programmatically,

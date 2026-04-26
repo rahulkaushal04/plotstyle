@@ -44,9 +44,9 @@ def _format_list(value: object) -> str:
 
 
 def _format_mm(value: object) -> str:
-    """Return ``"<value>mm"``, or ``"—"`` for *None*."""
+    """Return ``"<value>mm"``, or ``"-"`` for *None*."""
     if value is None:
-        return "—"
+        return "-"
     return f"{value}mm"
 
 
@@ -71,7 +71,7 @@ def _resolve_attr(obj: object, dotted_path: str) -> object:
 # Diff field manifest
 # ---------------------------------------------------------------------------
 
-# (dotted_path, human_label, formatter) — append here to track new fields.
+# (dotted_path, human_label, formatter): append here to track new fields.
 _DIFF_FIELDS: Final[list[tuple[str, str, Callable[[Any], str]]]] = [
     ("dimensions.single_column_mm", "Column Width (single)", _format_mm),
     ("dimensions.double_column_mm", "Column Width (double)", _format_mm),
@@ -126,11 +126,11 @@ class SpecDiff:
 
     Returned by :func:`diff`.  Provides three access patterns:
 
-    - **Human-readable** — pass the instance to :class:`str` or :func:`print`
+    - **Human-readable**: pass the instance to :class:`str` or :func:`print`
       to get an aligned two-column table.
-    - **Programmatic** — iterate over :attr:`differences`, test ``len()``, or
+    - **Programmatic**: iterate over :attr:`differences`, test ``len()``, or
       use the instance directly in a boolean context (falsy when identical).
-    - **Machine-readable** — call :meth:`to_dict` and serialise with
+    - **Machine-readable**: call :meth:`to_dict` and serialise with
       :mod:`json`.
 
     Attributes
@@ -257,7 +257,7 @@ def _emit_migration_warnings(
         )
 
     # Warn only when the requirement is *newly introduced*, not when both
-    # journals already require it — that case is not a migration concern.
+    # journals already require it; that case is not a migration concern.
     if to_spec.color.grayscale_required and not from_spec.color.grayscale_required:
         warnings.warn(
             f"{to_spec.metadata.name} requires grayscale-safe figures. "

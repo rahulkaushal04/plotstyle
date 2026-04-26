@@ -1,4 +1,4 @@
-# Export — `plotstyle.core.export`
+# Export: `plotstyle.core.export`
 
 Export-safe figure saving and batch submission packaging.
 

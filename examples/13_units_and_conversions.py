@@ -1,5 +1,5 @@
 """
-Unit conversions — type-safe physical measurements for figure dimensions.
+Unit conversions: type-safe physical measurements for figure dimensions.
 
 PlotStyle's specs/units module provides Dimension and FontSize classes for
 working with physical measurements across different unit systems (mm, cm, in,
@@ -34,7 +34,7 @@ print(f"  → mm:   {font.to_mm():.3f}")
 print(f"  → pica: {font.to_pica():.3f}")
 
 # ==============================================================================
-# 2. Arithmetic — works across units
+# 2. Arithmetic: works across units
 # ==============================================================================
 
 a = Dimension(89.0, "mm")
@@ -63,7 +63,7 @@ print(f"\n25.4 mm == 1 in: {one_inch_mm == one_inch_in}")
 print(f"Float-tolerant:  {one_inch_mm.is_close(one_inch_in)}")
 
 # ==============================================================================
-# 4. as_unit — returns a new measurement object (not a float)
+# 4. as_unit: returns a new measurement object (not a float)
 # ==============================================================================
 
 width_in = width.as_unit("in")
@@ -71,7 +71,7 @@ print(f"\n89 mm as inches: {width_in}")
 print(f"  type: {type(width_in).__name__}")
 
 # ==============================================================================
-# 5. Type safety — Dimension and FontSize cannot be mixed
+# 5. Type safety: Dimension and FontSize cannot be mixed
 # ==============================================================================
 
 try:

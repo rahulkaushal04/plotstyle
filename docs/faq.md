@@ -32,7 +32,7 @@ Yes. See the [Seaborn integration guide](guides/seaborn.md).
 
 `plotstyle.use()` modifies Matplotlib's `rcParams`. When the `with` block
 ends, those changes are reversed. Figures created *inside* the block are not
-affected — their styling is baked in at creation time. Only new figures
+affected; their styling is baked in at creation time. Only new figures
 created *after* the block use the restored defaults.
 
 ### Can I use `plotstyle.use()` without a context manager?
@@ -47,8 +47,8 @@ style.restore()
 
 ### What does `columns=1` vs `columns=2` mean?
 
-- `columns=1` — single-column width (fits in one text column of the journal)
-- `columns=2` — double-column / full-page width
+- `columns=1`: single-column width (fits in one text column of the journal)
+- `columns=2`: double-column / full-page width
 
 The exact sizes in mm come from the journal spec.
 
@@ -58,7 +58,7 @@ Unlike `plt.subplots()`, PlotStyle's `subplots()` always returns a 2-D array
 so you can use `axes[i, j]` indexing and `axes.flat` iteration for any grid
 shape without special-casing single-panel or single-row layouts.
 
-Pass `squeeze=True` to get Matplotlib-compatible behaviour — size-1 dimensions
+Pass `squeeze=True` to get Matplotlib-compatible behaviour; size-1 dimensions
 are dropped:
 
 ```python
@@ -122,8 +122,8 @@ saved PDF.
 
 ### What does `WARN` vs `FAIL` mean?
 
-- **FAIL** — the criterion was not met against a journal-official requirement.
-- **WARN** — the check flagged an issue against a library-assumed default (the
+- **FAIL**: the criterion was not met against a journal-official requirement.
+- **WARN**: the check flagged an issue against a library-assumed default (the
   journal's guidelines did not define this field). Advisory only.
 
 Only `FAIL` results affect `report.passed`.
@@ -138,7 +138,7 @@ Not via the public `validate()` API. All registered checks run in one pass.
 
 ### What's the difference between a journal preset and an overlay?
 
-A journal preset (e.g. `"nature"`) is a full specification — it sets fonts,
+A journal preset (e.g. `"nature"`) is a full specification: it sets fonts,
 sizes, line widths, DPI, and links to the spec registry so `validate()` and
 `export_submission()` know the journal's requirements.
 

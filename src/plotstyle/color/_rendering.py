@@ -30,7 +30,7 @@ def _fig_to_rgb_array(fig: Figure) -> NDArray[np.uint8]:
     """
     fig.canvas.draw()
 
-    # get_width_height() reads actual canvas pixel dimensions — avoids
+    # get_width_height() reads actual canvas pixel dimensions; avoids
     # off-by-one from float rounding in int(fig_in * dpi).
     width, height = fig.canvas.get_width_height()
 

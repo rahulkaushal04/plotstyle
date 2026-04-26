@@ -20,7 +20,7 @@ typed sub-specs:
 | `color` | Colorblind/grayscale requirements, avoided combinations |
 | `line` | Minimum stroke weight (pt) |
 
-You usually don't interact with specs directly — `plotstyle.use("nature")`
+You usually don't interact with specs directly; `plotstyle.use("nature")`
 handles everything automatically. But you can inspect them:
 
 ```python
@@ -34,7 +34,7 @@ print(spec.export.min_dpi)               # 300
 
 ### Incomplete specs and library defaults
 
-Some journals do not publish complete figure guidelines — for example, they may
+Some journals do not publish complete figure guidelines; for example, they may
 specify column widths and export formats but leave font sizes and line weights
 undefined.
 
@@ -43,10 +43,9 @@ When a spec is missing these fields, PlotStyle applies conservative
 listing the affected fields:
 
 ```
-SpecAssumptionWarning: Wiley does not define: typography.font_family,
-typography.max_font_pt, typography.min_font_pt. Library defaults are applied.
-See https://... for the official guidelines. Use spec.is_official(field) to
-check individual fields.
+SpecAssumptionWarning: "Wiley" has no official values for dimensions.max_height_mm,
+line.min_weight_pt, typography.font_family, typography.max_font_pt,
+typography.min_font_pt; plotstyle defaults will be used.
 ```
 
 You can inspect which fields are library-assumed at any time:
@@ -63,8 +62,8 @@ print(spec.assumed_fields)
 # frozenset({'dimensions.max_height_mm', 'line.min_weight_pt', 'typography.font_family', 'typography.min_font_pt', 'typography.max_font_pt'})
 
 # Check a specific field
-spec.is_official("typography.min_font_pt")  # False — Wiley doesn't define this
-spec.is_official("dimensions.single_column_mm")  # True — from the official guidelines
+spec.is_official("typography.min_font_pt")  # False: Wiley doesn't define this
+spec.is_official("dimensions.single_column_mm")  # True: from the official guidelines
 
 # Suppress the warning if you know what you're doing
 warnings.filterwarnings("ignore", category=SpecAssumptionWarning)
@@ -105,7 +104,7 @@ that may include one journal key and any number of overlay keys
    on any key conflict
 
 The {class}`~plotstyle.core.style.JournalStyle` handle stores the saved values
-and can restore them — either when you call `style.restore()` or automatically
+and can restore them, either when you call `style.restore()` or automatically
 when the `with` block ends.
 
 Only the keys PlotStyle actually changes are saved. Any other rcParam changes
@@ -143,11 +142,11 @@ contains.
 `plotstyle.validate()` runs a set of checks against your figure and returns a
 {class}`~plotstyle.validation.report.ValidationReport`. Checks cover:
 
-- **Dimensions** — width and height vs. journal limits
-- **Typography** — font sizes within allowed range
-- **Lines** — stroke weights above journal minimum
-- **Colours** — avoided combinations, colorblind/grayscale compliance
-- **Export** — DPI and font embedding
+- **Dimensions**: width and height vs. journal limits
+- **Typography**: font sizes within allowed range
+- **Lines**: stroke weights above journal minimum
+- **Colours**: avoided combinations, colorblind/grayscale compliance
+- **Export**: DPI and font embedding
 
 Each failed check includes a `fix_suggestion` so you know exactly what to fix.
 
@@ -155,9 +154,9 @@ Each failed check includes a `fix_suggestion` so you know exactly what to fix.
 
 `plotstyle.savefig()` wraps `Figure.savefig()` with two guarantees:
 
-1. **TrueType font embedding** — `pdf.fonttype` and `ps.fonttype` are set to
+1. **TrueType font embedding**: `pdf.fonttype` and `ps.fonttype` are set to
    `42`, preventing Type 3 fonts that most journal portals reject.
-2. **Journal DPI enforcement** — when a journal is specified, its minimum DPI
+2. **Journal DPI enforcement**: when a journal is specified, its minimum DPI
    is applied automatically.
 
 Both settings are scoped to the single save call and restored afterwards.
@@ -178,7 +177,7 @@ Overlay categories:
 
 | Category | Purpose | Examples |
 |----------|---------|---------|
-| `color` | Swap the default colour cycle | `okabe-ito`, `tol-bright`, `safe-grayscale` |
+| `color` | Swap the default colour cycle | `okabe-ito`, `tol-bright`, `tol-vibrant`, `tol-muted`, `tol-light`, `tol-high-contrast`, `tol-rainbow-4/6/8/10/12`, `safe-grayscale` |
 | `context` | Adjust scale for the medium | `notebook`, `presentation`, `minimal`, `high-vis` |
 | `rendering` | Control LaTeX and grid rendering | `no-latex`, `grid`, `latex-sans`, `pgf` |
 | `plot-type` | Optimise for a specific chart type | `bar`, `scatter` |
@@ -230,4 +229,4 @@ with plt.style.context("plotstyle.ieee"):
 
 Registered styles are rcParam-only snapshots built without LaTeX (`latex=False`).
 For validation, export, and journal-aware figure sizing, use `plotstyle.use()`
-instead — the native style integration is for quick exploration only.
+instead; the native style integration is for quick exploration only.

@@ -1,4 +1,4 @@
-# Registry — `plotstyle.specs`
+# Registry: `plotstyle.specs`
 
 Lazy-loading journal specification registry.
 
@@ -13,6 +13,13 @@ Lazy-loading journal specification registry.
 
 ```{eval-rst}
 .. autoclass:: plotstyle.specs.SpecNotFoundError
+   :members:
+```
+
+## `SpecAssumptionWarning`
+
+```{eval-rst}
+.. autoclass:: plotstyle.specs.SpecAssumptionWarning
    :members:
 ```
 
@@ -105,6 +112,12 @@ registry.preload(["nature", "ieee"])  # load specific specs
 
 Preloading is useful in CLI tools that access many specs in a tight loop and
 want to avoid per-lookup I/O.
+
+:::{note}
+`preload()` requires a **list** when specifying journals. Passing a bare string
+raises `TypeError`. Use `registry.preload(["nature"])` not
+`registry.preload("nature")`.
+:::
 
 ## Notes
 

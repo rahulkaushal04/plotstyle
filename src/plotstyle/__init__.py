@@ -1,4 +1,4 @@
-"""PlotStyle — scientific journal figure style presets for Matplotlib.
+"""PlotStyle: scientific journal figure style presets for Matplotlib.
 
 Key entry points: ``figure`` / ``subplots`` to create journal-sized figures,
 ``use`` to apply a journal's rcParams preset, ``validate`` to check a figure

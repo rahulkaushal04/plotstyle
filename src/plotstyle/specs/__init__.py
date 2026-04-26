@@ -1,4 +1,4 @@
-"""Journal specification registry — lazy-loads and caches TOML specs.
+"""Journal specification registry: lazy-loads and caches TOML specs.
 
 This module provides :class:`SpecRegistry`, a lightweight facade that
 discovers ``*.toml`` journal-specification files on disk, deserialises them
@@ -10,7 +10,7 @@ the primary entry-point used by the rest of the *plotstyle* library.
 
 Notes
 -----
-* Spec file names are treated **case-insensitively** — ``"Nature"`` and
+* Spec file names are treated **case-insensitively**: ``"Nature"`` and
   ``"nature"`` both resolve to ``nature.toml``.
 * Files whose name starts with an underscore (e.g. ``_base.toml``) are
   considered *private* and excluded from :meth:`SpecRegistry.list_available`.
@@ -39,6 +39,7 @@ from plotstyle.specs.schema import JournalSpec
 
 __all__: list[str] = [
     "JournalSpec",
+    "SpecAssumptionWarning",
     "SpecNotFoundError",
     "SpecRegistry",
     "registry",
@@ -126,29 +127,37 @@ class SpecRegistry:
         spec = reg.get("nature")
     """
 
-    __slots__ = ("_available_cache", "_cache", "_specs_dir")
+    __slots__ = ("_available_cache", "_cache", "_specs_dir", "_warned_specs")
 
     def __init__(self, specs_dir: Path | None = None) -> None:
         self._specs_dir: Final[Path] = specs_dir or _SPECS_DIR
         self._cache: dict[str, JournalSpec] = {}
+        self._warned_specs: set[str] = set()
         self._available_cache: list[str] | None = None
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
-    def get(self, name: str) -> JournalSpec:
+    def get(self, name: str, *, _silent: bool = False) -> JournalSpec:
         """Retrieve a journal specification by name.
 
         The *name* is normalised to lower-case before lookup, so
         ``"Nature"`` and ``"NATURE"`` both resolve to ``nature.toml``.
-        Parsed specs are cached after the first access — subsequent calls
+        Parsed specs are cached after the first access; subsequent calls
         for the same name are free.
+
+        A :class:`~plotstyle.specs.SpecAssumptionWarning` is emitted
+        once per spec per session when the spec contains fields whose values
+        are library defaults rather than official journal guidelines.
 
         Parameters
         ----------
         name : str
             Journal identifier (e.g. ``"nature"``).
+        _silent : bool
+            Internal flag. When ``True``, the assumption warning is deferred
+            to the next non-silent call (used by background registration).
 
         Returns
         -------
@@ -168,31 +177,24 @@ class SpecRegistry:
 
         key = name.lower()
 
-        try:
-            return self._cache[key]
-        except KeyError:
-            pass
+        if key not in self._cache:
+            toml_path = self._specs_dir / f"{key}.toml"
+            if not toml_path.is_file():
+                raise SpecNotFoundError(name, available=self.list_available())
+            raw_data = load_toml(toml_path)
+            self._cache[key] = JournalSpec.from_toml(raw_data)._with_key(key)
 
-        toml_path = self._specs_dir / f"{key}.toml"
+        spec = self._cache[key]
 
-        if not toml_path.is_file():
-            raise SpecNotFoundError(name, available=self.list_available())
-
-        raw_data = load_toml(toml_path)
-        spec = JournalSpec.from_toml(raw_data)._with_key(key)
-
-        if spec.assumed_fields:
+        if not _silent and spec.assumed_fields and key not in self._warned_specs:
+            self._warned_specs.add(key)
             fields_str = ", ".join(sorted(spec.assumed_fields))
             warnings.warn(
-                f"{spec.metadata.name} does not define: {fields_str}. "
-                f"Library defaults are applied. "
-                f"See {spec.metadata.source_url} for the official guidelines. "
-                f"Use spec.is_official(field) to check individual fields.",
+                f'"{spec.metadata.name}" has no official values for {fields_str}; plotstyle defaults will be used.',
                 SpecAssumptionWarning,
-                stacklevel=3,
+                stacklevel=2,
             )
 
-        self._cache[key] = spec
         return spec
 
     def list_available(self) -> list[str]:
@@ -231,7 +233,7 @@ class SpecRegistry:
     def preload(self, names: list[str] | None = None) -> None:
         """Eagerly parse and cache one or more specifications.
 
-        Useful when startup latency matters more than lazy loading — for
+        Useful when startup latency matters more than lazy loading, for
         example, in a CLI tool that accesses many specs in a tight loop.
 
         Parameters
@@ -265,6 +267,7 @@ class SpecRegistry:
         modified at runtime.
         """
         self._cache.clear()
+        self._warned_specs.clear()
         self._available_cache = None
 
     # ------------------------------------------------------------------

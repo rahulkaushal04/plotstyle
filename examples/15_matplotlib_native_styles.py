@@ -1,5 +1,5 @@
 """
-Matplotlib native style integration — use PlotStyle presets with plt.style.
+Matplotlib native style integration: use PlotStyle presets with plt.style.
 
 At import time, PlotStyle registers all journal presets and overlays as native
 Matplotlib styles under a "plotstyle." prefix. This lets you use Matplotlib's
@@ -14,7 +14,7 @@ Steps:
 
 Note: Registered styles are rcParam-only snapshots built without LaTeX.
 For validation, export, and journal-aware figure sizing, use plotstyle.use()
-instead — the native style integration is for quick exploration only.
+instead. The native style integration is for quick exploration only.
 
 Output:
     output/mpl_style_ieee.pdf
@@ -26,7 +26,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-import plotstyle  # noqa: F401 — triggers style registration
+import plotstyle  # noqa: F401 - triggers style registration
 
 OUTPUT_DIR = Path(__file__).parent / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
@@ -43,7 +43,7 @@ for name in ps_styles:
     print(f"  {name}")
 
 # ==============================================================================
-# 2. plt.style.use — persistent style change
+# 2. plt.style.use: persistent style change
 # ==============================================================================
 # This applies the style globally until another style is applied or Matplotlib
 # is reconfigured. Good for scripts that use one journal throughout.
@@ -64,7 +64,7 @@ print(f"\nSaved: {OUTPUT_DIR / 'mpl_style_ieee.pdf'}")
 plt.style.use("default")
 
 # ==============================================================================
-# 3. plt.style.context — scoped style change
+# 3. plt.style.context: scoped style change
 # ==============================================================================
 # The style is applied only within the 'with' block. Matplotlib's rcParams
 # are restored when the block exits.

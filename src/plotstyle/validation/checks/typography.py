@@ -1,4 +1,4 @@
-"""Typography validation check — font size compliance (internal, not part of public API).
+"""Typography validation check: font size compliance (internal, not part of public API).
 
 Registers `check_typography` via the `check` decorator. Validates all visible
 text elements in a figure against the journal's permitted font-size range.

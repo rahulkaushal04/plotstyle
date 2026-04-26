@@ -1,4 +1,4 @@
-# Accessibility — `plotstyle.color.accessibility`
+# Accessibility: `plotstyle.color.accessibility`
 
 Simulate how your figure looks under different types of colour vision deficiency.
 
@@ -61,7 +61,7 @@ This creates a four-panel figure: Original, Deuteranopia, Protanopia, Tritanopia
 
 **Output:**
 
-![Colorblind simulation — four-panel view](../images/accessibility_colorblind.png)
+![Colorblind simulation: four-panel view](../images/accessibility_colorblind.png)
 
 ### Preview specific types only
 

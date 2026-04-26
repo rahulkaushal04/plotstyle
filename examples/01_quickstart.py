@@ -1,5 +1,5 @@
 """
-Quickstart — publication-ready figure in under 10 lines.
+Quickstart: publication-ready figure in under 10 lines.
 
 Steps:
 1. Apply a journal preset with plotstyle.use() to configure fonts and sizes.

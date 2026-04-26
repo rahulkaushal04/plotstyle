@@ -1,4 +1,4 @@
-# Palettes — `plotstyle.color.palettes`
+# Palettes: `plotstyle.color.palettes`
 
 Journal-aware colour palettes with colorblind-safe defaults.
 
@@ -36,7 +36,7 @@ Journal-aware colour palettes with colorblind-safe defaults.
 
 | Palette name | Colours | Description |
 |-------------|---------|-------------|
-| `okabe-ito` | 8 | Okabe & Ito (2008) — designed for colour vision deficiencies |
+| `okabe-ito` | 8 | Okabe & Ito (2008), designed for colour vision deficiencies |
 | `tol-bright` | 7 | Paul Tol's bright qualitative scheme |
 | `tol-muted` | 10 | Paul Tol's muted qualitative scheme |
 | `tol-vibrant` | 7 | Paul Tol's vibrant qualitative scheme |
@@ -111,13 +111,13 @@ colors = load_palette("tol-bright")   # ['#4477AA', '#EE6677', ...]
 
 ## Exceptions
 
-- {class}`~plotstyle.specs.SpecNotFoundError` — raised when a journal key is
+- {class}`~plotstyle.specs.SpecNotFoundError`: raised when a journal key is
   not in `JOURNAL_PALETTE_MAP`.
-- {class}`~plotstyle.color.palettes.PaletteNotFoundError` — raised when the
+- {class}`~plotstyle.color.palettes.PaletteNotFoundError`: raised when the
   JSON file for a palette does not exist.
-- `TypeError` — raised by `palette()` when `n` is not an integer (e.g. a
+- `TypeError`: raised by `palette()` when `n` is not an integer (e.g. a
   float or string).
-- `ValueError` — raised by `palette()` when `n` is an integer but less than 1.
+- `ValueError`: raised by `palette()` when `n` is an integer but less than 1.
 
 ```{eval-rst}
 .. autoclass:: plotstyle.color.palettes.PaletteNotFoundError

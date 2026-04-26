@@ -1,6 +1,6 @@
 # Export & Submission
 
-How to save figures for journal submission — from a single file to a full
+How to save figures for journal submission: from a single file to a full
 multi-format submission package.
 
 ## Single-file export
@@ -18,9 +18,9 @@ with plotstyle.use("nature") as style:
 
 It automatically:
 
-1. **Embeds TrueType fonts** — sets `pdf.fonttype=42` and `ps.fonttype=42`,
+1. **Embeds TrueType fonts**: sets `pdf.fonttype=42` and `ps.fonttype=42`,
    preventing Type 3 fonts that journal portals often reject.
-2. **Enforces DPI** — uses the journal's minimum DPI when `journal` is set.
+2. **Enforces DPI**: uses the journal's minimum DPI when `journal` is set.
 3. **Prints a compliance summary** to stderr:
 
 ```

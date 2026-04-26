@@ -53,7 +53,7 @@ def check_dimensions(fig: Figure, spec: JournalSpec) -> list[CheckResult]:
                 status=CheckStatus.WARN,
                 check_name="dimensions.width",
                 message=(
-                    f"{spec.metadata.name} does not publish column widths — "
+                    f"{spec.metadata.name} does not publish column widths; "
                     f"width check skipped (figure is {width_mm:.1f}mm wide)."
                 ),
                 fix_suggestion=(
@@ -98,7 +98,7 @@ def check_dimensions(fig: Figure, spec: JournalSpec) -> list[CheckResult]:
                 status=CheckStatus.WARN,
                 check_name="dimensions.height",
                 message=(
-                    f"{spec.metadata.name} does not publish a maximum figure height — "
+                    f"{spec.metadata.name} does not publish a maximum figure height; "
                     f"height check skipped (figure is {height_mm:.1f}mm tall)."
                 ),
                 fix_suggestion=(

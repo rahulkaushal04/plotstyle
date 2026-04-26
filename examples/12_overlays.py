@@ -1,15 +1,15 @@
 """
-Overlays — additive rcParam patches that layer on top of a journal preset.
+Overlays: additive rcParam patches that layer on top of a journal preset.
 
 Overlays let you fine-tune a figure without touching the base journal settings.
 Pass overlay names alongside a journal key in the list given to plotstyle.use().
 
 Categories:
-  color       — change the color cycle (okabe-ito, tol-bright, safe-grayscale, ...)
-  context     — adjust scale for a different medium (notebook, presentation, minimal)
-  rendering   — control LaTeX / grid rendering (no-latex, grid, pgf, ...)
-  plot-type   — optimise for a specific chart type (bar, scatter)
-  script      — font configuration for non-Latin scripts (cjk-japanese, russian, ...)
+  color      : change the color cycle (okabe-ito, tol-bright, safe-grayscale, ...)
+  context    : adjust scale for a different medium (notebook, presentation, minimal)
+  rendering  : control LaTeX / grid rendering (no-latex, grid, pgf, ...)
+  plot-type  : optimise for a specific chart type (bar, scatter)
+  script     : font configuration for non-Latin scripts (cjk-japanese, russian, ...)
 
 Output:
     output/overlay_minimal.pdf
@@ -31,7 +31,7 @@ rng = np.random.default_rng(0)
 x = np.linspace(0, 2 * np.pi, 100)
 
 # ==============================================================================
-# 1. Context overlay — minimal style (no top/right spines, no grid)
+# 1. Context overlay: minimal style (no top/right spines, no grid)
 # ==============================================================================
 # "minimal" strips the axes to a clean editorial look while keeping the
 # journal's fonts, sizes, and line weights.
@@ -47,10 +47,10 @@ with plotstyle.use(["nature", "minimal"]) as style:
     plt.close(fig)
 
 # ==============================================================================
-# 2. Context overlay — notebook scale (large figure, 14pt fonts)
+# 2. Context overlay: notebook scale (large figure, 14pt fonts)
 # ==============================================================================
 # "notebook" sets figure.figsize to 8x5.5in and bumps font sizes for Jupyter.
-# Use plt.subplots() (not style.figure()) so the overlay's figsize applies —
+# Use plt.subplots() (not style.figure()) so the overlay's figsize applies;
 # style.figure() always uses journal column dimensions.
 
 with plotstyle.use(["nature", "notebook"]) as style:
@@ -68,7 +68,7 @@ with plotstyle.use(["nature", "notebook"]) as style:
 print(f"Saved overlay_notebook.png ({OUTPUT_DIR / 'overlay_notebook.png'})")
 
 # ==============================================================================
-# 3. Plot-type overlay — bar chart optimisation
+# 3. Plot-type overlay: bar chart optimisation
 # ==============================================================================
 # "bar" removes markers and sets a narrow patch border, which is recommended
 # for bar charts in most journals.
@@ -93,4 +93,4 @@ with plotstyle.use(["nature", "bar"]) as style:
 print("\nAvailable overlays:")
 for name in plotstyle.overlay_registry.list_available():
     ov = plotstyle.overlay_registry.get(name)
-    print(f"  [{ov.category:10}] {name:20} — {ov.description[:50]}")
+    print(f"  [{ov.category:10}] {name:20}  {ov.description[:50]}")

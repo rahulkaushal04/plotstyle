@@ -1,4 +1,4 @@
-"""Check registry — discovers and executes all registered validation checks.
+"""Check registry: discovers and executes all registered validation checks.
 
 Imports all check sub-modules so their ``check``-decorated functions are
 registered, then exposes `run_all` as the single entry-point for the full
