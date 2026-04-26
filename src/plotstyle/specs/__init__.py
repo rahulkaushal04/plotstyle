@@ -39,6 +39,7 @@ from plotstyle.specs.schema import JournalSpec
 
 __all__: list[str] = [
     "JournalSpec",
+    "SpecAssumptionWarning",
     "SpecNotFoundError",
     "SpecRegistry",
     "registry",
@@ -146,7 +147,7 @@ class SpecRegistry:
         Parsed specs are cached after the first access; subsequent calls
         for the same name are free.
 
-        A :class:`~plotstyle._utils.warnings.SpecAssumptionWarning` is emitted
+        A :class:`~plotstyle.specs.SpecAssumptionWarning` is emitted
         once per spec per session when the spec contains fields whose values
         are library defaults rather than official journal guidelines.
 

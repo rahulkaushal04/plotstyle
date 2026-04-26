@@ -1,8 +1,8 @@
 # Warnings: `plotstyle._utils.warnings`
 
-All warnings emitted by PlotStyle derive from `PlotStyleWarning`. None of these
-classes are re-exported from the top-level `plotstyle` namespace; import them
-directly from `plotstyle._utils.warnings`.
+All warnings emitted by PlotStyle derive from `PlotStyleWarning`. Import them
+from `plotstyle._utils.warnings`; `SpecAssumptionWarning` is also available
+as `plotstyle.specs.SpecAssumptionWarning`.
 
 ## Warning hierarchy
 
