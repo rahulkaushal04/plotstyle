@@ -8,7 +8,7 @@ Steps:
 
 Output:
     output/submission_nature/   (Nature preferred formats)
-    output/submission_ieee/     (IEEE with "smit_" author prefix)
+    output/submission_ieee/     (IEEE with "smith_" author prefix)
     output/submission_science/  (Science with explicit format override)
 """
 
