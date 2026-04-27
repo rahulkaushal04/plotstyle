@@ -50,7 +50,7 @@ with plotstyle.use("nature") as style:
     # Render the figure to an RGB array and apply a single CVD matrix directly.
     # CVDType members: DEUTERANOPIA, PROTANOPIA, TRITANOPIA.
     fig.canvas.draw()
-    w, h = fig.canvas.get_width_height()
+    w, h = fig.canvas.get_width_height(physical=True)
     rgba = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8).reshape(h, w, 4)
     rgb = rgba[:, :, :3].copy()  # (H, W, 3) uint8
 

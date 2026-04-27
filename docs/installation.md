@@ -65,5 +65,5 @@ hatch run docs:serve   # serves on http://localhost:8000
 
 ```python
 import plotstyle
-print(plotstyle.__version__)  # e.g. '1.2.1'
+print(plotstyle.__version__)  # e.g. '1.2.2'
 ```

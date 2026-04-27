@@ -199,7 +199,6 @@ Overlays are additive patches that layer on top of a journal preset. They let yo
 Pass overlay names in the same list as the journal key:
 
 ```python
-import matplotlib.pyplot as plt
 import plotstyle
 
 # Strip top/right spines for a clean editorial look
@@ -217,15 +216,19 @@ with plotstyle.use(["nature", "minimal"]) as style:
 </p>
 
 ```python
+import numpy as np
 import matplotlib.pyplot as plt
 import plotstyle
+
+x = np.linspace(0, 2 * np.pi, 100)
 
 # Larger figure and fonts for Jupyter notebooks
 with plotstyle.use(["nature", "notebook"]) as style:
     fig, ax = plt.subplots()   # plt.subplots() picks up the notebook figsize
-    ax.plot([1, 2, 3], label="data")
-    ax.set_xlabel("x")
-    ax.set_ylabel("y")
+    ax.plot(x, np.sin(x), label="sin(x)")
+    ax.plot(x, np.cos(x), label="cos(x)")
+    ax.set_xlabel("Phase (rad)")
+    ax.set_ylabel("Amplitude")
     ax.legend()
     style.savefig(fig, "notebook_figure.pdf")
 ```
@@ -235,13 +238,16 @@ with plotstyle.use(["nature", "notebook"]) as style:
 </p>
 
 ```python
-import matplotlib.pyplot as plt
+import numpy as np
 import plotstyle
+
+x = np.linspace(0, 2 * np.pi, 100)
 
 # Swap the colour cycle to a specific palette
 with plotstyle.use(["ieee", "okabe-ito"]) as style:
     fig, ax = style.figure(columns=1)
-    ax.plot([1, 2, 3], label="data")
+    for i in range(4):
+        ax.plot(x, np.sin(x + i * 0.5), label=f"Series {i + 1}")
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.legend()
@@ -361,15 +367,15 @@ with plotstyle.use("nature") as style:
 ┌──────────────────────────────────────────────────────┐
 │         PlotStyle Validation Report: Nature          │
 ├──────────┬───────────────────────────────────────────┤
-│ ✓ PASS   │ Figure width 89.0mm matches single colu...│
-│ ✓ PASS   │ Figure height 55.0mm is within the Natu...│
+│ ✗ FAIL   │ Figure width 162.6mm does not match Nat...│
+│ ✓ PASS   │ Figure height 121.9mm is within the Nat...│
 │ ✗ FAIL   │ pdf.fonttype = 3; must be 42 for TrueTy...│
 │ ✗ FAIL   │ ps.fonttype = 3; must be 42 for TrueTyp...│
 │ ⚠ WARN   │ savefig.dpi = 'figure'; Nature requires...│
 │ ✓ PASS   │ All plotted lines and spines meet the N...│
-│ ✗ FAIL   │ 14 text element(s) outside the Nature r...│
+│ ✗ FAIL   │ 23 text element(s) outside the Nature r...│
 └──────────┴───────────────────────────────────────────┘
-3/7 checks passed, 1 warning(s), 3 failure(s)
+2/7 checks passed, 1 warning(s), 4 failure(s)
 
 passed: False
 
@@ -499,6 +505,7 @@ Export:
 Accessibility:
   Colorblind safe: Not required
   Grayscale safe:  Not required
+  Avoid:           none
 ```
 
 **`plotstyle diff nature science`**
@@ -592,7 +599,7 @@ If PlotStyle helps your research, a citation or star is appreciated:
   title   = {PlotStyle: Publication-ready scientific figure presets for Matplotlib},
   year    = {2026},
   url     = {https://github.com/rahulkaushal04/plotstyle},
-  note    = {Version 1.2.1},
+  note    = {Version 1.2.2},
 }
 ```
 

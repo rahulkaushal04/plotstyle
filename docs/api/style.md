@@ -111,6 +111,23 @@ The three `latex` modes:
 | `True` | Force LaTeX; raises `LatexNotFoundError` (a `RuntimeError`) if no `latex` binary is on PATH |
 | `"auto"` | Enable LaTeX when available, silently fall back to MathText otherwise |
 
+### Catching LaTeX errors
+
+`LatexNotFoundError` is not exported from the top-level `plotstyle` namespace.
+Import it directly for specific error handling:
+
+```python
+from plotstyle.engine.rcparams import LatexNotFoundError
+
+try:
+    style = plotstyle.use("nature", latex=True)
+except LatexNotFoundError:
+    style = plotstyle.use("nature")  # fall back to MathText
+```
+
+Alternatively, catch the base `RuntimeError` if you only need to handle the
+failure and not distinguish it from other runtime errors.
+
 ### Detect TeX distribution
 
 ```python
