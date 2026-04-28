@@ -5,6 +5,8 @@ labels: bug
 assignees: ''
 ---
 
+**Security vulnerability?** Do not open a bug report. Use [GitHub's private vulnerability reporting](https://github.com/rahulkaushal04/plotstyle/security/advisories/new) instead. See [SECURITY.md](../../SECURITY.md).
+
 ## Before You File
 
 - [ ] I searched existing issues and this hasn't been reported yet

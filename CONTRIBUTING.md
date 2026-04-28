@@ -1,14 +1,16 @@
 # Contributing to PlotStyle
 
-Thanks for your interest in contributing! This guide covers the basics — reporting bugs, proposing changes, adding journal specs, and submitting pull requests.
+Thanks for your interest in contributing! This guide covers the basics: reporting bugs, proposing changes, adding journal specs, and submitting pull requests.
+
+All contributors are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md). For security vulnerabilities, see [SECURITY.md](SECURITY.md); do not open a public issue.
 
 ## Reporting Issues
 
 Before opening an issue, search existing issues to avoid duplicates.
 
-- **Bug reports** — use the [Bug Report](https://github.com/rahulkaushal04/plotstyle/issues/new?template=bug_report.md) template. Include a minimal reproducing example, the full traceback, and your environment details (PlotStyle version, matplotlib version, Python version, OS).
-- **Spec inaccuracies** — use the [Spec Inaccuracy](https://github.com/rahulkaushal04/plotstyle/issues/new?template=spec_inaccuracy.md) template. Include a link to the journal's official guidelines and a table of what's wrong vs. what it should be.
-- **New journal specs** — use the [New Journal Spec](https://github.com/rahulkaushal04/plotstyle/issues/new?template=new_journal_spec.md) template. Fill in as many fields as you can from the journal's author guidelines.
+- **Bug reports:** use the [Bug Report](https://github.com/rahulkaushal04/plotstyle/issues/new?template=bug_report.md) template. Include a minimal reproducing example, the full traceback, and your environment details (PlotStyle version, matplotlib version, Python version, OS).
+- **Spec inaccuracies:** use the [Spec Inaccuracy](https://github.com/rahulkaushal04/plotstyle/issues/new?template=spec_inaccuracy.md) template. Include a link to the journal's official guidelines and a table of what's wrong vs. what it should be.
+- **New journal specs:** use the [New Journal Spec](https://github.com/rahulkaushal04/plotstyle/issues/new?template=new_journal_spec.md) template. Fill in as many fields as you can from the journal's author guidelines.
 
 ## Development Setup
 
@@ -67,7 +69,7 @@ Journal specs live in `src/plotstyle/specs/` as `.toml` files. Each file describ
 
 ### Step-by-step
 
-1. **Copy the template** — start from `src/plotstyle/specs/_templates.toml`:
+1. **Copy the template:** start from `src/plotstyle/specs/_templates.toml`:
 
    ```bash
    cp src/plotstyle/specs/_templates.toml src/plotstyle/specs/<journal>.toml
@@ -75,16 +77,16 @@ Journal specs live in `src/plotstyle/specs/` as `.toml` files. Each file describ
 
    Use a short, lowercase name (e.g. `nature.toml`, `ieee.toml`, `plos.toml`).
 
-2. **Fill in the spec** — open the journal's official author/figure guidelines and fill in every field you can. Look at an existing spec like `nature.toml` for reference. Key sections:
+2. **Fill in the spec:** open the journal's official author/figure guidelines and fill in every field you can. Look at an existing spec like `nature.toml` for reference. Key sections:
 
-   - `[metadata]` — journal name, publisher, guidelines URL, date verified, your GitHub username
-   - `[dimensions]` — single-column width, double-column width, max height (all in mm)
-   - `[typography]` — required fonts, font size range, panel label style
-   - `[export]` — accepted formats, minimum DPI, color space, font embedding
-   - `[color]` — accessibility requirements (colorblind, grayscale)
-   - `[line]` — minimum line weight in points
+   - `[metadata]`: journal name, publisher, guidelines URL, date verified, your GitHub username
+   - `[dimensions]`: single-column width, double-column width, max height (all in mm)
+   - `[typography]`: required fonts, font size range, panel label style
+   - `[export]`: accepted formats, minimum DPI, color space, font embedding
+   - `[color]`: accessibility requirements (colorblind, grayscale)
+   - `[line]`: minimum line weight in points
 
-3. **Validate** — run the validation script to check your spec against the schema:
+3. **Validate:** run the validation script to check your spec against the schema:
 
    ```bash
    python scripts/validate_all_specs.py
@@ -92,13 +94,13 @@ Journal specs live in `src/plotstyle/specs/` as `.toml` files. Each file describ
 
    All fields listed in the template are expected. If the journal's guidelines don't specify a value, use a sensible default and note it in the PR.
 
-4. **Test** — run the full test suite to make sure nothing is broken:
+4. **Test:** run the full test suite to make sure nothing is broken:
 
    ```bash
    pytest
    ```
 
-5. **Submit a PR** — include a link to the journal's official figure preparation guidelines in your PR description.
+5. **Submit a PR:** include a link to the journal's official figure preparation guidelines in your PR description.
 
 ### Updating an Existing Spec
 
@@ -107,7 +109,7 @@ Follow the same process but edit the existing `.toml` file instead of copying th
 ## Contributing Changes
 
 1. Fork the repository and create a branch from `main`.
-2. Make your changes. Keep commits focused — one logical change per commit.
+2. Make your changes. Keep commits focused; one logical change per commit.
 3. Add or update tests if your change affects behavior.
 4. Make sure these all pass before pushing:
    - `pytest`
@@ -141,4 +143,4 @@ Fill out the [PR template](https://github.com/rahulkaushal04/plotstyle/blob/main
 
 ## Questions?
 
-Open a [discussion](https://github.com/rahulkaushal04/plotstyle/issues) or ask in your PR — happy to help.
+Open a [discussion](https://github.com/rahulkaushal04/plotstyle/issues) or ask in your PR. Happy to help.

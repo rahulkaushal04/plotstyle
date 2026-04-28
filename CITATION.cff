@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use PlotStyle in your research, please cite it using the metadata below."
+type: software
+title: PlotStyle
+version: "1.2.2"
+date-released: "2026-04-27"
+license: MIT
+abstract: >-
+  PlotStyle is a Python library that formats Matplotlib and Seaborn figures
+  to meet the exact typographic, dimensional, and export requirements of
+  major academic journals. It includes built-in presets for journals such as
+  Nature, Science, IEEE, ACS, Cell, PLOS, PRL, Springer, Wiley, and Elsevier,
+  along with figure validation, colorblind and grayscale accessibility previews,
+  composable style overlays, and a CLI for inspecting and comparing journal specs.
+authors:
+  - family-names: Kaushal
+    given-names: Rahul
+    alias: rahulkaushal04
+repository-code: "https://github.com/rahulkaushal04/plotstyle"
+url: "https://plotstyle.readthedocs.io"
+identifiers:
+  - type: url
+    value: "https://pypi.org/project/plotstyle/1.2.2/"
+    description: "PyPI release for version 1.2.2"
+keywords:
+  - matplotlib
+  - seaborn
+  - scientific-publishing
+  - journal-figures
+  - data-visualization
+  - academic-research
+  - colorblind-accessibility
+  - figure-export
+  - validation
+  - rcParams
+  - python
