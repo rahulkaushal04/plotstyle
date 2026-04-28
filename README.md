@@ -18,6 +18,14 @@
 
 **PlotStyle** makes it easy to produce Matplotlib figures that meet the exact typographic, dimensional, and export requirements of major academic journals. It also integrates with Seaborn, with more integrations planned. Pick a journal, create your figure, save it. PlotStyle handles the rest.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/before_after.png" width="90%" alt="Left: default Matplotlib output. Right: the same figure styled with plotstyle.use('nature').">
+</p>
+
+<p align="center">
+  <em>Left: default Matplotlib. Right: <code>plotstyle.use("nature")</code>. Same data, same code.</em>
+</p>
+
 ---
 
 ## Table of Contents
@@ -34,6 +42,8 @@
 - [CLI](#cli)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
+- [Code of Conduct](#code-of-conduct)
+- [Security](#security)
 - [Citation](#citation)
 - [License](#license)
 
@@ -334,7 +344,7 @@ import plotstyle
 
 x = np.linspace(0, 2 * np.pi, 100)
 
-# Outside plotstyle.use() — some checks will fail
+# Outside plotstyle.use(): some checks will fail
 fig, ax = plt.subplots()
 ax.plot(x, np.sin(x), label="sin(x)")
 ax.set_xlabel("Phase (rad)")
@@ -343,14 +353,14 @@ ax.legend()
 
 report = plotstyle.validate(fig, journal="nature")
 print(report)          # formatted compliance table
-print(report.passed)   # False — rcParams not configured
+print(report.passed)   # False, rcParams not configured
 
 for failure in report.failures:
     print(failure.message)         # what failed
     print(failure.fix_suggestion)  # how to fix it
 plt.close(fig)
 
-# Inside plotstyle.use() — all checks pass
+# Inside plotstyle.use(): all checks pass
 with plotstyle.use("nature") as style:
     fig, ax = style.figure(columns=1)
     ax.plot(x, np.sin(x), label="sin(x)")
@@ -579,7 +589,34 @@ Full documentation at **[plotstyle.readthedocs.io](https://plotstyle.readthedocs
 - [CLI reference](https://plotstyle.readthedocs.io/en/stable/cli.html)
 - [FAQ](https://plotstyle.readthedocs.io/en/stable/faq.html)
 
-Working examples are in the [`examples/`](examples/) directory.
+Working examples are in the [`examples/`](https://github.com/rahulkaushal04/plotstyle/tree/main/examples/) directory:
+
+| Example | What it covers |
+|---------|----------------|
+| [`01_quickstart.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/01_quickstart.py) | Apply a journal preset, create a figure, and save |
+| [`02_multi_panel_figure.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/02_multi_panel_figure.py) | Multi-panel layouts with automatic panel labels |
+| [`03_color_palettes.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/03_color_palettes.py) | Journal palettes, grayscale-safe markers, `apply_palette` |
+| [`04_accessibility_checks.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/04_accessibility_checks.py) | Colorblind simulation and grayscale print-safety |
+| [`05_validation.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/05_validation.py) | Validate a figure against journal requirements |
+| [`06_export_submission.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/06_export_submission.py) | Export in all required formats for submission |
+| [`07_spec_diff_and_migrate.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/07_spec_diff_and_migrate.py) | Compare journals and migrate a figure between them |
+| [`08_gallery_preview.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/08_gallery_preview.py) | Discover journals and preview their styles |
+| [`09_registry_and_spec.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/09_registry_and_spec.py) | Inspect journal specs from the registry |
+| [`10_context_manager_patterns.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/10_context_manager_patterns.py) | Patterns for managing rcParam lifetime |
+| [`11_seaborn_integration.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/11_seaborn_integration.py) | Keep PlotStyle settings intact with Seaborn |
+| [`12_overlays.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/12_overlays.py) | Overlays: context, color, and plot-type |
+| [`14_print_size_preview.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/14_print_size_preview.py) | Preview a figure at its true physical print size |
+| [`15_matplotlib_native_styles.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/15_matplotlib_native_styles.py) | Use PlotStyle presets with `plt.style` |
+| [`16_latex_and_fonts.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/16_latex_and_fonts.py) | LaTeX modes and font availability checks |
+
+Interactive Jupyter notebooks are in [`examples/notebooks/`](https://github.com/rahulkaushal04/plotstyle/tree/main/examples/notebooks/):
+
+| Notebook | What it covers |
+|----------|----------------|
+| [`01_quickstart.ipynb`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/notebooks/01_quickstart.ipynb) | Full quickstart: style, figure, palette, validate, save, overlays |
+| [`02_accessibility_and_validation.ipynb`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/notebooks/02_accessibility_and_validation.ipynb) | Colorblind and grayscale previews, validation reports |
+| [`03_journal_comparison_and_migration.ipynb`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/notebooks/03_journal_comparison_and_migration.ipynb) | Diff journals and migrate figures between them |
+| [`04_overlays.ipynb`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/notebooks/04_overlays.ipynb) | Overlays in depth: context, color, plot-type, combining |
 
 ---
 
@@ -587,21 +624,27 @@ Working examples are in the [`examples/`](examples/) directory.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, adding journal specs, and pull request guidelines.
 
+All contributors are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+---
+
+## Code of Conduct
+
+This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this standard.
+
+---
+
+## Security
+
+To report a security vulnerability, use [GitHub's private vulnerability reporting](https://github.com/rahulkaushal04/plotstyle/security/advisories/new) rather than opening a public issue. See [SECURITY.md](SECURITY.md) for scope, timeline, and disclosure guidelines.
+
 ---
 
 ## Citation
 
-If PlotStyle helps your research, a citation or star is appreciated:
+If PlotStyle helps your research, a citation or star is appreciated.
 
-```bibtex
-@misc{plotstyle,
-  author  = {Kaushal, Rahul},
-  title   = {PlotStyle: Publication-ready scientific figure presets for Matplotlib},
-  year    = {2026},
-  url     = {https://github.com/rahulkaushal04/plotstyle},
-  note    = {Version 1.2.2},
-}
-```
+Use the **"Cite this repository"** button on the GitHub sidebar to get a ready-to-use APA or BibTeX entry. It reads from [`CITATION.cff`](CITATION.cff) and is always up to date.
 
 ---
 

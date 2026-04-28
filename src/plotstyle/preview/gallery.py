@@ -69,7 +69,7 @@ def _draw_line_panel(ax: Axes) -> None:
         ax.plot(x, y, label=f"Series {i + 1}")
     ax.set_xlabel("x")
     ax.set_ylabel("y")
-    ax.legend(fontsize="small")
+    ax.legend(fontsize="small", loc="upper right")
     ax.set_title("Line Plot", fontsize="small")
 
 
@@ -81,7 +81,7 @@ def _draw_scatter_panel(ax: Axes) -> None:
         ax.scatter(x[mask], y[mask], label=str(group_label), s=15, alpha=0.8)
     ax.set_xlabel("x")
     ax.set_ylabel("y")
-    ax.legend(fontsize="small")
+    ax.legend(fontsize="small", loc="lower right")
     ax.set_title("Scatter Plot", fontsize="small")
 
 
