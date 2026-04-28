@@ -2,7 +2,7 @@
 
 Thanks for your interest in contributing! This guide covers the basics: reporting bugs, proposing changes, adding journal specs, and submitting pull requests.
 
-All contributors are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md). For security vulnerabilities, see [SECURITY.md](SECURITY.md); do not open a public issue.
+All contributors are expected to follow the [Code of Conduct](https://github.com/rahulkaushal04/plotstyle/blob/main/CODE_OF_CONDUCT.md). For security vulnerabilities, see [SECURITY.md](https://github.com/rahulkaushal04/plotstyle/blob/main/SECURITY.md); do not open a public issue.
 
 ## Reporting Issues
 
