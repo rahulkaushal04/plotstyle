@@ -43,6 +43,7 @@ Dimensions:
 Typography:
   Font:          Helvetica, Arial (fallback: sans-serif)
   Size range:    5.0-7.0pt
+  Target size:   7.0pt
   Panel labels:  5.0pt bold lower (a, b, c)
 Export:
   Formats:  ai, eps, pdf
@@ -157,11 +158,11 @@ Validation against: Nature
 
 Note: Full validation requires a live Matplotlib Figure object.
       Use plotstyle.validate(fig, journal='nature') in Python
-      for complete checks (dimensions, typography, colour, line weights).
+      for complete checks (dimensions, typography, color, line weights).
 ```
 
 This command checks only the PDF file for font embedding. For a full
-validation covering dimensions, font sizes, line weights, and colours, use
+validation covering dimensions, font sizes, line weights, and colors, use
 `plotstyle.validate(fig, journal=...)` in Python; this requires the live
 Matplotlib `Figure` object.
 

@@ -2,7 +2,31 @@
 
 How to choose and use colorblind-safe palettes for your journal figures.
 
-## Get colours for a journal
+## Default color cycle
+
+When you call `plotstyle.use()` with a journal key, the journal's recommended
+palette is set as the default `axes.prop_cycle` automatically. Every `ax.plot()`,
+`ax.bar()`, and `ax.scatter()` call draws from it without any `color=` argument:
+
+```python
+import numpy as np
+import plotstyle
+
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure()
+    x = np.linspace(0, 10, 100)
+    ax.plot(x, np.sin(x), label="sin(x)")  # first Okabe-Ito color (#E69F00)
+    ax.plot(x, np.cos(x), label="cos(x)")  # second Okabe-Ito color (#56B4E9)
+    ax.legend()
+```
+
+The palette is applied before any color overlays, so a color overlay always wins.
+`use(["ieee", "okabe-ito"])` uses IEEE's base rcParams but replaces the grayscale
+cycle with Okabe-Ito.
+
+When no journal key is given (overlay-only mode), the color cycle is unchanged.
+
+## Get colors for a journal
 
 ```python
 import plotstyle
@@ -55,9 +79,9 @@ for i, (color, ls, marker) in enumerate(styled):
 | Science | Tol Vibrant | High contrast for small figures |
 | IEEE | Safe Grayscale | Distinguishable in black-and-white print |
 
-## Apply a palette to the colour cycle
+## Apply a palette to the color cycle
 
-`apply_palette()` sets the default colour cycle so every new plot on those
+`apply_palette()` sets the default color cycle so every new plot on those
 axes uses the palette automatically; no need to pass `color=` manually:
 
 ```python
@@ -68,8 +92,8 @@ import matplotlib.pyplot as plt
 plotstyle.apply_palette("tol-bright")
 
 fig, ax = plt.subplots()
-ax.plot([1, 2, 3])   # first tol-bright colour
-ax.plot([3, 2, 1])   # second tol-bright colour
+ax.plot([1, 2, 3])   # first tol-bright color
+ax.plot([3, 2, 1])   # second tol-bright color
 ```
 
 To restrict the change to a single axes:
@@ -79,11 +103,11 @@ fig, (ax1, ax2) = plt.subplots(1, 2)
 plotstyle.apply_palette("okabe-ito", ax=ax1)  # only ax1 uses Okabe-Ito
 ```
 
-> **Note:** `apply_palette()` does not retroactively recolour artists that are
+> **Note:** `apply_palette()` does not retroactively recolor artists that are
 > already drawn. Call it before plotting to ensure the new cycle is used from
 > the first line.
 
-## Check if colours are grayscale-safe
+## Check if colors are grayscale-safe
 
 ```python
 from plotstyle.color.grayscale import is_grayscale_safe
@@ -108,7 +132,7 @@ Names accept either hyphens (`tol-bright`) or underscores (`tol_bright`).
 
 All available palettes:
 
-| Name | Colours |
+| Name | Colors |
 |------|---------|
 | `okabe-ito` | 8 |
 | `tol-bright` | 7 |

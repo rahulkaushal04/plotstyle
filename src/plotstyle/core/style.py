@@ -771,6 +771,14 @@ def use(
     if journal_key is not None:
         spec = registry.get(journal_key)
         params = build_rcparams(spec, latex=effective_latex)
+
+        from cycler import cycler as _cycler
+
+        from plotstyle.color.palettes import JOURNAL_PALETTE_MAP, load_palette
+
+        _palette_name = JOURNAL_PALETTE_MAP.get(journal_key)
+        if _palette_name:
+            params["axes.prop_cycle"] = _cycler("color", load_palette(_palette_name))
     else:
         spec = None
         use_latex = _resolve_latex_mode(effective_latex)

@@ -60,6 +60,8 @@ Each `CheckResult` has:
 - `check_name`: dot-namespaced id (e.g. `dimensions.width`)
 - `message`: what the check found
 - `fix_suggestion`: how to fix it (for FAIL/WARN)
+- `is_failure`: `True` when `status` is `FAIL` (convenience property)
+- `is_warning`: `True` when `status` is `WARN` (convenience property)
 
 ### Warnings vs failures
 

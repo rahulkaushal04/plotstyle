@@ -1,6 +1,6 @@
 # Palettes: `plotstyle.color.palettes`
 
-Journal-aware colour palettes with colorblind-safe defaults.
+Journal-aware color palettes with colorblind-safe defaults.
 
 ## `palette`
 
@@ -34,9 +34,9 @@ Journal-aware colour palettes with colorblind-safe defaults.
 
 ## Built-in palettes
 
-| Palette name | Colours | Description |
+| Palette name | Colors | Description |
 |-------------|---------|-------------|
-| `okabe-ito` | 8 | Okabe & Ito (2008), designed for colour vision deficiencies |
+| `okabe-ito` | 8 | Okabe & Ito (2008), designed for color vision deficiencies |
 | `tol-bright` | 7 | Paul Tol's bright qualitative scheme |
 | `tol-muted` | 10 | Paul Tol's muted qualitative scheme |
 | `tol-vibrant` | 7 | Paul Tol's vibrant qualitative scheme |
@@ -53,6 +53,10 @@ Names accept either hyphens (`tol-bright`) or underscores (`tol_bright`).
 
 ## Journal → palette mapping
 
+`plotstyle.use(journal)` automatically sets the journal's recommended palette
+as `axes.prop_cycle`. Plots draw from it without any `color=` argument. A color
+overlay applied in the same `use()` call overrides this default.
+
 | Journal | Default palette |
 |---------|----------------|
 | `nature`, `plos`, `cell` | `okabe-ito` |
@@ -63,7 +67,18 @@ Names accept either hyphens (`tol-bright`) or underscores (`tol_bright`).
 
 ## Usage
 
-### Get colours for a journal
+### Automatic default cycle
+
+```python
+import plotstyle
+
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure()
+    ax.plot(x, np.sin(x))  # Okabe-Ito color #1 - no color= needed
+    ax.plot(x, np.cos(x))  # Okabe-Ito color #2
+```
+
+### Get colors for a journal
 
 ```python
 import plotstyle
@@ -74,7 +89,7 @@ colors = plotstyle.palette("nature", n=4)
 
 ### Cycling
 
-If you request more colours than the palette contains, they cycle:
+If you request more colors than the palette contains, they cycle:
 
 ```python
 colors = plotstyle.palette("nature", n=12)  # repeats after 8
@@ -97,7 +112,7 @@ plotstyle.apply_palette("tol-bright")          # global (all new axes)
 plotstyle.apply_palette("okabe-ito", ax=ax)    # single axes only
 ```
 
-Applying a palette does **not** retroactively recolour artists that are
+Applying a palette does **not** retroactively recolor artists that are
 already drawn. Call `apply_palette()` before plotting to ensure the new cycle
 is picked up from the first line.
 

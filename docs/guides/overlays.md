@@ -8,7 +8,7 @@ See the working example: [`examples/12_overlays.py`](../../examples/12_overlays.
 
 Overlays are additive rcParam patches that layer on top of a journal preset
 (or on their own, without any journal). They let you adjust one aspect of the
-figure (the colour palette, the scale, the plot type) without touching the
+figure (the color palette, the scale, the plot type) without touching the
 base journal settings.
 
 Pass overlay names in the same list as the journal key:
@@ -29,7 +29,7 @@ last one wins.
 
 | Category | Purpose | Examples |
 |----------|---------|---------|
-| `color` | Change the default colour cycle | `okabe-ito`, `tol-bright`, `tol-vibrant`, `tol-muted`, `tol-light`, `tol-high-contrast`, `tol-rainbow-4/6/8/10/12`, `safe-grayscale` |
+| `color` | Change the default color cycle | `okabe-ito`, `tol-bright`, `tol-vibrant`, `tol-muted`, `tol-light`, `tol-high-contrast`, `tol-rainbow-4/6/8/10/12`, `safe-grayscale` |
 | `context` | Adjust scale for a different medium | `notebook`, `presentation`, `minimal`, `high-vis` |
 | `rendering` | Control text rendering and grids | `no-latex`, `grid`, `latex-sans`, `pgf` |
 | `plot-type` | Optimise for a chart type | `bar`, `scatter` |
@@ -159,6 +159,12 @@ with plotstyle.use(["nature", "scatter"]) as style:
     style.savefig(fig, "scatter_figure.pdf")
 ```
 
+> **Warning:** Combining `scatter` with the `ieee` journal emits a `PlotStyleWarning`
+> because it sets `lines.linestyle='none'`, removing the line style differentiation
+> that IEEE figures rely on for print accessibility. Use `style.palette(n=..., with_markers=True)`
+> to restore per-series distinction via marker shapes. The same warning applies when
+> combining `scatter` with the `safe-grayscale` overlay.
+
 ## Script overlays
 
 Script overlays configure fonts for non-Latin text. They set `font.family`
@@ -194,13 +200,14 @@ with plotstyle.use(["nature", "cjk-simplified"]) as style:
 
 ## Color overlays
 
-Color overlays let you pick a specific palette independent of the journal's
-default:
+Each journal already has a recommended palette applied automatically as the default
+color cycle when you call `plotstyle.use()` (see [Color Palettes](palettes.md)).
+Color overlays let you replace that default with a specific palette:
 
 ```python
 with plotstyle.use(["ieee", "okabe-ito"]) as style:
     fig, ax = style.figure(columns=1)
-    ax.plot(x, y)
+    ax.plot(x, y)  # uses Okabe-Ito instead of IEEE's default safe-grayscale
 ```
 
 > **Note:** Using `safe-grayscale` with a colorblind-required journal (e.g.

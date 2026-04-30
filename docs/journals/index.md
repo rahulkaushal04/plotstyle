@@ -23,18 +23,22 @@ Each spec is stored as a validated TOML file and loaded on demand via the
 
 ## Typography
 
-| Key | Font family | Size range (pt) | Panel labels |
-|-----|------------|-----------------|-------------|
-| `acs` | Helvetica, Arial | 5.0 – 10.0 | bold lowercase |
-| `cell` | Helvetica, Arial | 6.0 – 8.0 | bold lowercase |
-| `elsevier` | Arial, Times New Roman | 8.0 – 12.0 | bold lowercase |
-| `ieee` | Times New Roman, Helvetica, Arial | 9.0 – 10.0 | bold lowercase |
-| `nature` | Helvetica, Arial | 5.0 – 7.0 | bold lowercase |
-| `plos` | Arial, Times | 8.0 – 12.0 | bold lowercase |
-| `prl` | Times New Roman, Times | 6.0 – 10.0 | bold lowercase |
-| `science` | Minion Pro, Benton Sans Condensed | 7.5 – 10.0 | bold lowercase |
-| `springer` | Helvetica, Arial ‡ | 6.0 – 10.0 ‡ | bold lowercase ‡ |
-| `wiley` | Helvetica, Arial ‡ | 6.0 – 10.0 ‡ | bold lowercase ‡ |
+| Key | Font family | Size range (pt) | Target (pt) | Panel labels |
+|-----|------------|-----------------|-------------|-------------|
+| `acs` | Helvetica, Arial | 5.0 – 10.0 | - | bold lowercase |
+| `cell` | Helvetica, Arial | 6.0 – 8.0 | - | bold lowercase |
+| `elsevier` | Arial, Times New Roman | 8.0 – 12.0 | - | bold lowercase |
+| `ieee` | Times New Roman, Helvetica, Arial | 9.0 – 10.0 | - | bold lowercase |
+| `nature` | Helvetica, Arial | 5.0 – 7.0 | **7.0** | bold lowercase |
+| `plos` | Arial, Times | 8.0 – 12.0 | - | bold lowercase |
+| `prl` | Times New Roman, Times | 6.0 – 10.0 | - | bold lowercase |
+| `science` | Minion Pro, Benton Sans Condensed | 7.5 – 10.0 | - | bold lowercase |
+| `springer` | Helvetica, Arial ‡ | 6.0 – 10.0 ‡ | - | bold lowercase ‡ |
+| `wiley` | Helvetica, Arial ‡ | 6.0 – 10.0 ‡ | - | bold lowercase ‡ |
+
+The **Target** column shows the `target_font_pt` value from the spec. When set,
+`plotstyle.use()` uses this as the default font size instead of the midpoint of
+the range. Nature's guidelines explicitly state 7pt as the standard text size.
 
 ## Accessibility requirements
 

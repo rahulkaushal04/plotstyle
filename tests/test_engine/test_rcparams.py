@@ -41,6 +41,7 @@ def _make_spec(
     min_dpi: int = 300,
     editable_text: bool = True,
     min_weight_pt: float = 0.5,
+    target_font_pt: float | None = None,
 ) -> MagicMock:
     """Return a fully-configured :class:`~unittest.mock.MagicMock` that looks
     like a :class:`~plotstyle.specs.schema.JournalSpec`."""
@@ -51,6 +52,7 @@ def _make_spec(
     spec.export.min_dpi = min_dpi
     spec.export.editable_text = editable_text
     spec.line.min_weight_pt = min_weight_pt
+    spec.typography.target_font_pt = target_font_pt
     return spec
 
 
@@ -712,14 +714,44 @@ class TestBuildRcparamsTypography:
         params = _build(default_spec, font=font_name)
         assert params["font.family"] == font_name
 
-    def test_font_size_is_midpoint_of_range(self, default_spec: MagicMock) -> None:
+    def test_font_size_is_midpoint_when_no_target(self, default_spec: MagicMock) -> None:
         """
-        Description: 'font.size' must equal (min_font_pt + max_font_pt) / 2.
-        Scenario: default_spec has min=6, max=10 → expected 8.0.
+        Description: 'font.size' must equal (min_font_pt + max_font_pt) / 2
+                     when target_font_pt is None.
+        Scenario: default_spec has min=6, max=10, target_font_pt=None.
         Expectation: params['font.size'] == 8.0.
         """
         params = _build(default_spec)
         assert params["font.size"] == pytest.approx(8.0)
+
+    def test_font_size_uses_target_when_set(self) -> None:
+        """
+        Description: When target_font_pt is provided, build_rcparams must use
+                     it instead of the midpoint heuristic.
+        Scenario: min=5, max=7, target_font_pt=7.0 (Nature-style).
+        Expectation: params['font.size'] == 7.0, not 6.0.
+        """
+        spec = _make_spec(min_font_pt=5.0, max_font_pt=7.0, target_font_pt=7.0)
+        params = _build(spec)
+        assert params["font.size"] == pytest.approx(7.0)
+
+    def test_all_typography_keys_use_target_when_set(self) -> None:
+        """
+        Description: All typography size keys must reflect target_font_pt, not
+                     the midpoint, when a target is set.
+        Scenario: min=5, max=7, target_font_pt=7.0.
+        Expectation: axes.labelsize, xtick.labelsize, etc. all equal 7.0.
+        """
+        spec = _make_spec(min_font_pt=5.0, max_font_pt=7.0, target_font_pt=7.0)
+        params = _build(spec)
+        for key in (
+            "axes.titlesize",
+            "axes.labelsize",
+            "xtick.labelsize",
+            "ytick.labelsize",
+            "legend.fontsize",
+        ):
+            assert params[key] == pytest.approx(7.0), f"{key} should be 7.0 when target_font_pt=7.0"
 
     @pytest.mark.parametrize(
         "key",
@@ -893,6 +925,40 @@ class TestBuildRcparamsAxes:
 
 
 # ===========================================================================
+# build_rcparams: legend defaults
+# ===========================================================================
+
+
+class TestBuildRcparamsLegend:
+    """Verify legend defaults."""
+
+    def test_legend_frameon_is_false(self, default_spec: MagicMock) -> None:
+        """
+        Description: Legend frame must be disabled by default.
+                     Box borders add visual clutter and are not required by any
+                     journal PlotStyle targets. matplotlib's default is True
+                     (interactive-use optimised).
+        Scenario: Standard build call.
+        Expectation: params['legend.frameon'] is False.
+        """
+        params = _build(default_spec)
+        assert params["legend.frameon"] is False
+
+    def test_legend_framealpha_not_set(self, default_spec: MagicMock) -> None:
+        """
+        Description: legend.framealpha must NOT be forced to 0.0.
+                     When frameon is overridden to True via an overlay or user
+                     code, framealpha should remain at matplotlib's default (0.8)
+                     so the frame renders as expected. Setting it to 0.0 would
+                     produce an invisible box that still occupies layout space.
+        Scenario: Standard build call.
+        Expectation: 'legend.framealpha' key is absent from the returned dict.
+        """
+        params = _build(default_spec)
+        assert "legend.framealpha" not in params
+
+
+# ===========================================================================
 # build_rcparams: LaTeX integration
 # ===========================================================================
 
@@ -1009,6 +1075,98 @@ class TestBuildRcparamsLatex:
 
 
 # ===========================================================================
+# build_rcparams: tick style
+# ===========================================================================
+
+
+class TestBuildRcparamsTicks:
+    """Verify tick direction, size, and visibility defaults."""
+
+    def test_xtick_direction_is_in(self, default_spec: MagicMock) -> None:
+        """
+        Description: X-axis ticks must point inward. Outward ticks are the
+                     matplotlib interactive default but are not the publication
+                     standard for any of the journals PlotStyle targets.
+        Scenario: Standard build call.
+        Expectation: params['xtick.direction'] == 'in'.
+        """
+        params = _build(default_spec)
+        assert params["xtick.direction"] == "in"
+
+    def test_ytick_direction_is_in(self, default_spec: MagicMock) -> None:
+        """
+        Description: Y-axis ticks must point inward.
+        Scenario: Standard build call.
+        Expectation: params['ytick.direction'] == 'in'.
+        """
+        params = _build(default_spec)
+        assert params["ytick.direction"] == "in"
+
+    def test_xtick_top_is_true(self, default_spec: MagicMock) -> None:
+        """
+        Description: Ticks must appear on all four sides of the axes box.
+                     The 'minimal' overlay suppresses this for editorial use.
+        Scenario: Standard build call.
+        Expectation: params['xtick.top'] is True.
+        """
+        params = _build(default_spec)
+        assert params["xtick.top"] is True
+
+    def test_ytick_right_is_true(self, default_spec: MagicMock) -> None:
+        """
+        Description: Ticks must appear on all four sides of the axes box.
+        Scenario: Standard build call.
+        Expectation: params['ytick.right'] is True.
+        """
+        params = _build(default_spec)
+        assert params["ytick.right"] is True
+
+    def test_xtick_minor_visible(self, default_spec: MagicMock) -> None:
+        """
+        Description: Minor ticks on the x-axis must be visible by default.
+        Scenario: Standard build call.
+        Expectation: params['xtick.minor.visible'] is True.
+        """
+        params = _build(default_spec)
+        assert params["xtick.minor.visible"] is True
+
+    def test_ytick_minor_visible(self, default_spec: MagicMock) -> None:
+        """
+        Description: Minor ticks on the y-axis must be visible by default.
+        Scenario: Standard build call.
+        Expectation: params['ytick.minor.visible'] is True.
+        """
+        params = _build(default_spec)
+        assert params["ytick.minor.visible"] is True
+
+    @pytest.mark.parametrize(
+        "key,expected",
+        [
+            ("xtick.major.size", 3.0),
+            ("xtick.major.width", 0.5),
+            ("xtick.minor.size", 1.5),
+            ("xtick.minor.width", 0.5),
+            ("ytick.major.size", 3.0),
+            ("ytick.major.width", 0.5),
+            ("ytick.minor.size", 1.5),
+            ("ytick.minor.width", 0.5),
+        ],
+    )
+    def test_tick_sizes_and_widths(
+        self, key: str, expected: float, default_spec: MagicMock
+    ) -> None:
+        """
+        Description: Tick sizes and line widths must match the SciencePlots
+                     reference values, which are widely validated across physics,
+                     chemistry, and biology journals.
+        Scenario: Standard build call; parametrized over all size/width keys.
+        Expectation: Each key matches its expected float value.
+        """
+        params = _build(default_spec)
+        assert params[key] == pytest.approx(expected), f"Expected {key}={expected}"
+
+
+# ===========================================================================
 # build_rcparams: return-type and completeness
 # ===========================================================================
 
@@ -1035,7 +1193,23 @@ class TestBuildRcparamsReturnType:
             "axes.linewidth",
             "svg.fonttype",
             "axes.grid",
+            "legend.frameon",
             "text.usetex",
+            # Tick style keys
+            "xtick.direction",
+            "xtick.major.size",
+            "xtick.major.width",
+            "xtick.minor.size",
+            "xtick.minor.width",
+            "xtick.minor.visible",
+            "xtick.top",
+            "ytick.direction",
+            "ytick.major.size",
+            "ytick.major.width",
+            "ytick.minor.size",
+            "ytick.minor.width",
+            "ytick.minor.visible",
+            "ytick.right",
         }
     )
 

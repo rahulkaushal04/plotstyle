@@ -538,6 +538,12 @@ class TypographySpec:
         Font weight for panel labels (e.g. ``"bold"``).
     panel_label_case : str
         Case transformation for panel labels (e.g. ``"lower"``, ``"upper"``).
+    target_font_pt : float | None
+        Recommended rendering font size in points, when the journal's
+        guidelines state a preferred target distinct from the midpoint of
+        ``[min_font_pt, max_font_pt]``.  ``None`` when absent from the TOML,
+        in which case ``build_rcparams`` falls back to the midpoint heuristic.
+        Must be within ``[min_font_pt, max_font_pt]`` when set.
     """
 
     font_family: list[str]
@@ -547,6 +553,7 @@ class TypographySpec:
     panel_label_pt: float
     panel_label_weight: str
     panel_label_case: str
+    target_font_pt: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -872,6 +879,24 @@ class JournalSpec:
                 f"must be ≥ min_font_pt ({min_pt}), got {max_pt}",
             )
 
+        # target_font_pt is optional. When present it must be a non-negative
+        # float within the journal's compliance range [min_pt, max_pt].
+        target_pt: float | None = None
+        if "target_font_pt" in raw:
+            raw_target = raw["target_font_pt"]
+            try:
+                target_pt = float(raw_target)
+            except (TypeError, ValueError):
+                raise FieldTypeError(t, "target_font_pt", "float", raw_target) from None
+            if target_pt < 0.0:
+                raise FieldValueError(t, "target_font_pt", f"must be ≥ 0, got {target_pt}")
+            if not (min_pt <= target_pt <= max_pt):
+                raise FieldValueError(
+                    t,
+                    "target_font_pt",
+                    f"must be within [min_font_pt={min_pt}, max_font_pt={max_pt}], got {target_pt}",
+                )
+
         return TypographySpec(
             font_family=_cast_str_list(
                 raw,
@@ -890,6 +915,7 @@ class JournalSpec:
             panel_label_case=_cast_str(
                 raw, t, "panel_label_case", default="lower", allowed=_KNOWN_LABEL_CASES
             ),
+            target_font_pt=target_pt,
         )
 
     @staticmethod

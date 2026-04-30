@@ -56,13 +56,24 @@ with plotstyle.use("science") as style:
         ax.plot([1, 2, 3])
 ```
 
-## 3. Use colorblind-safe colours
+## 3. Use colorblind-safe colors
 
-`style.palette()` returns colours from the journal's recommended palette:
+`plotstyle.use()` automatically sets the journal's recommended colorblind-safe
+palette as the default color cycle. Plots draw from it without any `color=` argument:
+
+```python
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure()
+    ax.plot(x, np.sin(x), label="sin(x)")  # first Okabe-Ito color
+    ax.plot(x, np.cos(x), label="cos(x)")  # second Okabe-Ito color
+```
+
+When you need explicit color values (e.g. for custom legend patches or
+scatter plots), `style.palette()` returns them as a list:
 
 ```python
 colors = style.palette(n=4)
-# e.g. ['#E69F00', '#56B4E9', '#009E73', '#F0E442']
+# ['#E69F00', '#56B4E9', '#009E73', '#F0E442']
 ```
 
 For journals that require grayscale-safe figures (like IEEE), add markers and
@@ -77,7 +88,7 @@ for color, linestyle, marker in styled:
 ## 4. Validate before submitting
 
 `style.validate()` checks your figure against the journal's requirements:
-dimensions, font sizes, line weights, and colour rules:
+dimensions, font sizes, line weights, and color rules:
 
 ```python
 report = style.validate(fig)
@@ -111,9 +122,9 @@ with plotstyle.use("nature") as style:
     fig, ax = style.figure(columns=1)
 
     x = np.linspace(0, 2 * np.pi, 200)
-    colors = style.palette(n=2)
-    ax.plot(x, np.sin(x), color=colors[0], label="sin(x)")
-    ax.plot(x, np.cos(x), color=colors[1], label="cos(x)")
+    # Colors come from the Okabe-Ito palette, set automatically by use("nature")
+    ax.plot(x, np.sin(x), label="sin(x)")
+    ax.plot(x, np.cos(x), label="cos(x)")
     ax.set_xlabel("Phase (rad)")
     ax.set_ylabel("Amplitude (a.u.)")
     ax.legend()

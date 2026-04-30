@@ -15,6 +15,7 @@ font_family = ["Helvetica", "Arial"]
 font_fallback = "sans-serif"
 min_font_pt = 5.0
 max_font_pt = 7.0
+target_font_pt = 7.0
 
 [export]
 preferred_formats = ["ai", "eps", "pdf"]

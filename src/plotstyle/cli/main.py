@@ -82,6 +82,8 @@ def _cmd_info(journal: str) -> int:
     print("Typography:")
     print(f"  Font:          {fonts} (fallback: {typo.font_fallback})")
     print(f"  Size range:    {typo.min_font_pt}-{typo.max_font_pt}pt")
+    if typo.target_font_pt is not None:
+        print(f"  Target size:   {typo.target_font_pt}pt")
     print(
         f"  Panel labels:  {typo.panel_label_pt}pt "
         f"{typo.panel_label_weight} {typo.panel_label_case} "

@@ -174,7 +174,13 @@ def build_rcparams(
         font_name = spec.typography.font_fallback
 
     figsize = _compute_figure_size(spec)
-    font_size = _compute_base_font_size(spec)
+    # Use the journal's explicit target when available; fall back to the
+    # midpoint heuristic for specs that only publish a compliance range.
+    font_size = (
+        spec.typography.target_font_pt
+        if spec.typography.target_font_pt is not None
+        else _compute_base_font_size(spec)
+    )
 
     params: dict[str, Any] = {
         "pdf.fonttype": _FONTTYPE_TRUETYPE,
@@ -194,12 +200,25 @@ def build_rcparams(
             "xtick.labelsize": font_size,
             "ytick.labelsize": font_size,
             "legend.fontsize": font_size,
-            # Clamped to physically reproducible minimums; thinner lines vanish in print.
             "lines.linewidth": max(spec.line.min_weight_pt, 1.0),
             "axes.linewidth": max(spec.line.min_weight_pt, 0.5),
-            # "none" keeps text editable in SVG; "path" converts to outlines (more portable).
             "svg.fonttype": "none" if spec.export.editable_text else "path",
             "axes.grid": False,
+            "legend.frameon": False,
+            "xtick.direction": "in",
+            "xtick.major.size": 3.0,
+            "xtick.major.width": 0.5,
+            "xtick.minor.size": 1.5,
+            "xtick.minor.width": 0.5,
+            "xtick.minor.visible": True,
+            "xtick.top": True,
+            "ytick.direction": "in",
+            "ytick.major.size": 3.0,
+            "ytick.major.width": 0.5,
+            "ytick.minor.size": 1.5,
+            "ytick.minor.width": 0.5,
+            "ytick.minor.visible": True,
+            "ytick.right": True,
         }
     )
 

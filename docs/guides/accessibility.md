@@ -1,12 +1,12 @@
 # Accessibility Checks
 
-How to check that your figures are readable by people with colour vision
+How to check that your figures are readable by people with color vision
 deficiencies and legible in grayscale print.
 
 ## Colorblind preview
 
 `preview_colorblind()` generates a side-by-side view of your figure under
-three types of colour vision deficiency:
+three types of color vision deficiency:
 
 ```python
 import matplotlib.pyplot as plt
@@ -29,7 +29,7 @@ This produces a four-panel figure:
 [ Original | Deuteranopia | Protanopia | Tritanopia ]
 ```
 
-If your colour-coded elements look the same in any panel, consider switching
+If your color-coded elements look the same in any panel, consider switching
 to a different palette or adding markers, patterns, or direct labels.
 
 **Output:**
@@ -97,6 +97,6 @@ Common threshold values:
 2. Use `plotstyle.palette()`: the built-in palettes are already optimised for
    each journal's requirements.
 3. Add redundant encoding (markers, linestyles, or direct labels) so that
-   colour is not the only way to tell series apart.
-4. Run `plotstyle.validate()` as a final check; it flags colour accessibility
+   color is not the only way to tell series apart.
+4. Run `plotstyle.validate()` as a final check; it flags color accessibility
    issues automatically.
