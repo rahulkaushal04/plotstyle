@@ -15,8 +15,8 @@ typed sub-specs:
 |----------|----------------|
 | `metadata` | Journal name, publisher, source URL |
 | `dimensions` | Column widths (mm), max height (mm) |
-| `typography` | Font family, size range (pt), panel label style |
-| `export` | Preferred formats, min DPI, colour space |
+| `typography` | Font family, size range (pt), optional target size (pt), panel label style |
+| `export` | Preferred formats, min DPI, color space |
 | `color` | Colorblind/grayscale requirements, avoided combinations |
 | `line` | Minimum stroke weight (pt) |
 
@@ -27,8 +27,9 @@ handles everything automatically. But you can inspect them:
 from plotstyle.specs import registry
 
 spec = registry.get("nature")
-print(spec.dimensions.single_column_mm)  # 89.0
-print(spec.typography.font_family)       # ['Helvetica', 'Arial']
+print(spec.dimensions.single_column_mm)   # 89.0
+print(spec.typography.font_family)        # ['Helvetica', 'Arial']
+print(spec.typography.target_font_pt)     # 7.0 (explicit target; None for journals that only publish a range)
 print(spec.export.min_dpi)               # 300
 ```
 
@@ -99,9 +100,13 @@ that may include one journal key and any number of overlay keys
 
 1. Looks up the journal spec from the registry (if a journal key is present)
 2. Saves the current Matplotlib rcParams values it's about to change
-3. Applies the journal's base rcParams
-4. Applies each overlay's rcParams in list order, with later overlays winning
-   on any key conflict
+3. Applies the journal's base rcParams (fonts, sizes, line widths, tick settings, DPI)
+4. Sets the journal's recommended color palette as the default `axes.prop_cycle`, so
+   every plot in that session uses colorblind-safe, journal-appropriate colors without
+   any manual `color=` calls
+5. Applies each overlay's rcParams in list order, with later overlays winning
+   on any key conflict; a color overlay (e.g. `"tol-bright"`) applied here will
+   override the journal default set in step 4
 
 The {class}`~plotstyle.core.style.JournalStyle` handle stores the saved values
 and can restore them, either when you call `style.restore()` or automatically
@@ -124,7 +129,7 @@ the `aspect` parameter.
 
 ## Palettes
 
-`plotstyle.palette()` maps each journal to a colorblind-safe palette:
+PlotStyle maps each journal to a colorblind-safe palette:
 
 | Journal | Palette |
 |---------|---------|
@@ -134,8 +139,29 @@ the `aspect` parameter.
 | Science | Tol Vibrant |
 | IEEE | Safe Grayscale |
 
-Palettes cycle automatically if you request more colours than the palette
-contains.
+**Automatic default color cycle**: when you call `plotstyle.use("nature")`, the Okabe-Ito
+palette is set as the default `axes.prop_cycle` automatically. Every `ax.plot()` or
+`ax.bar()` call picks colors from it without any `color=` argument:
+
+```python
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure()
+    ax.plot(x, np.sin(x), label="sin")  # first Okabe-Ito color
+    ax.plot(x, np.cos(x), label="cos")  # second Okabe-Ito color
+```
+
+To get explicit color values (for passing to lower-level Matplotlib calls or for
+building custom legends), use `style.palette()` or `plotstyle.palette()`:
+
+```python
+colors = plotstyle.palette("nature", n=4)
+# ['#E69F00', '#56B4E9', '#009E73', '#F0E442']
+```
+
+Palettes cycle automatically if you request more colors than the palette contains.
+
+A color overlay overrides the journal default. For example, `use(["ieee", "okabe-ito"])`
+applies IEEE's grayscale-safe defaults first, then replaces the color cycle with Okabe-Ito.
 
 ## Validation
 
@@ -145,7 +171,7 @@ contains.
 - **Dimensions**: width and height vs. journal limits
 - **Typography**: font sizes within allowed range
 - **Lines**: stroke weights above journal minimum
-- **Colours**: avoided combinations, colorblind/grayscale compliance
+- **Colors**: avoided combinations, colorblind/grayscale compliance
 - **Export**: DPI and font embedding
 
 Each failed check includes a `fix_suggestion` so you know exactly what to fix.
@@ -177,7 +203,7 @@ Overlay categories:
 
 | Category | Purpose | Examples |
 |----------|---------|---------|
-| `color` | Swap the default colour cycle | `okabe-ito`, `tol-bright`, `tol-vibrant`, `tol-muted`, `tol-light`, `tol-high-contrast`, `tol-rainbow-4/6/8/10/12`, `safe-grayscale` |
+| `color` | Swap the default color cycle | `okabe-ito`, `tol-bright`, `tol-vibrant`, `tol-muted`, `tol-light`, `tol-high-contrast`, `tol-rainbow-4/6/8/10/12`, `safe-grayscale` |
 | `context` | Adjust scale for the medium | `notebook`, `presentation`, `minimal`, `high-vis` |
 | `rendering` | Control LaTeX and grid rendering | `no-latex`, `grid`, `latex-sans`, `pgf` |
 | `plot-type` | Optimise for a specific chart type | `bar`, `scatter` |

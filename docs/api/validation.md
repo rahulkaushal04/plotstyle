@@ -86,7 +86,7 @@ for warning in report.warnings:
 | `dimensions.height` | Figure height within journal maximum |
 | `typography.*` | Font sizes within min/max bounds |
 | `lines.*` | Stroke weights above journal minimum |
-| `colors.*` | Avoided colour combinations, colorblind safety |
+| `colors.*` | Avoided color combinations, colorblind safety |
 | `export.*` | DPI and format compliance |
 
 ## Notes

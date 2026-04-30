@@ -740,6 +740,113 @@ class TestJournalStyleRestore:
 # ---------------------------------------------------------------------------
 
 
+# ===========================================================================
+# use(): journal color cycle
+# ===========================================================================
+
+
+class TestUseColorCycle:
+    """Verify that use() applies the journal-recommended default color cycle."""
+
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.SpecAssumptionWarning")
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
+    def test_nature_gets_okabe_ito_palette(self) -> None:
+        """
+        Description: use('nature') must apply okabe_ito as the default color
+                     cycle. The JOURNAL_PALETTE_MAP maps 'nature' to okabe_ito.
+        Scenario: Call use('nature') and inspect axes.prop_cycle.
+        Expectation: The cycle colors match the okabe_ito palette.
+        """
+        from plotstyle.color.palettes import JOURNAL_PALETTE_MAP, load_palette
+
+        expected = load_palette(JOURNAL_PALETTE_MAP["nature"])
+        style = use("nature")
+        try:
+            actual = [item["color"] for item in mpl.rcParams["axes.prop_cycle"]]
+            assert actual == expected
+        finally:
+            style.restore()
+
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.SpecAssumptionWarning")
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
+    def test_ieee_gets_safe_grayscale_palette(self) -> None:
+        """
+        Description: use('ieee') must apply safe_grayscale by default. IEEE
+                     requires colorblind-safe and grayscale-compatible figures;
+                     the matplotlib default blue-orange-green cycle would fail.
+        Scenario: Call use('ieee') and inspect axes.prop_cycle.
+        Expectation: The cycle colors match the safe_grayscale palette.
+        """
+        from plotstyle.color.palettes import JOURNAL_PALETTE_MAP, load_palette
+
+        expected = load_palette(JOURNAL_PALETTE_MAP["ieee"])
+        style = use("ieee")
+        try:
+            actual = [item["color"] for item in mpl.rcParams["axes.prop_cycle"]]
+            assert actual == expected
+        finally:
+            style.restore()
+
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.SpecAssumptionWarning")
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
+    def test_color_overlay_overrides_default_palette(self) -> None:
+        """
+        Description: An explicit color overlay applied after use() must win
+                     over the journal's default palette. Overlay precedence
+                     must be preserved.
+        Scenario: use(['nature', 'tol-bright']) - tol-bright colors differ
+                  from nature's default okabe-ito.
+        Expectation: The cycle reflects tol-bright, not okabe-ito.
+        """
+        from plotstyle.color.palettes import load_palette
+
+        tol_bright = load_palette("tol_bright")
+        with use(["nature", "tol-bright"]) as _style:
+            actual = [item["color"] for item in mpl.rcParams["axes.prop_cycle"]]
+        assert actual == tol_bright
+
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
+    def test_overlay_only_mode_does_not_apply_palette(self) -> None:
+        """
+        Description: When use() is called with overlays only (no journal key),
+                     no palette is applied from JOURNAL_PALETTE_MAP.
+        Scenario: use(['notebook']) - no journal key.
+        Expectation: axes.prop_cycle is unchanged from before the call.
+        """
+        before = list(mpl.rcParams["axes.prop_cycle"])
+        with use(["notebook"]):
+            after = list(mpl.rcParams["axes.prop_cycle"])
+        assert after == before
+
+
+# ===========================================================================
+# use(): font size target
+# ===========================================================================
+
+
+class TestUseFontSizeTarget:
+    """Verify that use('nature') applies 7 pt (target) not 6 pt (midpoint)."""
+
+    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
+    def test_nature_font_size_is_7pt(self) -> None:
+        """
+        Description: Nature's TOML sets target_font_pt=7.0. build_rcparams
+                     must use 7 pt, not the 6 pt midpoint of the 5-7 pt range.
+        Scenario: use('nature') and read font.size.
+        Expectation: mpl.rcParams['font.size'] == 7.0.
+        """
+        style = use("nature")
+        try:
+            assert mpl.rcParams["font.size"] == pytest.approx(7.0)
+        finally:
+            style.restore()
+
+
+# ===========================================================================
+# Public API
+# ===========================================================================
+
+
 class TestPublicAPI:
     """Validate the module's public API surface."""
 

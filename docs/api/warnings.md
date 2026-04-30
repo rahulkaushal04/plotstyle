@@ -49,8 +49,8 @@ journal's double-column width. Expected when using `notebook` or
 
 ### `PaletteColorblindWarning`
 
-Emitted when the `safe-grayscale` colour overlay is combined with a journal
-that requires colorblind-safe colours (e.g. `ieee`, `science`).
+Emitted when the `safe-grayscale` color overlay is combined with a journal
+that requires colorblind-safe colors (e.g. `ieee`, `science`).
 
 ### `SpecAssumptionWarning`
 

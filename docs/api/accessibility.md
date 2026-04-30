@@ -1,6 +1,6 @@
 # Accessibility: `plotstyle.color.accessibility`
 
-Simulate how your figure looks under different types of colour vision deficiency.
+Simulate how your figure looks under different types of color vision deficiency.
 
 ## `preview_colorblind`
 

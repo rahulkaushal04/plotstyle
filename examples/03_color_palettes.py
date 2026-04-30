@@ -2,14 +2,17 @@
 Color palettes: journal-specific, colorblind-safe color schemes.
 
 Steps:
-1. Get a list of hex colors with plotstyle.palette(journal, n=...).
-2. Use with_markers=True to get (color, linestyle, marker) tuples for
+1. Automatic default color cycle: plotstyle.use() sets the journal's palette
+   as axes.prop_cycle so plots use correct colors without any color= kwarg.
+2. Get a list of hex colors with plotstyle.palette(journal, n=...).
+3. Use with_markers=True to get (color, linestyle, marker) tuples for
    grayscale-safe plots (important for IEEE which prints in black-and-white).
-3. Compare palettes for multiple journals side-by-side.
-4. Apply a palette to the default color cycle with plotstyle.apply_palette().
-5. List all available palettes with plotstyle.list_palettes().
+4. Compare palettes for multiple journals side-by-side.
+5. Apply a palette to the default color cycle with plotstyle.apply_palette().
+6. List all available palettes with plotstyle.list_palettes().
 
 Output:
+    output/palette_auto_cycle.pdf
     output/palette_basic.pdf
     output/palette_styled_ieee.pdf
     output/palette_comparison.png
@@ -27,8 +30,34 @@ OUTPUT_DIR = Path(__file__).parent / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 # ==============================================================================
-# 1. Basic palette: list of hex color strings
+# 1. Automatic default color cycle
 # ==============================================================================
+# plotstyle.use() sets the journal's recommended palette as the default
+# axes.prop_cycle. Plots draw from it without any color= argument.
+# For Nature, this is the Okabe-Ito palette.
+# A color overlay (e.g. "tol-bright") would override this default.
+
+x = np.linspace(0, 6, 100)
+
+with plotstyle.use("nature") as style:
+    fig, ax = style.figure(columns=1)
+    # No color= kwarg needed; the Okabe-Ito cycle is applied automatically.
+    for i in range(4):
+        ax.plot(x, np.sin(x + i * 0.5), label=f"Series {i + 1}")
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_title("Automatic Okabe-Ito cycle (Nature)")
+    ax.legend()
+    style.savefig(fig, OUTPUT_DIR / "palette_auto_cycle.pdf")
+    plt.close(fig)
+
+print("Automatic color cycle: Okabe-Ito applied by use('nature')")
+
+# ==============================================================================
+# 2. Explicit palette: list of hex color strings
+# ==============================================================================
+# Use style.palette() or plotstyle.palette() when you need explicit color values,
+# for example to pass to scatter(), bar(), or custom legend patches.
 
 colors = plotstyle.palette("nature", n=4)
 print("Nature palette (4 colors):", colors)
@@ -46,7 +75,7 @@ with plotstyle.use("nature") as style:
     plt.close(fig)
 
 # ==============================================================================
-# 2. Styled tuples: (color, linestyle, marker) for grayscale-safe line plots
+# 3. Styled tuples: (color, linestyle, marker) for grayscale-safe line plots
 # ==============================================================================
 
 # with_markers=True is important for IEEE, which prints in grayscale.
@@ -72,7 +101,7 @@ with plotstyle.use("ieee") as style:
     plt.close(fig)
 
 # ==============================================================================
-# 3. Cross-journal palette comparison
+# 4. Cross-journal palette comparison
 # ==============================================================================
 
 journals = ["nature", "science", "ieee", "acs"]
@@ -91,7 +120,7 @@ fig.savefig(OUTPUT_DIR / "palette_comparison.png", dpi=150)
 plt.close(fig)
 
 # ==============================================================================
-# 4. apply_palette: set the default color cycle for automatic coloring
+# 5. apply_palette: set the default color cycle for automatic coloring
 # ==============================================================================
 # apply_palette() sets axes.prop_cycle so every subsequent plot() call picks
 # colors from the named palette automatically; no color= kwarg needed.
@@ -122,7 +151,7 @@ with plotstyle.use("nature") as style:
     plt.close(fig)
 
 # ==============================================================================
-# 5. list_palettes: discover all built-in palette names
+# 6. list_palettes: discover all built-in palette names
 # ==============================================================================
 
 available = plotstyle.list_palettes()

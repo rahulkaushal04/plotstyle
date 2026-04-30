@@ -5,6 +5,7 @@ Steps:
 1. Create a figure using plotstyle.use() and plotstyle.figure().
 2. Run plotstyle.validate() to check dimensions, fonts, DPI, and colors.
 3. Read the report: report.passed, report.failures, and report.to_dict().
+4. Use is_failure and is_warning convenience properties on CheckResult.
 
 Output: (console only)
 """
@@ -41,6 +42,12 @@ with plotstyle.use("nature") as style:
             print(f"  [{result.check_name}] {result.message}")
             if result.fix_suggestion:
                 print(f"    Fix: {result.fix_suggestion}")
+
+    # is_failure / is_warning are convenience properties on CheckResult.
+    # They avoid importing CheckStatus for simple pass/fail filtering.
+    fail_count = sum(1 for r in report.checks if r.is_failure)
+    warn_count = sum(1 for r in report.checks if r.is_warning)
+    print(f"Failures: {fail_count}, Warnings: {warn_count}")
 
     # JSON-serializable dict, useful for CI quality gates
     report_dict = report.to_dict()

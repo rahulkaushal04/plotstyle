@@ -13,6 +13,30 @@ _Nothing yet._
 
 ---
 
+## [1.2.4] - 2026-04-30
+
+Minor release: automatic journal color cycle, `target_font_pt` typography field, Nature-specific rcParams, CLI improvements, a full documentation and example audit, and a new doc image generation script.
+
+### Added
+
+- **Automatic journal palette as default color cycle** (`plotstyle.use()`): calling `use("nature")` (or any journal key) now sets the journal's recommended palette as `axes.prop_cycle` automatically. Every `ax.plot()`, `ax.bar()`, and `ax.scatter()` call draws from it without any `color=` argument. A color overlay applied in the same `use()` call overrides this default.
+- **`target_font_pt` field on `TypographySpec`**: optional `float | None` field that records a journal's explicitly stated target font size (as opposed to only a min/max range). When set, `build_rcparams()` uses it as `font.size` instead of the midpoint of the range. `nature.toml` sets `target_font_pt = 7.0` (Nature's guidelines explicitly state 7 pt as the standard text size).
+- **`plotstyle info` CLI shows `Target size:`**: when `target_font_pt` is set for a journal, the `plotstyle info <journal>` command now prints a `Target size:` line under Typography.
+- **Nature-specific tick and legend rcParams** (`build_rcparams()`): the Nature preset now applies inward-facing ticks (`xtick.direction: in`, `ytick.direction: in`), minor ticks visible on all axes, mirrored tick marks (`xtick.top: True`, `ytick.right: True`), and `legend.frameon: False` - matching Nature's published figure style guidelines.
+- **`scripts/generate_docs_images.py`**: new script that regenerates all 9 static PNG images used in the documentation (`docs/images/`) from the current codebase in one headless run.
+- **Docs images regenerated**: all 9 images in `docs/images/` rebuilt using the updated codebase - `quickstart_nature.png`, `multi_panel_science.png`, `palette_comparison.png`, `accessibility_colorblind.png`, `accessibility_grayscale.png`, `gallery_nature.png`, `gallery_ieee.png`, `seaborn_scatter_nature.png`, `overlay_bar.png`.
+- **New test coverage**: `TestUseColorCycle` (automatic palette cycle), `TestUseFontSizeTarget` (target_font_pt font size selection), `TestBuildRcparamsLegend` (Nature legend.frameon), and `TestBuildRcparamsTicks` (Nature inward/mirrored tick rcParams).
+
+### Changed
+
+- **`examples/03_color_palettes.py`**: added Section 1 demonstrating the automatic default color cycle; renumbered remaining sections 2-6.
+- **`examples/05_validation.py`**: added `is_failure` / `is_warning` convenience property usage.
+- **`examples/09_registry_and_spec.py`**: expanded to cover `target_font_pt`, `is_official`, `assumed_fields`, and `registry.preload()`.
+- **`examples/12_overlays.py`**: added color overlay, grid rendering overlay, scatter + IEEE warning, overlay inspection, and `list_overlays()` with category filter. Imports reorganized to comply with E402 (module-level imports at top); unused loop variable renamed to `_ls` to comply with B007.
+- **Docs**: all docs updated to reflect the automatic palette cycle and `target_font_pt` changes; `colour` spelling standardized to `color` throughout.
+
+---
+
 ## [1.2.2] - 2026-04-27
 
 Patch release: docs improvements, README example quality, and CI action bump.
@@ -172,7 +196,8 @@ First public alpha release.
 - **Dynamic versioning**: version derived from git tags via `hatch-vcs` and `importlib.metadata`.
 - **CI/CD pipeline**: GitHub Actions workflows for lint, type-check, test matrix, and automated PyPI release via OIDC Trusted Publishing.
 
-[Unreleased]: https://github.com/rahulkaushal04/plotstyle/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/rahulkaushal04/plotstyle/compare/v1.2.4...HEAD
+[1.2.4]: https://github.com/rahulkaushal04/plotstyle/compare/v1.2.2...v1.2.4
 [1.2.2]: https://github.com/rahulkaushal04/plotstyle/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/rahulkaushal04/plotstyle/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/rahulkaushal04/plotstyle/compare/v1.1.0...v1.2.0
