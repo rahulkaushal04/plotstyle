@@ -4,7 +4,7 @@ category = "script"
 description = "Font configuration for Korean labels (KS/Unicode)."
 
 [rcparams]
-"font.family" = ["NanumGothic", "Noto Sans CJK KR", "Apple SD Gothic Neo"]
+"font.family" = ["NanumGothic", "Noto Sans CJK KR", "Noto Serif CJK KR", "Apple SD Gothic Neo"]
 "axes.unicode_minus" = false
 
 [script]
@@ -14,4 +14,4 @@ latex_preamble = [
 ]
 
 [requires]
-fonts = ["NanumGothic", "Noto Sans CJK KR", "Apple SD Gothic Neo"]
+fonts = ["NanumGothic", "Noto Sans CJK KR", "Noto Serif CJK KR", "Apple SD Gothic Neo"]

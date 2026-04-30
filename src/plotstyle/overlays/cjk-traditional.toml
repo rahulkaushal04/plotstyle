@@ -4,7 +4,7 @@ category = "script"
 description = "Font configuration for Traditional Chinese labels (Big5/Unicode)."
 
 [rcparams]
-"font.family" = ["PMingLiU", "MingLiU", "Noto Sans CJK TC", "AR PL UMing TW"]
+"font.family" = ["PMingLiU", "MingLiU", "Noto Sans CJK TC", "Noto Serif CJK TC", "AR PL UMing TW"]
 "axes.unicode_minus" = false
 
 [script]
@@ -14,4 +14,4 @@ latex_preamble = [
 ]
 
 [requires]
-fonts = ["PMingLiU", "MingLiU", "Noto Sans CJK TC", "AR PL UMing TW"]
+fonts = ["PMingLiU", "MingLiU", "Noto Sans CJK TC", "Noto Serif CJK TC", "AR PL UMing TW"]

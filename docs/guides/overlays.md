@@ -33,7 +33,7 @@ last one wins.
 | `context` | Adjust scale for a different medium | `notebook`, `presentation`, `minimal`, `high-vis` |
 | `rendering` | Control text rendering and grids | `no-latex`, `grid`, `latex-sans`, `pgf` |
 | `plot-type` | Optimise for a chart type | `bar`, `scatter` |
-| `script` | Font support for non-Latin text | `cjk-japanese`, `russian`, `turkish` |
+| `script` | Font support for non-Latin text | `cjk-simplified`, `cjk-traditional`, `cjk-japanese`, `cjk-korean`, `russian`, `turkish` |
 
 ## Context overlays
 
@@ -176,14 +176,21 @@ If none of the required fonts are installed, PlotStyle emits a
 
 Available script overlays:
 
-| Key | Language | Primary fonts |
-|-----|---------|---------------|
-| `cjk-simplified` | Simplified Chinese | SimHei, Microsoft YaHei, Noto Sans CJK SC |
-| `cjk-traditional` | Traditional Chinese | PMingLiU, MingLiU, Noto Sans CJK TC |
-| `cjk-japanese` | Japanese | IPAPGothic, TakaoGothic, Noto Sans CJK JP |
-| `cjk-korean` | Korean | NanumGothic, Noto Sans CJK KR |
+| Key | Language | Font priority (first installed wins) |
+|-----|---------|--------------------------------------|
+| `cjk-simplified` | Simplified Chinese | SimHei, Microsoft YaHei, Noto Sans CJK SC, Noto Serif CJK SC, WenQuanYi Micro Hei |
+| `cjk-traditional` | Traditional Chinese | PMingLiU, MingLiU, Noto Sans CJK TC, Noto Serif CJK TC, AR PL UMing TW |
+| `cjk-japanese` | Japanese | IPAPGothic, TakaoGothic, Noto Sans CJK JP, Noto Serif CJK JP, Hiragino Kaku Gothic Pro |
+| `cjk-korean` | Korean | NanumGothic, Noto Sans CJK KR, Noto Serif CJK KR, Apple SD Gothic Neo |
 | `russian` | Russian / Cyrillic | DejaVu Sans, Liberation Sans |
 | `turkish` | Turkish | DejaVu Sans, Liberation Sans |
+
+Each overlay tries fonts in order and uses the first one found on the current system. Both Sans and Serif Noto CJK variants are listed because Ubuntu's `fonts-noto-cjk` package may install either depending on the variant installed. If you have just installed a new font and it is not being picked up, rebuild matplotlib's font cache:
+
+```python
+import matplotlib
+matplotlib.font_manager._rebuild()
+```
 
 Check whether the required fonts are installed before using a script overlay:
 

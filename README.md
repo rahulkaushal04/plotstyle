@@ -274,7 +274,7 @@ with plotstyle.use(["ieee", "okabe-ito"]) as style:
 | `context` | Adjust scale for the medium | `notebook`, `presentation`, `minimal`, `high-vis` |
 | `rendering` | Control LaTeX and grid rendering | `no-latex`, `grid`, `latex-sans`, `pgf` |
 | `plot-type` | Optimise for a chart type | `bar`, `scatter` |
-| `script` | Non-Latin font support | `cjk-simplified`, `russian`, `turkish` |
+| `script` | Non-Latin font support | `cjk-simplified`, `cjk-traditional`, `cjk-japanese`, `cjk-korean`, `russian`, `turkish` |
 
 ```python
 # List all available overlays

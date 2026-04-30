@@ -4,7 +4,7 @@ category = "script"
 description = "Font configuration for Simplified Chinese labels (GB2312/Unicode)."
 
 [rcparams]
-"font.family" = ["SimHei", "Microsoft YaHei", "Noto Sans CJK SC", "WenQuanYi Micro Hei"]
+"font.family" = ["SimHei", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Serif CJK SC", "WenQuanYi Micro Hei"]
 "axes.unicode_minus" = false
 
 [script]
@@ -14,4 +14,4 @@ latex_preamble = [
 ]
 
 [requires]
-fonts = ["SimHei", "Microsoft YaHei", "Noto Sans CJK SC", "WenQuanYi Micro Hei"]
+fonts = ["SimHei", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Serif CJK SC", "WenQuanYi Micro Hei"]
