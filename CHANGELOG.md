@@ -13,7 +13,7 @@ _Nothing yet._
 
 ---
 
-## [1.2.4] - 2026-04-30
+## [1.2.3] - 2026-04-30
 
 Minor release: automatic journal color cycle, `target_font_pt` typography field, Nature-specific rcParams, CLI improvements, a full documentation and example audit, and a new doc image generation script.
 
@@ -196,8 +196,8 @@ First public alpha release.
 - **Dynamic versioning**: version derived from git tags via `hatch-vcs` and `importlib.metadata`.
 - **CI/CD pipeline**: GitHub Actions workflows for lint, type-check, test matrix, and automated PyPI release via OIDC Trusted Publishing.
 
-[Unreleased]: https://github.com/rahulkaushal04/plotstyle/compare/v1.2.4...HEAD
-[1.2.4]: https://github.com/rahulkaushal04/plotstyle/compare/v1.2.2...v1.2.4
+[Unreleased]: https://github.com/rahulkaushal04/plotstyle/compare/v1.2.3...HEAD
+[1.2.3]: https://github.com/rahulkaushal04/plotstyle/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/rahulkaushal04/plotstyle/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/rahulkaushal04/plotstyle/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/rahulkaushal04/plotstyle/compare/v1.1.0...v1.2.0
