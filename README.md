@@ -19,7 +19,7 @@
 **PlotStyle** makes it easy to produce Matplotlib figures that meet the exact typographic, dimensional, and export requirements of major academic journals. It also integrates with Seaborn, with more integrations planned. Pick a journal, create your figure, save it. PlotStyle handles the rest.
 
 <p align="center">
-  <img src="examples/output/before_after.png" width="90%" alt="Left: default Matplotlib output. Right: the same figure styled with plotstyle.use('nature').">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/before_after.png" width="90%" alt="Left: default Matplotlib output. Right: the same figure styled with plotstyle.use('nature').">
 </p>
 
 <p align="center">
@@ -87,7 +87,7 @@ with plotstyle.use("nature") as style:
 ```
 
 <p align="center">
-  <img src="examples/output/quickstart_nature.png" width="55%" alt="Quickstart output: sin and cos figure styled for Nature">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/quickstart_nature.png" width="55%" alt="Quickstart output: sin and cos figure styled for Nature">
 </p>
 
 The `with` block is the recommended pattern. Matplotlib's `rcParams` are restored automatically when it exits, even if an exception occurs.
@@ -134,7 +134,7 @@ with plotstyle.use("science") as style:
 ```
 
 <p align="center">
-  <img src="examples/output/multi_panel_science.png" width="70%" alt="2x2 multi-panel Science figure with automatic panel labels a b c d">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/multi_panel_science.png" width="70%" alt="2x2 multi-panel Science figure with automatic panel labels a b c d">
 </p>
 
 > `axes` is always a 2-D NumPy array. Use `axes[0, 0]` to access a single panel or `axes.flat` to iterate. Pass `panels=False` to suppress the automatic labels.
@@ -167,7 +167,7 @@ fig.savefig("palette_comparison.png", dpi=150)
 ```
 
 <p align="center">
-  <img src="examples/output/palette_comparison.png" width="70%" alt="Color swatch comparison for Nature, Science, IEEE, and ACS palettes">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/palette_comparison.png" width="70%" alt="Color swatch comparison for Nature, Science, IEEE, and ACS palettes">
 </p>
 
 Pass `with_markers=True` to get `(color, linestyle, marker)` tuples, useful for journals like IEEE that print in grayscale:
@@ -197,7 +197,7 @@ with plotstyle.use("ieee") as style:
 ```
 
 <p align="center">
-  <img src="examples/output/palette_styled_ieee.png" width="55%" alt="IEEE figure with per-series color, linestyle, and marker combinations">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/palette_styled_ieee.png" width="55%" alt="IEEE figure with per-series color, linestyle, and marker combinations">
 </p>
 
 ---
@@ -222,7 +222,7 @@ with plotstyle.use(["nature", "minimal"]) as style:
 ```
 
 <p align="center">
-  <img src="examples/output/overlay_minimal.png" width="45%" alt="Nature figure with minimal overlay: no top/right spines">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/overlay_minimal.png" width="45%" alt="Nature figure with minimal overlay: no top/right spines">
 </p>
 
 ```python
@@ -244,7 +244,7 @@ with plotstyle.use(["nature", "notebook"]) as style:
 ```
 
 <p align="center">
-  <img src="examples/output/overlay_notebook.png" width="60%" alt="Nature figure with notebook overlay: larger fonts and figure size">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/overlay_notebook.png" width="60%" alt="Nature figure with notebook overlay: larger fonts and figure size">
 </p>
 
 ```python
@@ -265,7 +265,7 @@ with plotstyle.use(["ieee", "okabe-ito"]) as style:
 ```
 
 <p align="center">
-  <img src="examples/output/overlay_okabe_ito.png" width="55%" alt="IEEE figure with okabe-ito colorblind-safe palette">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/overlay_okabe_ito.png" width="55%" alt="IEEE figure with okabe-ito colorblind-safe palette">
 </p>
 
 | Category | Purpose | Examples |
@@ -324,11 +324,11 @@ with plotstyle.use("nature") as style:
 ```
 
 <p align="center">
-  <img src="examples/output/accessibility_colorblind.png" width="90%" alt="Colorblind simulation: original, deuteranopia, protanopia, tritanopia">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/accessibility_colorblind.png" width="90%" alt="Colorblind simulation: original, deuteranopia, protanopia, tritanopia">
 </p>
 
 <p align="center">
-  <img src="examples/output/accessibility_grayscale.png" width="60%" alt="Grayscale simulation: original vs grayscale rendering">
+  <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/accessibility_grayscale.png" width="60%" alt="Grayscale simulation: original vs grayscale rendering">
 </p>
 
 ---
