@@ -133,6 +133,26 @@ with plotstyle.use(["nature", "pgf"]) as style:
 > rendering overlays in a single list, the last one wins and a
 > `PlotStyleWarning` is emitted.
 
+### `si-units`
+
+Loads the `siunitx` LaTeX package so you can write SI unit notation directly
+in axis labels and tick marks using commands like `\qty{}{\nano\metre}` or
+`\SI{9.81}{\metre\per\second\squared}`. Without this overlay, those commands
+fail with a cryptic LaTeX error even when LaTeX is otherwise enabled.
+
+This overlay forces `text.usetex = true` and requires a LaTeX installation.
+Combine it with any journal spec that uses LaTeX:
+
+```python
+with plotstyle.use(["nature", "si-units"]) as style:
+    fig, ax = style.figure(columns=1)
+    ax.set_xlabel(r"Wavelength $\qty{}{\nano\metre}$")
+    style.savefig(fig, "figure.pdf")
+```
+
+The `\sisetup{detect-all}` option is included automatically so axis labels
+inherit the surrounding font family and weight.
+
 ## Plot-type overlays
 
 ### `bar`
@@ -225,16 +245,13 @@ All available color overlays:
 | Key | Colors | Description |
 |-----|--------|-------------|
 | `okabe-ito` | 8 | Colorblind-safe qualitative palette by Okabe & Ito (2008) |
+| `conservative-colorblind` | 7 | Safe under all major color vision deficiencies including tritanopia. Based on Paul Tol's Vibrant subset. |
 | `tol-bright` | 7 | Paul Tol's bright qualitative palette, colorblind-safe |
 | `tol-vibrant` | 7 | Paul Tol's vibrant qualitative palette, colorblind-safe |
 | `tol-muted` | 10 | Paul Tol's muted qualitative palette, colorblind-safe |
 | `tol-light` | 9 | Paul Tol's light qualitative palette, for light backgrounds |
 | `tol-high-contrast` | 3 | Paul Tol's high-contrast palette, optimised for black/white print |
-| `tol-rainbow-4` | 4 | Paul Tol's discrete rainbow palette, 4 stops |
-| `tol-rainbow-6` | 6 | Paul Tol's discrete rainbow palette, 6 stops |
-| `tol-rainbow-8` | 8 | Paul Tol's discrete rainbow palette, 8 stops |
-| `tol-rainbow-10` | 10 | Paul Tol's discrete rainbow palette, 10 stops |
-| `tol-rainbow-12` | 12 | Paul Tol's discrete rainbow palette, 12 stops |
+| `tol-rainbow-1` through `tol-rainbow-23` | 1-23 | Paul Tol's discrete rainbow palette at every size from 1 to 23. Use the key that matches your number of series, e.g. `tol-rainbow-5` for 5 series. Colors sourced from Paul Tol's technical note. |
 | `safe-grayscale` | 6 | Grayscale steps distinguishable in black-and-white print |
 
 ## List and inspect overlays

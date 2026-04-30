@@ -1,0 +1,7 @@
+[metadata]
+name = "Conservative Colorblind"
+category = "color"
+description = "7-color palette safe under all major types of color vision deficiency, including tritanopia. Based on Paul Tol's Vibrant subset."
+
+[rcparams]
+_palette = ["#EE7733", "#0077BB", "#33BBEE", "#EE3377", "#CC3311", "#009988", "#BBBBBB"]

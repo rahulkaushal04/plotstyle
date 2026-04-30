@@ -1,10 +1,7 @@
 {
-  "name": "tol_rainbow_4",
+  "name": "tol_rainbow_1",
   "source": "https://sronpersonalpages.nl/~pault/data/colourschemes.pdf",
   "colors": [
-    "#1965B0",
-    "#4EB265",
-    "#F7F056",
-    "#DC050C"
+    "#1965B0"
   ]
 }

@@ -270,9 +270,9 @@ with plotstyle.use(["ieee", "okabe-ito"]) as style:
 
 | Category | Purpose | Examples |
 |----------|---------|---------|
-| `color` | Swap the colour cycle | `okabe-ito`, `tol-bright`, `safe-grayscale` |
+| `color` | Swap the colour cycle | `okabe-ito`, `conservative-colorblind`, `tol-bright`, `tol-rainbow-5`, `safe-grayscale` (+ `tol-rainbow-1` through `tol-rainbow-23`) |
 | `context` | Adjust scale for the medium | `notebook`, `presentation`, `minimal`, `high-vis` |
-| `rendering` | Control LaTeX and grid rendering | `no-latex`, `grid`, `latex-sans`, `pgf` |
+| `rendering` | Control LaTeX and grid rendering | `no-latex`, `grid`, `latex-sans`, `pgf`, `si-units` |
 | `plot-type` | Optimise for a chart type | `bar`, `scatter` |
 | `script` | Non-Latin font support | `cjk-simplified`, `cjk-traditional`, `cjk-japanese`, `cjk-korean`, `russian`, `turkish` |
 
@@ -284,11 +284,15 @@ plotstyle.list_overlays(category="context")
 
 ```text
 # plotstyle.list_overlays()
-['bar', 'cjk-japanese', 'cjk-korean', 'cjk-simplified', 'cjk-traditional', 'grid',
- 'high-vis', 'latex-sans', 'minimal', 'no-latex', 'notebook', 'okabe-ito', 'pgf',
- 'presentation', 'russian', 'safe-grayscale', 'scatter', 'tol-bright',
- 'tol-high-contrast', 'tol-light', 'tol-muted', 'tol-rainbow-10', 'tol-rainbow-12',
- 'tol-rainbow-4', 'tol-rainbow-6', 'tol-rainbow-8', 'tol-vibrant', 'turkish']
+['bar', 'cjk-japanese', 'cjk-korean', 'cjk-simplified', 'cjk-traditional',
+ 'conservative-colorblind', 'grid', 'high-vis', 'latex-sans', 'minimal', 'no-latex',
+ 'notebook', 'okabe-ito', 'pgf', 'presentation', 'russian', 'safe-grayscale', 'scatter',
+ 'si-units', 'tol-bright', 'tol-high-contrast', 'tol-light', 'tol-muted',
+ 'tol-rainbow-1', 'tol-rainbow-2', 'tol-rainbow-3', 'tol-rainbow-4', 'tol-rainbow-5',
+ 'tol-rainbow-6', 'tol-rainbow-7', 'tol-rainbow-8', 'tol-rainbow-9', 'tol-rainbow-10',
+ 'tol-rainbow-11', 'tol-rainbow-12', 'tol-rainbow-13', 'tol-rainbow-14', 'tol-rainbow-15',
+ 'tol-rainbow-16', 'tol-rainbow-17', 'tol-rainbow-18', 'tol-rainbow-19', 'tol-rainbow-20',
+ 'tol-rainbow-21', 'tol-rainbow-22', 'tol-rainbow-23', 'tol-vibrant', 'turkish']
 
 # plotstyle.list_overlays(category="context")
 ['high-vis', 'minimal', 'notebook', 'presentation']
@@ -452,6 +456,7 @@ with plotstyle.use("ieee") as style:
 | Key | Journal | Publisher |
 |-----|---------|-----------|
 | `acs` | ACS (JACS) | American Chemical Society |
+| `acm` | ACM | Association for Computing Machinery |
 | `cell` | Cell | Cell Press |
 | `elsevier` | Elsevier | Elsevier |
 | `ieee` | IEEE Transactions | IEEE |
@@ -460,6 +465,7 @@ with plotstyle.use("ieee") as style:
 | `prl` | Physical Review Letters | American Physical Society |
 | `science` | Science | AAAS |
 | `springer` | Springer | Springer |
+| `usenix` | USENIX | USENIX Association |
 | `wiley` | Wiley | Wiley |
 
 > Need another journal? See [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -552,11 +558,13 @@ Exact match:     Yes
   minimal         [context]    Stripped-down axes with no top/right spines.
   no-latex        [rendering]  Disable LaTeX text rendering; use Matplotlib MathText.
   notebook        [context]    Enlarged figures and larger fonts for Jupyter.
+  conservative-colorblind [color]      7-color palette safe under all types of color vision deficiency.
   okabe-ito       [color]      Colorblind-safe 8-color qualitative palette.
   pgf             [rendering]  Use the PGF LaTeX backend for vector output.
   presentation    [context]    Large text and thick lines for slide decks.
   safe-grayscale  [color]      6-step grayscale palette for black-and-white print.
   scatter         [plot-type]  Optimised rcParams for scatter plots.
+  si-units        [rendering]  Load siunitx LaTeX package for SI unit notation in axis labels.
   tol-bright      [color]      Paul Tol's bright 7-color qualitative palette.
   ...
 ```

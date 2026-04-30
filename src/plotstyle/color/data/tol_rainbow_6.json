@@ -1,5 +1,12 @@
 {
   "name": "tol_rainbow_6",
   "source": "https://sronpersonalpages.nl/~pault/data/colourschemes.pdf",
-  "colors": ["#1965B0", "#7BAFDE", "#4EB265", "#CAE0AB", "#F7F056", "#DC050C"]
+  "colors": [
+    "#1965B0",
+    "#7BAFDE",
+    "#4EB265",
+    "#CAE0AB",
+    "#F7F056",
+    "#DC050C"
+  ]
 }

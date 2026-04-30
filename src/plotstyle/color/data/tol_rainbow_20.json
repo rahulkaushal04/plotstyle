@@ -1,16 +1,26 @@
 {
-  "name": "tol_rainbow_10",
+  "name": "tol_rainbow_20",
   "source": "https://sronpersonalpages.nl/~pault/data/colourschemes.pdf",
   "colors": [
+    "#D9CCE3",
+    "#CAACCB",
+    "#BA8DB4",
+    "#AA6F9E",
+    "#994F88",
     "#882E72",
     "#1965B0",
+    "#437DBF",
+    "#6195CF",
     "#7BAFDE",
     "#4EB265",
+    "#90C987",
     "#CAE0AB",
     "#F7F056",
-    "#F4A736",
+    "#F6C141",
+    "#F1932D",
     "#E8601C",
     "#DC050C",
+    "#A5170E",
     "#72190E"
   ]
 }

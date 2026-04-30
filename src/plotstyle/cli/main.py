@@ -165,6 +165,9 @@ def _cmd_fonts_overlay(overlay_key: str) -> int:
     else:
         print("Warning: none of the required fonts are installed.")
         print("Non-Latin characters may not render correctly.")
+        print()
+        print("Next steps: if you recently installed these fonts, rebuild matplotlib's font cache:")
+        print('  python -c "import matplotlib; matplotlib.font_manager._rebuild()"')
 
     return 0
 

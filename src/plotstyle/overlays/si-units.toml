@@ -1,0 +1,13 @@
+[metadata]
+name = "SI Units"
+category = "rendering"
+description = "Loads the siunitx LaTeX package for SI unit notation in axis labels and tick marks. Requires a LaTeX installation."
+
+[rcparams]
+"text.usetex" = true
+
+[script]
+latex_preamble = [
+    "\\usepackage{siunitx}",
+    "\\sisetup{detect-all}",
+]

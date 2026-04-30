@@ -155,7 +155,19 @@ def check_overlay_fonts(overlay: StyleOverlay) -> dict[str, bool]:
     if overlay.requires is None:
         return {}
     fonts: list[str] = overlay.requires.get("fonts", [])
-    return {font: _find_font_or_none(font) is not None for font in fonts}
+    result = {font: _find_font_or_none(font) is not None for font in fonts}
+
+    if fonts and not any(result.values()):
+        warnings.warn(
+            f"None of the required fonts for overlay {overlay.metadata.name!r} "
+            f"were found: {list(fonts)}. "
+            "If you recently installed these fonts, rebuild matplotlib's font cache: "
+            "import matplotlib; matplotlib.font_manager._rebuild()",
+            FontFallbackWarning,
+            stacklevel=2,
+        )
+
+    return result
 
 
 def verify_embedded(pdf_path: Path) -> list[dict[str, Any]]:
