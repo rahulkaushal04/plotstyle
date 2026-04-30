@@ -2,8 +2,7 @@
 name = "Elsevier"
 publisher = "Elsevier"
 source_url = "https://www.elsevier.com/about/policies-and-standards/author/artwork-and-media-instructions/artwork-sizing"
-last_verified = "2026-04-22"
-verified_by = "rahulkaushal04"
+last_verified = "2026-04-30"
 
 [dimensions]
 single_column_mm = 90.0

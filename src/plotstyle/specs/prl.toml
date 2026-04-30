@@ -2,8 +2,7 @@
 name = "Physical Review Letters"
 publisher = "American Physical Society"
 source_url = "https://journals.aps.org/prl/authors"
-last_verified = "2026-04-22"
-verified_by = "rahulkaushal04"
+last_verified = "2026-04-30"
 
 [dimensions]
 single_column_mm = 86.0

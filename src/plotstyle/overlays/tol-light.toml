@@ -4,4 +4,4 @@ category = "color"
 description = "Paul Tol's light 9-color qualitative palette, suitable for light backgrounds."
 
 [rcparams]
-_palette = ["#77AADD", "#99DDFF", "#44BB99", "#BBCC33", "#AAAA00", "#EEDD88", "#EE8866", "#FFAABB", "#DDDDDD"]
+_palette = ["#77AADD", "#EE8866", "#EEDD88", "#FFAABB", "#99DDFF", "#44BB99", "#BBCC33", "#AAAA00", "#DDDDDD"]

@@ -1,18 +1,20 @@
 [metadata]
 name = "Science"
 publisher = "AAAS"
-source_url = "https://spj.science.org/pb-assets/SPJ/CustomPages/Misc/SPJ_Figure_Preparation_Guide-1691522222.pdf"
-last_verified = "2026-04-22"
-verified_by = "rahulkaushal04"
+source_url = "https://www.science.org/content/page/instructions-authors-revised-research-articles"
+last_verified = "2026-04-30"
 
 [dimensions]
 single_column_mm = 86.4
 double_column_mm = 177.8
 
 [typography]
-font_family = ["Minion Pro", "Benton Sans Condensed"]
-font_fallback = "serif"
-min_font_pt = 7.5
+# Science recommends a sans-serif typeface (Helvetica preferred) for all figure labels.
+# Minion Pro and Benton Sans Condensed are Science's proprietary house fonts for body text,
+# not required for figures.
+font_family = ["Helvetica", "Arial"]
+font_fallback = "sans-serif"
+min_font_pt = 7.0
 max_font_pt = 10.0
 
 [export]
@@ -28,4 +30,5 @@ colorblind_required = true
 grayscale_required = false
 
 [line]
-# Science’s figure guide emphasizes avoiding overly thin lines and ensuring clarity at print size, but it does not define a single numeric minimum line width.
+# Science's figure guide emphasizes avoiding overly thin lines and ensuring clarity at print size,
+# but does not define a single numeric minimum line width.

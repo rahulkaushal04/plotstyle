@@ -2,8 +2,7 @@
 name = "Springer"
 publisher = "Springer Nature"
 source_url = "https://support.springernature.com/en/support/solutions/articles/6000083109-artwork-submission-instructions"
-last_verified = "2026-04-22"
-verified_by = "rahulkaushal04"
+last_verified = "2026-04-30"
 
 [dimensions]
 # Springer Nature’s generic artwork instructions defer specific figure widths and heights to journal-level guidelines; no single standard single/double-column dimensions are imposed across all Springer journals.

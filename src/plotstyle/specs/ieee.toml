@@ -2,8 +2,7 @@
 name = "IEEE Transactions"
 publisher = "IEEE"
 source_url = "https://proceedingsoftheieee.ieee.org/resources/guidelines-for-figures-and-tables/"
-last_verified = "2026-04-22"
-verified_by = "rahulkaushal04"
+last_verified = "2026-04-30"
 
 [dimensions]
 single_column_mm = 88.9

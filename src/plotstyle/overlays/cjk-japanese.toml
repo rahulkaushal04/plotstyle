@@ -4,7 +4,7 @@ category = "script"
 description = "Font configuration for Japanese labels (JIS/Unicode)."
 
 [rcparams]
-"font.family" = ["IPAPGothic", "TakaoGothic", "Noto Sans CJK JP", "Noto Serif CJK JP", "Hiragino Kaku Gothic Pro"]
+"font.family" = ["IPAPGothic", "TakaoGothic", "Yu Gothic", "Noto Sans CJK JP", "Noto Serif CJK JP", "Hiragino Kaku Gothic Pro"]
 "axes.unicode_minus" = false
 
 [script]
@@ -14,4 +14,4 @@ latex_preamble = [
 ]
 
 [requires]
-fonts = ["IPAPGothic", "TakaoGothic", "Noto Sans CJK JP", "Noto Serif CJK JP", "Hiragino Kaku Gothic Pro"]
+fonts = ["IPAPGothic", "TakaoGothic", "Yu Gothic", "Noto Sans CJK JP", "Noto Serif CJK JP", "Hiragino Kaku Gothic Pro"]

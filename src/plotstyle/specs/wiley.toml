@@ -1,9 +1,8 @@
 [metadata]
 name = "Wiley"
 publisher = "Wiley"
-source_url = "https://onlinelibrary.wiley.com/pb-assets/assets/16000722/Guidelines_for_the_Preparation_of_Figures_-_Final-1606232992880.pdf"
-last_verified = "2026-04-22"
-verified_by = "rahulkaushal04"
+source_url = "https://onlinelibrary.wiley.com/pb-assets/assets/29941806/AG/basic-figure-requirements-1737125359497.pdf"
+last_verified = "2026-04-30"
 
 [dimensions]
 single_column_mm = 80.0
