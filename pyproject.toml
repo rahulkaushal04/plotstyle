@@ -65,6 +65,8 @@ classifiers = [
 
 dependencies = [
     "matplotlib>=3.9,<4",
+    "numpy>=1.23",
+    "cycler>=0.11",
     "tomli>=2.0; python_version < '3.11'",
 ]
 
@@ -75,25 +77,21 @@ dependencies = [
 
 [project.optional-dependencies]
 
-# ── Image processing (used by style preview + export safety) ─────────────────
-color = [
-    "Pillow>=11.0,<13",
-]
-
-# ── Font subsetting / inspection ──────────────────────────────────────────────
-fonttools = [
-    "fonttools>=4.55,<5",
-]
-
 # ── Statistical plotting companion ───────────────────────────────────────────
 seaborn = [
     "seaborn>=0.13.2,<1",
     "pandas>=2.2,<3",          # seaborn 0.13 requires pandas; pin major
 ]
 
+# ── Better PDF font subsetting via fontTools (used by Matplotlib during savefig) ─
+fonttools = [
+    "fonttools>=4.55,<5",
+]
+
 # ── Developer toolchain ───────────────────────────────────────────────────────
 dev = [
-    "plotstyle[color]",        # preview/export tests need Pillow
+    "plotstyle[fonttools]",
+    "Pillow>=11.0,<13",        # required by pytest-mpl for image comparison
     "pytest>=8.3,<10",
     "pytest-cov>=6.0,<8",
     "pytest-mpl>=0.18,<1",
@@ -113,7 +111,7 @@ docs = [
 
 # ── Meta-group: installs all optional runtime extras ─────────────────────────
 all = [
-    "plotstyle[color,fonttools,seaborn]",
+    "plotstyle[fonttools,seaborn]",
 ]
 
 
@@ -130,7 +128,7 @@ plotstyle = "plotstyle.cli.main:main"
 # -----------------------------------------------------------------------------
 
 [project.urls]
-Homepage      = "https://github.com/rahulkaushal04/plotstyle"
+Homepage      = "https://plotstyle.readthedocs.io"
 Documentation = "https://plotstyle.readthedocs.io"
 Repository    = "https://github.com/rahulkaushal04/plotstyle"
 Issues        = "https://github.com/rahulkaushal04/plotstyle/issues"
@@ -149,7 +147,7 @@ source = "vcs"   # version is derived from git tags (e.g. v1.2.3)
 version-file = "src/plotstyle/_version.py"
 
 [tool.hatch.build.targets.sdist]
-include = ["/src", "/tests", "/README.md", "/CHANGELOG.md", "/LICENSE"]
+include = ["/src", "/tests", "/README.md", "/CHANGELOG.md", "/LICENSE", "/CITATION.cff"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/plotstyle"]
@@ -242,7 +240,7 @@ mypy_path               = "src"
 packages                = ["plotstyle"]
 
 # ── Strictness ────────────────────────────────────────────────────────────────
-strict                  = true         # enables the full strict bundle below
+strict                  = true
 disallow_untyped_defs   = true
 disallow_incomplete_defs = true
 disallow_untyped_decorators = true
@@ -301,7 +299,7 @@ markers = [
 [tool.coverage.run]
 source   = ["plotstyle"]
 branch   = true
-omit     = ["src/plotstyle/_version.py", "src/plotstyle/cli/main.py"]
+omit     = ["*/plotstyle/_version.py", "*/plotstyle/cli/main.py"]
 
 [tool.coverage.report]
 show_missing   = true

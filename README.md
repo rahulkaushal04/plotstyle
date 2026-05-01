@@ -488,6 +488,7 @@ plotstyle export <file> --journal <journal>    # print snippet for re-exporting
 **`plotstyle list`**
 ```text
   acs             American Chemical Society
+  acm             Association for Computing Machinery
   cell            Cell Press
   elsevier        Elsevier
   ieee            IEEE
@@ -496,6 +497,7 @@ plotstyle export <file> --journal <journal>    # print snippet for re-exporting
   prl             American Physical Society
   science         AAAS
   springer        Springer Nature
+  usenix          USENIX Association
   wiley           Wiley
 ```
 
@@ -504,15 +506,16 @@ plotstyle export <file> --journal <journal>    # print snippet for re-exporting
 Journal: Nature
 Publisher: Springer Nature
 Source: https://www.nature.com/documents/nature-final-artwork.pdf
-Last Verified: 2026-04-22
+Last Verified: 2026-04-30
 ──────────────────────────
 Dimensions:
   Single column: 89.0mm (3.50in)
   Double column: 183.0mm (7.20in)
-  Max height:    247.0mm
+  Max height:    170.0mm
 Typography:
   Font:          Helvetica, Arial (fallback: sans-serif)
   Size range:    5.0-7.0pt
+  Target size:   7.0pt
   Panel labels:  5.0pt bold lower (a, b, c)
 Export:
   Formats:  ai, eps, pdf
@@ -530,11 +533,10 @@ Nature → Science
 ──────────────────────────────────────────────────
 Column Width (single):  89.0mm → 86.4mm
 Column Width (double):  183.0mm → 177.8mm
-Max Height:             247.0mm → -
-Font Family:            Helvetica, Arial → Minion Pro, Benton Sans Condensed
-Min Font Size:          5.0pt → 7.5pt
+Max Height:             170.0mm → -
+Min Font Size:          5.0pt → 7.0pt
 Max Font Size:          7.0pt → 10.0pt
-Panel Label Size:       5.0pt → 7.5pt
+Panel Label Size:       5.0pt → 7.0pt
 Preferred Formats:      ai, eps, pdf → ai, eps, pdf, tiff
 Colorblind Required:    No → Yes
 ```

@@ -1,6 +1,6 @@
 # Contributing to PlotStyle
 
-Thanks for your interest in contributing! This guide covers the basics: reporting bugs, proposing changes, adding journal specs, and submitting pull requests.
+Thanks for your interest in contributing. This guide covers reporting bugs, proposing changes, adding journal specs, and submitting pull requests.
 
 All contributors are expected to follow the [Code of Conduct](https://github.com/rahulkaushal04/plotstyle/blob/main/CODE_OF_CONDUCT.md). For security vulnerabilities, see [SECURITY.md](https://github.com/rahulkaushal04/plotstyle/blob/main/SECURITY.md); do not open a public issue.
 
@@ -8,28 +8,42 @@ All contributors are expected to follow the [Code of Conduct](https://github.com
 
 Before opening an issue, search existing issues to avoid duplicates.
 
-- **Bug reports:** use the [Bug Report](https://github.com/rahulkaushal04/plotstyle/issues/new?template=bug_report.md) template. Include a minimal reproducing example, the full traceback, and your environment details (PlotStyle version, matplotlib version, Python version, OS).
-- **Spec inaccuracies:** use the [Spec Inaccuracy](https://github.com/rahulkaushal04/plotstyle/issues/new?template=spec_inaccuracy.md) template. Include a link to the journal's official guidelines and a table of what's wrong vs. what it should be.
-- **New journal specs:** use the [New Journal Spec](https://github.com/rahulkaushal04/plotstyle/issues/new?template=new_journal_spec.md) template. Fill in as many fields as you can from the journal's author guidelines.
+- **Bug reports:** [open a new issue](https://github.com/rahulkaushal04/plotstyle/issues/new) and include:
+  - A minimal reproducing example
+  - The full traceback
+  - Your environment details: PlotStyle version, Matplotlib version, Python version, OS
+
+- **Spec inaccuracies:** [open a new issue](https://github.com/rahulkaushal04/plotstyle/issues/new) and include:
+  - A link to the journal's official figure guidelines
+  - A table showing what is currently wrong and what it should be
+
+- **New journal specs:** [open a new issue](https://github.com/rahulkaushal04/plotstyle/issues/new) with as much information as you can find from the journal's author guidelines. You can also skip the issue and go straight to a PR using the steps in "Adding a New Journal" below.
 
 ## Development Setup
 
-PlotStyle uses [Hatch](https://hatch.pypa.io/) as its build and environment manager.
+**Prerequisites:** Git, Python 3.10 or later.
 
 ```bash
 # Clone the repo
 git clone https://github.com/rahulkaushal04/plotstyle.git
 cd plotstyle
 
-# Create a virtual environment and install with dev dependencies
+# Create and activate a virtual environment
+python -m venv .venv
+source .venv/bin/activate   # on Windows: .venv\Scripts\activate
+
+# Install with dev dependencies
 pip install -e ".[dev]"
 ```
 
-If you also need seaborn or fonttools extras:
+If you also need the fonttools or seaborn extras (for example, when working on font or export code):
 
 ```bash
-pip install -e ".[all,dev]"
+pip install -e ".[fonttools,dev]"   # font subsetting only
+pip install -e ".[all,dev]"         # all optional extras
 ```
+
+**Using Hatch (optional):** PlotStyle also supports [Hatch](https://hatch.pypa.io/) for environment management. If you have Hatch installed, run `hatch shell` to create and enter the dev environment. You can then use `hatch run test`, `hatch run lint`, `hatch run fmt`, and `hatch run typecheck` instead of the commands below.
 
 ### Running Tests
 
@@ -42,15 +56,21 @@ pytest
 PlotStyle uses [Ruff](https://docs.astral.sh/ruff/) for linting and formatting:
 
 ```bash
-ruff check src/ tests/
-ruff format --check src/ tests/
+ruff check src tests
+ruff format --check src tests
 ```
 
 To auto-fix lint issues and reformat:
 
 ```bash
-ruff check --fix src/ tests/
-ruff format src/ tests/
+ruff check --fix src tests
+ruff format src tests
+```
+
+### Type Checking
+
+```bash
+mypy src
 ```
 
 ### Pre-commit
@@ -61,11 +81,11 @@ If you have [pre-commit](https://pre-commit.com/) installed:
 pre-commit install
 ```
 
-This will run linting and formatting checks automatically before each commit.
+This runs linting, formatting, and other checks automatically before each commit.
 
 ## Adding a New Journal
 
-Journal specs live in `src/plotstyle/specs/` as `.toml` files. Each file describes a single journal's figure requirements (dimensions, fonts, export settings, etc.).
+Journal specs live in `src/plotstyle/specs/` as `.toml` files. Each file describes a single journal's figure requirements: dimensions, fonts, export settings, and more.
 
 ### Step-by-step
 
@@ -79,7 +99,7 @@ Journal specs live in `src/plotstyle/specs/` as `.toml` files. Each file describ
 
 2. **Fill in the spec:** open the journal's official author/figure guidelines and fill in every field you can. Look at an existing spec like `nature.toml` for reference. Key sections:
 
-   - `[metadata]`: journal name, publisher, guidelines URL, date verified, your GitHub username
+   - `[metadata]`: journal name, publisher, guidelines URL, date verified (`last_verified`)
    - `[dimensions]`: single-column width, double-column width, max height (all in mm)
    - `[typography]`: required fonts, font size range, panel label style
    - `[export]`: accepted formats, minimum DPI, color space, font embedding
@@ -92,7 +112,7 @@ Journal specs live in `src/plotstyle/specs/` as `.toml` files. Each file describ
    python scripts/validate_all_specs.py
    ```
 
-   All fields listed in the template are expected. If the journal's guidelines don't specify a value, use a sensible default and note it in the PR.
+   All fields listed in the template are expected. If the journal's guidelines do not specify a value, use a sensible default and note it in the PR.
 
 4. **Test:** run the full test suite to make sure nothing is broken:
 
@@ -104,7 +124,7 @@ Journal specs live in `src/plotstyle/specs/` as `.toml` files. Each file describ
 
 ### Updating an Existing Spec
 
-Follow the same process but edit the existing `.toml` file instead of copying the template. Update `last_verified` and `verified_by` in the `[metadata]` section.
+Follow the same process but edit the existing `.toml` file instead of copying the template. Update `last_verified` in the `[metadata]` section to today's date.
 
 ## Contributing Changes
 
@@ -113,34 +133,38 @@ Follow the same process but edit the existing `.toml` file instead of copying th
 3. Add or update tests if your change affects behavior.
 4. Make sure these all pass before pushing:
    - `pytest`
-   - `ruff check src/ tests/`
+   - `ruff check src tests`
+   - `ruff format --check src tests`
+   - `mypy src`
 5. Open a pull request.
 
 ## Pull Request Guidelines
 
-Fill out the [PR template](https://github.com/rahulkaushal04/plotstyle/blob/main/.github/PULL_REQUEST_TEMPLATE.md) when you open your PR. In particular:
+In your PR:
 
 - Describe what the PR does and why.
 - Link to any related issues (`Closes #...`).
 - Describe how you tested the change.
-- Check off the items in the checklist:
+- Confirm these are all passing:
   - [ ] `pytest` passes
-  - [ ] `ruff check src/ tests/` passes
+  - [ ] `ruff check src tests` passes
+  - [ ] `ruff format --check src tests` passes
+  - [ ] `mypy src` passes
   - [ ] Tests added or updated (if applicable)
   - [ ] Docs updated (if the public API changed)
 
 **If adding or updating a journal spec:**
 
-- [ ] Ran `python scripts/validate_all_specs.py`
-- [ ] Included a link to the journal's official figure preparation guidelines
+  - [ ] Ran `python scripts/validate_all_specs.py`
+  - [ ] Included a link to the journal's official figure preparation guidelines
 
 ## Code Style
 
 - Python 3.10+ syntax (use `X | Y` unions, `match` statements where appropriate).
-- Ruff handles formatting (double quotes, 4-space indent, 100-char line length).
+- Ruff handles formatting: double quotes, 4-space indent, 100-character line length.
 - NumPy-style docstrings for public API.
 - Type annotations on all public functions.
 
 ## Questions?
 
-Open a [discussion](https://github.com/rahulkaushal04/plotstyle/issues) or ask in your PR. Happy to help.
+Open an [issue](https://github.com/rahulkaushal04/plotstyle/issues) or ask directly in your PR. Happy to help.

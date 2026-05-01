@@ -9,30 +9,46 @@ and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) version
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+
+- **ACM journal preset** (`acm.toml`): two-column format per ACM sigconf template (84.5 mm single column, 180.0 mm double column, 235.0 mm max height); Linux Libertine / Times New Roman font family.
+- **USENIX journal preset** (`usenix.toml`): two-column format per USENIX author guide (85.0 mm single column, 178.0 mm double column, 229.0 mm max height).
+- **`conservative-colorblind` overlay**: 7-color palette safe under all major types of color vision deficiency, including tritanopia. Based on Paul Tol's Vibrant subset.
+- **`si-units` overlay**: loads the `siunitx` LaTeX package (`\usepackage{siunitx}`, `\sisetup{detect-all}`) for consistent SI unit notation in axis labels and annotations. Requires `text.usetex = True`.
+- **`FontFallbackWarning` on missing overlay fonts** (`check_overlay_fonts()`): when none of the required fonts for an overlay are found, a `FontFallbackWarning` is now emitted with the missing font names and a hint to rebuild the Matplotlib font cache.
+- **CLI font-cache hint**: `plotstyle fonts --overlay <overlay>` prints a "Next steps" message when all required fonts are missing, with the exact command to rebuild the Matplotlib font cache.
+
+### Fixed
+
+- **`tol_rainbow_1` through `tol_rainbow_23` source URL** (`color/data/`): corrected from `personal.sron.nl/~pault/data/colourschemes.pdf` to `sronpersonalpages.nl/~pault/data/colourschemes.pdf` in all 23 files.
+- **`tol_light` palette color order** (`color/data/tol_light.json`, `overlays/tol-light.toml`): color order corrected to match the official Paul Tol source. The previous order had positions 2-9 scrambled relative to the canonical sequence.
+- **`tol_high_contrast` palette color order** (`color/data/tol_high_contrast.json`, `overlays/tol-high-contrast.toml`): corrected to blue, red, yellow (`#004488`, `#BB5566`, `#DDAA33`); was blue, yellow, red.
+
+### Changed
+
+- **`cjk-japanese` overlay**: Yu Gothic added to `font.family` and `requires.fonts` lists between TakaoGothic and Noto Sans CJK JP. Provides Japanese text support on Windows 10 and 11 out of the box.
 
 ---
 
 ## [1.2.3] - 2026-04-30
 
-Minor release: automatic journal color cycle, `target_font_pt` typography field, Nature-specific rcParams, CLI improvements, a full documentation and example audit, and a new doc image generation script.
+Minor release: automatic journal color cycle, `target_font_pt` typography field, global tick and axis defaults, CLI improvements, a full documentation and example audit, and docs image regeneration.
 
 ### Added
 
 - **Automatic journal palette as default color cycle** (`plotstyle.use()`): calling `use("nature")` (or any journal key) now sets the journal's recommended palette as `axes.prop_cycle` automatically. Every `ax.plot()`, `ax.bar()`, and `ax.scatter()` call draws from it without any `color=` argument. A color overlay applied in the same `use()` call overrides this default.
 - **`target_font_pt` field on `TypographySpec`**: optional `float | None` field that records a journal's explicitly stated target font size (as opposed to only a min/max range). When set, `build_rcparams()` uses it as `font.size` instead of the midpoint of the range. `nature.toml` sets `target_font_pt = 7.0` (Nature's guidelines explicitly state 7 pt as the standard text size).
 - **`plotstyle info` CLI shows `Target size:`**: when `target_font_pt` is set for a journal, the `plotstyle info <journal>` command now prints a `Target size:` line under Typography.
-- **Nature-specific tick and legend rcParams** (`build_rcparams()`): the Nature preset now applies inward-facing ticks (`xtick.direction: in`, `ytick.direction: in`), minor ticks visible on all axes, mirrored tick marks (`xtick.top: True`, `ytick.right: True`), and `legend.frameon: False` - matching Nature's published figure style guidelines.
-- **`scripts/generate_docs_images.py`**: new script that regenerates all 9 static PNG images used in the documentation (`docs/images/`) from the current codebase in one headless run.
-- **Docs images regenerated**: all 9 images in `docs/images/` rebuilt using the updated codebase - `quickstart_nature.png`, `multi_panel_science.png`, `palette_comparison.png`, `accessibility_colorblind.png`, `accessibility_grayscale.png`, `gallery_nature.png`, `gallery_ieee.png`, `seaborn_scatter_nature.png`, `overlay_bar.png`.
-- **New test coverage**: `TestUseColorCycle` (automatic palette cycle), `TestUseFontSizeTarget` (target_font_pt font size selection), `TestBuildRcparamsLegend` (Nature legend.frameon), and `TestBuildRcparamsTicks` (Nature inward/mirrored tick rcParams).
+- **Global tick and axis defaults** (`build_rcparams()`): all journal presets now apply inward-facing ticks (`xtick.direction: in`, `ytick.direction: in`), minor ticks on all axes, mirrored tick marks (`xtick.top: True`, `ytick.right: True`), and `legend.frameon: False`. These are applied uniformly via `build_rcparams()` regardless of journal.
+- **Docs images regenerated**: all 9 images in `docs/images/` rebuilt to reflect the automatic palette cycle and `target_font_pt` changes: `quickstart_nature.png`, `multi_panel_science.png`, `palette_comparison.png`, `accessibility_colorblind.png`, `accessibility_grayscale.png`, `gallery_nature.png`, `gallery_ieee.png`, `seaborn_scatter_nature.png`, `overlay_bar.png`.
+- **New test coverage**: `TestUseColorCycle` (automatic palette cycle), `TestUseFontSizeTarget` (target_font_pt font size selection), `TestBuildRcparamsLegend` (legend.frameon), and `TestBuildRcparamsTicks` (inward/mirrored tick rcParams).
 
 ### Changed
 
 - **`examples/03_color_palettes.py`**: added Section 1 demonstrating the automatic default color cycle; renumbered remaining sections 2-6.
 - **`examples/05_validation.py`**: added `is_failure` / `is_warning` convenience property usage.
 - **`examples/09_registry_and_spec.py`**: expanded to cover `target_font_pt`, `is_official`, `assumed_fields`, and `registry.preload()`.
-- **`examples/12_overlays.py`**: added color overlay, grid rendering overlay, scatter + IEEE warning, overlay inspection, and `list_overlays()` with category filter. Imports reorganized to comply with E402 (module-level imports at top); unused loop variable renamed to `_ls` to comply with B007.
+- **`examples/12_overlays.py`**: added color overlay, grid rendering overlay, scatter + IEEE warning, overlay inspection, and `list_overlays()` with category filter. Imports reorganized to comply with E402; unused loop variable renamed to `_ls` to comply with B007.
 - **Docs**: all docs updated to reflect the automatic palette cycle and `target_font_pt` changes; `colour` spelling standardized to `color` throughout.
 
 ---
@@ -84,7 +100,7 @@ Patch release: `simulate_cvd` example, warning quality improvements, and docs/ex
 
 ## [1.2.0] - 2026-04-23
 
-Feature release: **overlays**, **units & conversions**, **Seaborn integration**, improved **font/LaTeX controls**, plus major CLI/docs/example expansion.
+Feature release: **overlays**, **units & conversions**, expanded **Seaborn integration**, improved **font/LaTeX controls**, plus major CLI/docs/example expansion.
 
 ### Added
 
@@ -95,13 +111,13 @@ Feature release: **overlays**, **units & conversions**, **Seaborn integration**,
   - `plotstyle overlays [--category <category>]` to list overlays.
   - `plotstyle overlay-info <overlay>` to inspect overlay metadata and `rcParams`.
 - **Font checks for overlays**: `plotstyle fonts --overlay <overlay>` (in addition to `--journal`).
-- **Seaborn integration**: helpers to keep PlotStyle `rcParams` consistent when using Seaborn themes (`patch_seaborn()`, `plotstyle_theme()`, `unpatch_seaborn()`).
 - **Units & conversions**: new/expanded utilities and docs for consistent size specification across specs and helpers.
 - **Matplotlib-native styles compatibility**: support for registering/using PlotStyle presets as Matplotlib styles where applicable.
 - **New examples & previews**: additional example scripts including overlays, Seaborn integration, units/conversions, print-size preview, Matplotlib native styles, and LaTeX/fonts.
 
 ### Changed
 
+- **Seaborn integration expanded**: `unpatch_seaborn()` added to explicitly restore Matplotlib's original `rcParams` after a Seaborn theme call. `patch_seaborn()` and `plotstyle_theme()` were present since `0.1.0a1`; this release adds `unpatch_seaborn()`, a dedicated integration example, and a new Seaborn guide in the docs.
 - **CLI UX improvements**
   - `plotstyle fonts` now supports `--journal` *or* `--overlay` (mutually exclusive, required).
   - More robust argument parsing (e.g. ignores empty entries in `--formats`).
@@ -116,24 +132,24 @@ Feature release: **overlays**, **units & conversions**, **Seaborn integration**,
 
 ## [1.1.0] - 2026-04-16
 
-Minor feature release : ergonomics improvements, hardened error handling, and spec updates.
+Minor feature release: ergonomics improvements, hardened error handling, and spec updates.
 
 ### Added
 
-- **`quiet` parameter on `JournalStyle.export()`** : suppresses compliance summaries and manifest output for scripting workflows.
-- **Pre-computed Type 3 font checks** : compliance summary now accepts a pre-computed result for Type 3 font detection, improving performance when the check has already been run by the caller.
-- **`JournalSpec` key access** : `JournalSpec` now supports key-style access, and the dimension check message has been updated for clarity.
+- **`quiet` parameter on `JournalStyle.export()`**: suppresses compliance summaries and manifest output for scripting workflows.
+- **Pre-computed Type 3 font checks**: compliance summary now accepts a pre-computed result for Type 3 font detection, improving performance when the check has already been run by the caller.
+- **`JournalSpec` key access**: `JournalSpec` now supports key-style access, and the dimension check message has been updated for clarity.
 
 ### Fixed
 
-- **`SpecNotFoundError` base classes** : now inherits from both `ValueError` and `KeyError` so existing `except ValueError` and `except KeyError` handlers catch it correctly; a custom `__str__` produces clearer diagnostic messages.
+- **`SpecNotFoundError` base classes**: now inherits from both `ValueError` and `KeyError` so existing `except ValueError` and `except KeyError` handlers catch it correctly; a custom `__str__` produces clearer diagnostic messages.
 
 ### Changed
 
-- **IEEE Transactions spec updated** : column widths, max height, font family, panel-label properties, and preferred output formats revised to match current IEEE author guidelines.
-- **CI documentation build** : Sphinx `docs` job (`sphinx-build -W -n`) added to the CI workflow; rendered HTML is uploaded as an artifact on every push.
-- **Module docstrings** : expanded and standardised across `__init__.py`, `_utils/`, `color/`, `core/`, and `validation/` for consistent Sphinx rendering.
-- **Context-manager examples** : all `plotstyle.use()` call sites in docs and examples updated to the `with plotstyle.use(...) as style:` form to ensure correct `rcParams` restoration.
+- **IEEE Transactions spec updated**: column widths, max height, font family, panel-label properties, and preferred output formats revised to match current IEEE author guidelines.
+- **CI documentation build**: Sphinx `docs` job (`sphinx-build -W -n`) added to the CI workflow; rendered HTML is uploaded as an artifact on every push.
+- **Module docstrings**: expanded and standardised across `__init__.py`, `_utils/`, `color/`, `core/`, and `validation/` for consistent Sphinx rendering.
+- **Context-manager examples**: all `plotstyle.use()` call sites in docs and examples updated to the `with plotstyle.use(...) as style:` form to ensure correct `rcParams` restoration.
 
 ---
 
@@ -161,7 +177,7 @@ Second alpha: full documentation suite, comprehensive test coverage, and hardene
 - **Comprehensive test suite**: new test modules added: `test_style`, `test_palettes`, `test_accessibility`, `test_grayscale`, `test_rendering`, `test_gallery`, `test_print_size`, `test_cli`, `test_io`, `test_warnings`, `test_checks`, `test_report`; existing modules `test_figure`, `test_export`, `test_migrate`, `test_fonts`, and `test_registry` substantially expanded.
 - **Export DPI validation**: `validation/checks/export.py` now emits a hard `FAIL` (instead of a `WARN`) when `savefig.dpi` is a numeric value that is provably below the journal's minimum DPI requirement.
 - **Dependabot**: `.github/dependabot.yml` added for automated dependency-update pull requests.
-- **`_format_panel_label()` range guard**: raises `ValueError` for panel indices ≥ 702 (beyond the two-character `"zz"` label); valid range is now explicitly documented as 0–701.
+- **`_format_panel_label()` range guard**: raises `ValueError` for panel indices >= 702 (beyond the two-character `"zz"` label); valid range is now explicitly documented as 0-701.
 
 ### Changed
 
@@ -181,8 +197,8 @@ First public alpha release.
 
 - **Core style engine**: `plotstyle.use()` applies journal presets to Matplotlib's `rcParams`; works as a context manager with automatic restoration on exit.
 - **Figure helpers**: `plotstyle.figure()` and `plotstyle.subplots()` create correctly-sized figures at the exact column width and max height specified by each journal.
-- **Auto panel labels**: multi-panel figures receive **(a)**, **(b)**, **(c)**, … labels placed according to the journal's style rules.
-- **Colorblind-safe palettes**: built-in Okabe–Ito, Tol Bright, Tol Vibrant, Tol Muted, and Safe Grayscale palettes (`plotstyle.palette()`).
+- **Auto panel labels**: multi-panel figures receive **(a)**, **(b)**, **(c)**, ... labels placed according to the journal's style rules.
+- **Colorblind-safe palettes**: built-in Okabe-Ito, Tol Bright, Tol Vibrant, Tol Muted, and Safe Grayscale palettes (`plotstyle.palette()`).
 - **Accessibility previews**: `plotstyle.preview_colorblind()` simulates deuteranopia, protanopia, and tritanopia; `plotstyle.preview_grayscale()` previews grayscale rendering.
 - **Pre-submission validation**: `plotstyle.validate()` checks dimensions, typography, line weights, color accessibility, and export settings against a target journal spec.
 - **Submission-ready export**: `plotstyle.savefig()` saves with font embedding and DPI enforcement; `plotstyle.export_submission()` batch-exports to all formats a journal accepts.

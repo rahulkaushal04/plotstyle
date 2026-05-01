@@ -11,7 +11,6 @@ name = ""                  # e.g. "Nature"
 publisher = ""             # e.g. "Springer Nature"
 source_url = ""            # URL to the journal's figure/author guidelines
 last_verified = ""         # ISO date: "2026-01-15"
-verified_by = ""           # GitHub username of the person who verified
 
 [dimensions]
 single_column_mm = 0.0     # Width of a single-column figure in mm
@@ -45,4 +44,6 @@ colorblind_required = false
 grayscale_required = false
 
 [line]
-min_weight_pt = 0.5        # Minimum line weight in points
+# If the journal specifies a minimum line weight, add:
+#   min_weight_pt = 0.5    # Minimum line weight in points
+# Otherwise leave this section empty with a comment noting the guidelines do not specify one.
