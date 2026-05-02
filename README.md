@@ -16,14 +16,21 @@
 
 ---
 
-**PlotStyle** makes it easy to produce Matplotlib figures that meet the exact typographic, dimensional, and export requirements of major academic journals. It also integrates with Seaborn, with more integrations planned. Pick a journal, create your figure, save it. PlotStyle handles the rest.
+**PlotStyle** makes it easy to produce Matplotlib figures that meet the exact typographic, dimensional, and export requirements of major academic journals. It integrates with Seaborn, with more integrations planned.
+
+- Apply correct font sizes, column widths, and DPI for 12 major journals with one call
+- Validate figures against journal requirements before you submit
+- Export in all required file formats at once
+- Simulate colorblind and grayscale rendering to catch accessibility issues early
+- Use overlays to adapt style for notebooks, presentations, or custom palettes
+- Compare two journal presets side by side with `plotstyle.diff()`
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/before_after.png" width="90%" alt="Left: default Matplotlib output. Right: the same figure styled with plotstyle.use('nature').">
 </p>
 
 <p align="center">
-  <em>Left: default Matplotlib. Right: <code>plotstyle.use("nature")</code>. Same data, same code.</em>
+  <em>Left: default Matplotlib. Right: <code>plotstyle.use("nature")</code> - Nature single-column width (89 mm), Helvetica, 7 pt, 300 DPI. Same data, same code.</em>
 </p>
 
 ---
@@ -33,21 +40,10 @@
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Examples](#examples)
-  - [Multi-panel figures](#multi-panel-figures)
-  - [Color palettes](#color-palettes)
-  - [Overlays](#overlays)
-  - [Overlay-only mode](#overlay-only-mode)
-  - [Colorblind and grayscale previews](#colorblind-and-grayscale-previews)
-  - [Grayscale safety checks](#grayscale-safety-checks)
-  - [Validation and submission export](#validation-and-submission-export)
-  - [Scenario: paper submission workflow](#scenario-paper-submission-workflow)
 - [Supported Journals](#supported-journals)
 - [CLI](#cli)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
-- [Code of Conduct](#code-of-conduct)
-- [Security](#security)
-- [Citation](#citation)
 - [License](#license)
 
 ---
@@ -60,17 +56,26 @@ Requires **Python 3.10+** and **Matplotlib >= 3.9**.
 pip install plotstyle
 ```
 
-Optional extras:
+If you are unsure which extras to install, use `[all]`:
+
+```bash
+pip install "plotstyle[all]"
+```
+
+Or install only what you need:
 
 ```bash
 pip install "plotstyle[color]"     # colorblind / grayscale previews
 pip install "plotstyle[seaborn]"   # seaborn integration
-pip install "plotstyle[all]"       # everything
 ```
+
+If fonts look wrong after installation, run `plotstyle fonts --journal <name>` to check which fonts are available and which one was selected.
 
 ---
 
 ## Quick Start
+
+The `with` block is the recommended pattern. Matplotlib's `rcParams` are restored automatically when it exits, even if an exception occurs.
 
 ```python
 import numpy as np
@@ -93,15 +98,15 @@ with plotstyle.use("nature") as style:
   <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/quickstart_nature.png" width="55%" alt="Quickstart output: sin and cos figure styled for Nature">
 </p>
 
-The `with` block is the recommended pattern. Matplotlib's `rcParams` are restored automatically when it exits, even if an exception occurs.
-
 ---
 
 ## Examples
 
+This section covers multi-panel figures, color palettes, overlays, accessibility checks, validation, and submission export. Start with [Multi-panel figures](#multi-panel-figures) or [Color palettes](#color-palettes) if you are new to PlotStyle.
+
 ### Multi-panel figures
 
-`style.subplots()` works like `plt.subplots()` but sizes the figure to the journal spec and adds panel labels automatically. All built-in journal specs use bold lowercase labels (**a**, **b**, **c**, …). The label style is driven by each spec's `panel_label_case` field and can be `lower`, `upper`, `parens_lower`, `parens_upper`, `sentence`, or `title`.
+`style.subplots()` works like `plt.subplots()` but sizes the figure to the journal preset and adds panel labels automatically. All built-in journal presets use bold lowercase labels (**a**, **b**, **c**, ...). The label style is driven by each preset's `panel_label_case` field and can be `lower`, `upper`, `parens_lower`, `parens_upper`, `sentence`, or `title`.
 
 ```python
 import numpy as np
@@ -110,7 +115,7 @@ import plotstyle
 rng = np.random.default_rng(42)
 
 with plotstyle.use("science") as style:
-    fig, axes = style.subplots(nrows=2, ncols=2, columns=2)
+    fig, axes = style.subplots(nrows=1, ncols=2, columns=2)
 
     x = np.linspace(0, 10, 100)
     axes[0, 0].plot(x, np.sin(x), label="sin")
@@ -124,14 +129,6 @@ with plotstyle.use("science") as style:
     axes[0, 1].scatter(xs, ys, s=12, alpha=0.7)
     axes[0, 1].set_xlabel("Variable X")
     axes[0, 1].set_ylabel("Variable Y")
-
-    axes[1, 0].bar(["A", "B", "C", "D"], [3.2, 5.8, 4.1, 6.5])
-    axes[1, 0].set_xlabel("Category")
-    axes[1, 0].set_ylabel("Count")
-
-    axes[1, 1].hist(rng.normal(0, 1, 500), bins=25, edgecolor="white", linewidth=0.5)
-    axes[1, 1].set_xlabel("Value")
-    axes[1, 1].set_ylabel("Frequency")
 
     style.savefig(fig, "multi_panel.pdf")
 ```
@@ -149,24 +146,11 @@ with plotstyle.use("science") as style:
 Each journal has a recommended colorblind-safe palette. `plotstyle.palette()` returns hex color strings, cycling if you need more than the palette length.
 
 ```python
-import matplotlib.pyplot as plt
 import plotstyle
 
-journals = ["nature", "science", "ieee", "acs"]
-fig, axes = plt.subplots(len(journals), 1, figsize=(6, 0.6 * len(journals)))
-
-for ax, journal in zip(axes, journals, strict=False):
-    pal = plotstyle.palette(journal, n=8)
-    for i, color in enumerate(pal):
-        ax.barh(0, 1, left=i, color=color, edgecolor="none", height=0.8)
-    ax.set_xlim(0, 8)
-    ax.set_yticks([])
-    ax.set_ylabel(journal, rotation=0, ha="right", va="center")
-    ax.set_xticks([])
-
-fig.suptitle("Journal Color Palettes")
-fig.tight_layout()
-fig.savefig("palette_comparison.png", dpi=150)
+colors = plotstyle.palette("nature", n=4)
+print(colors)
+# ['#E69F00', '#56B4E9', '#009E73', '#F0E442']
 ```
 
 <p align="center">
@@ -209,7 +193,15 @@ with plotstyle.use("ieee") as style:
 
 Overlays are additive patches that layer on top of a journal preset. They let you adjust one aspect of a figure (the colour palette, the context, the chart type) without changing the base journal settings.
 
-Pass overlay names in the same list as the journal key:
+| Category | Purpose | Examples |
+|----------|---------|---------|
+| `color` | Swap the colour cycle | `okabe-ito`, `conservative-colorblind`, `tol-bright`, `tol-rainbow-{1..23}`, `safe-grayscale` |
+| `context` | Adjust scale for the medium | `notebook`, `presentation`, `minimal`, `high-vis` |
+| `rendering` | Control LaTeX and grid rendering | `no-latex`, `grid`, `latex-sans`, `pgf`, `si-units` |
+| `plot-type` | Optimise for a chart type | `bar`, `scatter` |
+| `script` | Non-Latin font support | `cjk-simplified`, `cjk-traditional`, `cjk-japanese`, `cjk-korean`, `russian`, `turkish` |
+
+Pass overlay names in the same list as the journal preset:
 
 ```python
 import plotstyle
@@ -271,41 +263,18 @@ with plotstyle.use(["ieee", "okabe-ito"]) as style:
   <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/overlay_okabe_ito.png" width="55%" alt="IEEE figure with okabe-ito colorblind-safe palette">
 </p>
 
-| Category | Purpose | Examples |
-|----------|---------|---------|
-| `color` | Swap the colour cycle | `okabe-ito`, `conservative-colorblind`, `tol-bright`, `tol-rainbow-5`, `safe-grayscale` (+ `tol-rainbow-1` through `tol-rainbow-23`) |
-| `context` | Adjust scale for the medium | `notebook`, `presentation`, `minimal`, `high-vis` |
-| `rendering` | Control LaTeX and grid rendering | `no-latex`, `grid`, `latex-sans`, `pgf`, `si-units` |
-| `plot-type` | Optimise for a chart type | `bar`, `scatter` |
-| `script` | Non-Latin font support | `cjk-simplified`, `cjk-traditional`, `cjk-japanese`, `cjk-korean`, `russian`, `turkish` |
-
 ```python
 # List all available overlays
 plotstyle.list_overlays()
 plotstyle.list_overlays(category="context")
-```
-
-```text
-# plotstyle.list_overlays()
-['bar', 'cjk-japanese', 'cjk-korean', 'cjk-simplified', 'cjk-traditional',
- 'conservative-colorblind', 'grid', 'high-vis', 'latex-sans', 'minimal', 'no-latex',
- 'notebook', 'okabe-ito', 'pgf', 'presentation', 'russian', 'safe-grayscale', 'scatter',
- 'si-units', 'tol-bright', 'tol-high-contrast', 'tol-light', 'tol-muted',
- 'tol-rainbow-1', 'tol-rainbow-2', 'tol-rainbow-3', 'tol-rainbow-4', 'tol-rainbow-5',
- 'tol-rainbow-6', 'tol-rainbow-7', 'tol-rainbow-8', 'tol-rainbow-9', 'tol-rainbow-10',
- 'tol-rainbow-11', 'tol-rainbow-12', 'tol-rainbow-13', 'tol-rainbow-14', 'tol-rainbow-15',
- 'tol-rainbow-16', 'tol-rainbow-17', 'tol-rainbow-18', 'tol-rainbow-19', 'tol-rainbow-20',
- 'tol-rainbow-21', 'tol-rainbow-22', 'tol-rainbow-23', 'tol-vibrant', 'turkish']
-
-# plotstyle.list_overlays(category="context")
-['high-vis', 'minimal', 'notebook', 'presentation']
+# ['high-vis', 'minimal', 'notebook', 'presentation']
 ```
 
 ---
 
 ### Overlay-only mode
 
-You can pass only overlay names to `plotstyle.use()` -- with no journal key. PlotStyle adjusts the requested rcParams without applying any journal-specific fonts, sizes, or column widths. This is useful for blog posts, presentations, exploratory notebooks, or any context where journal compliance is not required.
+Pass only overlay names to `plotstyle.use()` with no journal preset. PlotStyle adjusts the requested rcParams without applying any journal-specific fonts, sizes, or column widths. This is useful for blog posts, presentations, exploratory notebooks, or any context where journal compliance is not required.
 
 ```python
 import numpy as np
@@ -314,23 +283,14 @@ import plotstyle
 
 x = np.linspace(0, 2 * np.pi, 100)
 
-# No journal key: style.spec is None
 with plotstyle.use(["notebook"]) as style:
-    print(style.spec)   # None
-    print(repr(style))  # JournalStyle(journal=None, overlays=['notebook'], ...)
-
     fig, ax = style.figure(columns=1)   # falls back to 6.4 in wide
     ax.plot(x, np.sin(x), label="sin(x)")
     ax.plot(x, np.cos(x), label="cos(x)")
     ax.set_xlabel("Phase (rad)")
     ax.set_ylabel("Amplitude")
     ax.legend()
-    style.savefig(fig, "notebook_fig.pdf")   # delegates to fig.savefig()
-```
-
-```text
-None
-JournalStyle(journal=None, overlays=['notebook'], seaborn_patched=False)
+    style.savefig(fig, "notebook_fig.pdf")
 ```
 
 Combine multiple overlays in the same list. They are applied in declaration order and the last overlay wins on any rcParam conflict:
@@ -357,7 +317,7 @@ with plotstyle.use(["presentation"]) as style:
     style.savefig(fig, "slide_fig.pdf")
 ```
 
-> In overlay-only mode, `style.palette()`, `style.validate()`, and `style.export_submission()` raise `RuntimeError` because they require a journal spec. `style.savefig()` and `style.figure()` always work.
+> In overlay-only mode, `style.palette()`, `style.validate()`, and `style.export_submission()` raise `RuntimeError` because they require a journal preset. `style.savefig()` and `style.figure()` always work.
 
 ---
 
@@ -402,16 +362,13 @@ with plotstyle.use("nature") as style:
 
 Use the programmatic grayscale API to check whether a set of colors will be distinguishable when printed in black and white. This works with any Matplotlib color strings and does not require a journal preset.
 
-`rgb_to_luminance(r, g, b)` returns the BT.709 luminance of a single color. `luminance_delta(colors)` returns pairwise luminance differences sorted ascending, so the weakest pair is always first. `is_grayscale_safe(colors, threshold)` returns `True` only when every pair meets the minimum delta.
+- `rgb_to_luminance(r, g, b)` returns the BT.709 luminance of a single color.
+- `luminance_delta(colors)` returns pairwise luminance differences sorted ascending; the weakest pair is always first.
+- `is_grayscale_safe(colors, threshold)` returns `True` only when every pair meets the minimum delta.
 
 ```python
-from plotstyle.color.grayscale import rgb_to_luminance, luminance_delta, is_grayscale_safe
+from plotstyle.color.grayscale import luminance_delta, is_grayscale_safe
 import plotstyle
-
-# Luminance of individual colors (BT.709: L = 0.2126R + 0.7152G + 0.0722B)
-print(rgb_to_luminance(1.0, 0.0, 0.0))   # 0.2126
-print(rgb_to_luminance(0.0, 1.0, 0.0))   # 0.7152
-print(rgb_to_luminance(0.0, 0.0, 1.0))   # 0.0722
 
 # Pairwise deltas for a palette
 colors = plotstyle.palette("nature", n=4)
@@ -426,9 +383,6 @@ print(f"Grayscale safe: {safe}")
 ```
 
 ```text
-0.2126
-0.7152
-0.0722
 [fail] Color 0 vs Color 1: delta = 0.0048
 [pass] Color 0 vs Color 2: delta = 0.1620
 [pass] Color 1 vs Color 2: delta = 0.1668
@@ -462,28 +416,10 @@ Validate a figure against the journal's requirements, then export in all require
 
 ```python
 import numpy as np
-import matplotlib.pyplot as plt
 import plotstyle
 
 x = np.linspace(0, 2 * np.pi, 100)
 
-# Outside plotstyle.use(): some checks will fail
-fig, ax = plt.subplots()
-ax.plot(x, np.sin(x), label="sin(x)")
-ax.set_xlabel("Phase (rad)")
-ax.set_ylabel("Amplitude")
-ax.legend()
-
-report = plotstyle.validate(fig, journal="nature")
-print(report)          # formatted compliance table
-print(report.passed)   # False, rcParams not configured
-
-for failure in report.failures:
-    print(failure.message)         # what failed
-    print(failure.fix_suggestion)  # how to fix it
-plt.close(fig)
-
-# Inside plotstyle.use(): all checks pass
 with plotstyle.use("nature") as style:
     fig, ax = style.figure(columns=1)
     ax.plot(x, np.sin(x), label="sin(x)")
@@ -495,29 +431,6 @@ with plotstyle.use("nature") as style:
     print(report)
     print(report.passed)   # True
 ```
-
-```text
-┌──────────────────────────────────────────────────────┐
-│         PlotStyle Validation Report: Nature          │
-├──────────┬───────────────────────────────────────────┤
-│ ✗ FAIL   │ Figure width 162.6mm does not match Nat...│
-│ ✓ PASS   │ Figure height 121.9mm is within the Nat...│
-│ ✗ FAIL   │ pdf.fonttype = 3; must be 42 for TrueTy...│
-│ ✗ FAIL   │ ps.fonttype = 3; must be 42 for TrueTyp...│
-│ ⚠ WARN   │ savefig.dpi = 'figure'; Nature requires...│
-│ ✓ PASS   │ All plotted lines and spines meet the N...│
-│ ✗ FAIL   │ 23 text element(s) outside the Nature r...│
-└──────────┴───────────────────────────────────────────┘
-2/7 checks passed, 1 warning(s), 4 failure(s)
-
-passed: False
-
-failure.message:       pdf.fonttype = 3; must be 42 for TrueType font embedding.
-failure.fix_suggestion: Call plotstyle.use() to apply all required rcParams, or set
-                        mpl.rcParams['pdf.fonttype'] = 42 manually.
-```
-
-When called inside `plotstyle.use()`, all checks pass:
 
 ```text
 ┌──────────────────────────────────────────────────────┐
@@ -535,6 +448,8 @@ When called inside `plotstyle.use()`, all checks pass:
 
 passed: True
 ```
+
+When called outside `plotstyle.use()`, checks will fail and each `failure.message` and `failure.fix_suggestion` tells you exactly what to correct. See [`05_validation.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/05_validation.py) for the full failing-case example.
 
 ```python
 import numpy as np
@@ -574,27 +489,36 @@ with plotstyle.use("ieee") as style:
 
 A complete end-to-end workflow combining journal comparison, figure creation, validation, and batch export.
 
+**Step 1: compare two journal presets before committing**
+
 ```python
-import numpy as np
-import matplotlib.pyplot as plt
 import plotstyle
 
-# Step 1: compare two journals before committing
 result = plotstyle.diff("nature", "science")
 print(result)
-# Nature → Science
-# Column Width (single):  89.0mm → 86.4mm
-# Min Font Size:          5.0pt → 7.0pt
-# Colorblind Required:    No → Yes
-# ... (8 fields differ)
+```
+
+```text
+Nature → Science
+Column Width (single):  89.0mm → 86.4mm
+Min Font Size:          5.0pt → 7.0pt
+Colorblind Required:    No → Yes
+... (8 fields differ)
+```
+
+**Steps 2-4: create figures, validate, and export inside one style block**
+
+```python
+import numpy as np
+import plotstyle
 
 rng = np.random.default_rng(42)
 time = np.linspace(0, 5, 80)
 
-# Step 2: create all figures inside one style block
 with plotstyle.use("nature") as style:
     colors = style.palette(n=4)
 
+    # Step 2: create figures
     fig1, ax1 = style.figure(columns=1)
     signal = np.exp(-time / 3) * np.sin(2 * np.pi * time)
     ax1.plot(time, signal, color=colors[0], label="Signal")
@@ -618,9 +542,6 @@ with plotstyle.use("nature") as style:
     for label, fig in [("fig1", fig1), ("fig2", fig2)]:
         paths = style.export_submission(fig, label, output_dir="submission/", quiet=True)
         print(f"{label}: {[p.name for p in paths]}")
-
-    plt.close(fig1)
-    plt.close(fig2)
 ```
 
 ```text
@@ -630,7 +551,7 @@ fig1: ['fig1.eps', 'fig1.pdf']
 fig2: ['fig2.eps', 'fig2.pdf']
 ```
 
-> Use `plotstyle.diff()` to compare any two journals before starting. Use `style.validate()` inside the `with` block to catch problems before they reach the submission portal.
+> Use `plotstyle.diff()` to compare any two journal presets before starting. Use `style.validate()` inside the `with` block to catch problems before they reach the submission portal.
 
 ---
 
@@ -651,196 +572,40 @@ fig2: ['fig2.eps', 'fig2.pdf']
 | `usenix` | USENIX | USENIX Association |
 | `wiley` | Wiley | Wiley |
 
-> Need another journal? See [CONTRIBUTING.md](CONTRIBUTING.md).
+Need another journal? See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add a preset.
 
 ---
 
 ## CLI
 
 ```
-plotstyle list                                 # list all journal presets
-plotstyle info <journal>                       # show spec details
-plotstyle diff <journal_a> <journal_b>         # compare two journals
-plotstyle fonts --journal <journal>            # check font availability
-plotstyle overlays [--category <category>]    # list available overlays
-plotstyle overlay-info <overlay>               # show overlay details
-plotstyle validate <file> --journal <journal>  # validate a saved figure
-plotstyle export <file> --journal <journal>    # print snippet for re-exporting
+plotstyle list                                        # list all journal presets
+plotstyle info <journal>                              # show preset details
+plotstyle diff <journal_a> <journal_b>                # compare two journal presets
+plotstyle fonts --journal <journal>                   # check font availability
+plotstyle overlays [--category <category>]            # list available overlays
+plotstyle overlay-info <overlay>                      # show overlay details
+plotstyle validate <file.png|pdf> --journal <journal> # validate a saved figure
+plotstyle export <file.png|pdf> --journal <journal>   # export in all formats required by the journal
 ```
 
-**`plotstyle list`**
-```text
-  acs             American Chemical Society
-  acm             Association for Computing Machinery
-  cell            Cell Press
-  elsevier        Elsevier
-  ieee            IEEE
-  nature          Springer Nature
-  plos            Public Library of Science
-  prl             American Physical Society
-  science         AAAS
-  springer        Springer Nature
-  usenix          USENIX Association
-  wiley           Wiley
-```
-
-**`plotstyle info nature`**
-```text
-Journal: Nature
-Publisher: Springer Nature
-Source: https://www.nature.com/documents/nature-final-artwork.pdf
-Last Verified: 2026-04-30
-──────────────────────────
-Dimensions:
-  Single column: 89.0mm (3.50in)
-  Double column: 183.0mm (7.20in)
-  Max height:    170.0mm
-Typography:
-  Font:          Helvetica, Arial (fallback: sans-serif)
-  Size range:    5.0-7.0pt
-  Target size:   7.0pt
-  Panel labels:  5.0pt bold lower (a, b, c)
-Export:
-  Formats:  ai, eps, pdf
-  Min DPI:  300
-  Color:    rgb
-Accessibility:
-  Colorblind safe: Not required
-  Grayscale safe:  Not required
-  Avoid:           none
-```
-
-**`plotstyle diff nature science`**
-```text
-Nature → Science
-──────────────────────────────────────────────────
-Column Width (single):  89.0mm → 86.4mm
-Column Width (double):  183.0mm → 177.8mm
-Max Height:             170.0mm → -
-Min Font Size:          5.0pt → 7.0pt
-Max Font Size:          7.0pt → 10.0pt
-Panel Label Size:       5.0pt → 7.0pt
-Preferred Formats:      ai, eps, pdf → ai, eps, pdf, tiff
-Colorblind Required:    No → Yes
-```
-
-**`plotstyle fonts --journal nature`**
-```text
-Font check for: Nature
-Required:        Helvetica, Arial
-Available:       Helvetica, Arial
-Selected:        Helvetica
-Exact match:     Yes
-```
-
-**`plotstyle overlays`**
-```text
-  bar             [plot-type]  Optimised rcParams for bar charts.
-  cjk-simplified  [script]     Font configuration for Simplified Chinese labels.
-  grid            [rendering]  Enable major grid lines with a subtle dashed style.
-  high-vis        [context]    Maximum contrast, bold lines, and oversized ticks.
-  latex-sans      [rendering]  Enable LaTeX rendering with a sans-serif font family.
-  minimal         [context]    Stripped-down axes with no top/right spines.
-  no-latex        [rendering]  Disable LaTeX text rendering; use Matplotlib MathText.
-  notebook        [context]    Enlarged figures and larger fonts for Jupyter.
-  conservative-colorblind [color]      7-color palette safe under all types of color vision deficiency.
-  okabe-ito       [color]      Colorblind-safe 8-color qualitative palette.
-  pgf             [rendering]  Use the PGF LaTeX backend for vector output.
-  presentation    [context]    Large text and thick lines for slide decks.
-  safe-grayscale  [color]      6-step grayscale palette for black-and-white print.
-  scatter         [plot-type]  Optimised rcParams for scatter plots.
-  si-units        [rendering]  Load siunitx LaTeX package for SI unit notation in axis labels.
-  tol-bright      [color]      Paul Tol's bright 7-color qualitative palette.
-  ...
-```
-
-**`plotstyle overlay-info minimal`**
-```text
-Overlay: Minimal
-Key:     minimal
-Category: context
-Description: Stripped-down axes with no top/right spines for editorial and blog use.
-──────────────────────────
-rcParams:
-  axes.spines.top = False
-  axes.spines.right = False
-  xtick.top = False
-  ytick.right = False
-  axes.grid = False
-  axes.linewidth = 0.8
-```
+Full output examples are in the [CLI reference](https://plotstyle.readthedocs.io/en/stable/cli.html).
 
 ---
 
 ## Documentation
 
-Full documentation at **[plotstyle.readthedocs.io](https://plotstyle.readthedocs.io)**:
-
-- [Installation guide](https://plotstyle.readthedocs.io/en/stable/installation.html)
-- [Quick start tutorial](https://plotstyle.readthedocs.io/en/stable/quickstart.html)
-- [API reference](https://plotstyle.readthedocs.io/en/stable/api/index.html)
-- [CLI reference](https://plotstyle.readthedocs.io/en/stable/cli.html)
-- [FAQ](https://plotstyle.readthedocs.io/en/stable/faq.html)
-
-Working examples are in the [`examples/`](https://github.com/rahulkaushal04/plotstyle/tree/main/examples/) directory:
-
-| Example | What it covers |
-|---------|----------------|
-| [`01_quickstart.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/01_quickstart.py) | Apply a journal preset, create a figure, and save |
-| [`02_multi_panel_figure.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/02_multi_panel_figure.py) | Multi-panel layouts with automatic panel labels |
-| [`03_color_palettes.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/03_color_palettes.py) | Journal palettes, grayscale-safe markers, `apply_palette` |
-| [`04_accessibility_checks.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/04_accessibility_checks.py) | Colorblind simulation and grayscale print-safety |
-| [`05_validation.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/05_validation.py) | Validate a figure against journal requirements |
-| [`06_export_submission.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/06_export_submission.py) | Export in all required formats for submission |
-| [`07_spec_diff_and_migrate.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/07_spec_diff_and_migrate.py) | Compare journals and migrate a figure between them |
-| [`08_gallery_preview.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/08_gallery_preview.py) | Discover journals and preview their styles |
-| [`09_registry_and_spec.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/09_registry_and_spec.py) | Inspect journal specs from the registry |
-| [`10_context_manager_patterns.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/10_context_manager_patterns.py) | Patterns for managing rcParam lifetime |
-| [`11_seaborn_integration.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/11_seaborn_integration.py) | Keep PlotStyle settings intact with Seaborn |
-| [`12_overlays.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/12_overlays.py) | Overlays: context, color, and plot-type |
-| [`13_overlay_only_mode.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/13_overlay_only_mode.py) | Style figures without a journal preset using overlays only |
-| [`14_print_size_preview.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/14_print_size_preview.py) | Preview a figure at its true physical print size |
-| [`15_matplotlib_native_styles.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/15_matplotlib_native_styles.py) | Use PlotStyle presets with `plt.style` |
-| [`16_latex_and_fonts.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/16_latex_and_fonts.py) | LaTeX modes and font availability checks |
-| [`17_grayscale_safety.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/17_grayscale_safety.py) | Programmatic luminance and grayscale safety analysis |
-| [`18_scenario_paper_workflow.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/18_scenario_paper_workflow.py) | Scenario: full paper submission workflow from comparison to export |
-
-Interactive Jupyter notebooks are in [`examples/notebooks/`](https://github.com/rahulkaushal04/plotstyle/tree/main/examples/notebooks/):
-
-| Notebook | What it covers |
-|----------|----------------|
-| [`01_quickstart.ipynb`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/notebooks/01_quickstart.ipynb) | Full quickstart: style, figure, palette, validate, save, overlays |
-| [`02_accessibility_and_validation.ipynb`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/notebooks/02_accessibility_and_validation.ipynb) | Colorblind and grayscale previews, validation reports |
-| [`03_journal_comparison_and_migration.ipynb`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/notebooks/03_journal_comparison_and_migration.ipynb) | Diff journals and migrate figures between them |
-| [`04_overlays.ipynb`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/notebooks/04_overlays.ipynb) | Overlays in depth: context, color, plot-type, combining |
+Full documentation is at **[plotstyle.readthedocs.io](https://plotstyle.readthedocs.io)**, including the installation guide, API reference, CLI reference, and FAQ. Working code examples are in the [`examples/`](https://github.com/rahulkaushal04/plotstyle/tree/main/examples/) directory and interactive Jupyter notebooks are in [`examples/notebooks/`](https://github.com/rahulkaushal04/plotstyle/tree/main/examples/notebooks/).
 
 ---
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, adding journal specs, and pull request guidelines.
-
-All contributors are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
-
----
-
-## Code of Conduct
-
-This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this standard.
-
----
-
-## Security
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, adding journal presets, and pull request guidelines. All contributors are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 To report a security vulnerability, use [GitHub's private vulnerability reporting](https://github.com/rahulkaushal04/plotstyle/security/advisories/new) rather than opening a public issue. See [SECURITY.md](SECURITY.md) for scope, timeline, and disclosure guidelines.
 
----
-
-## Citation
-
-If PlotStyle helps your research, a citation or star is appreciated.
-
-Use the **"Cite this repository"** button on the GitHub sidebar to get a ready-to-use APA or BibTeX entry. It reads from [`CITATION.cff`](CITATION.cff) and is always up to date.
+If PlotStyle helps your research, a citation is appreciated. Use the **"Cite this repository"** button on the GitHub sidebar to get a ready-to-use APA or BibTeX entry. It reads from [`CITATION.cff`](CITATION.cff) and is always up to date.
 
 ---
 
