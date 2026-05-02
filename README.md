@@ -36,8 +36,11 @@
   - [Multi-panel figures](#multi-panel-figures)
   - [Color palettes](#color-palettes)
   - [Overlays](#overlays)
+  - [Overlay-only mode](#overlay-only-mode)
   - [Colorblind and grayscale previews](#colorblind-and-grayscale-previews)
+  - [Grayscale safety checks](#grayscale-safety-checks)
   - [Validation and submission export](#validation-and-submission-export)
+  - [Scenario: paper submission workflow](#scenario-paper-submission-workflow)
 - [Supported Journals](#supported-journals)
 - [CLI](#cli)
 - [Documentation](#documentation)
@@ -300,6 +303,64 @@ plotstyle.list_overlays(category="context")
 
 ---
 
+### Overlay-only mode
+
+You can pass only overlay names to `plotstyle.use()` -- with no journal key. PlotStyle adjusts the requested rcParams without applying any journal-specific fonts, sizes, or column widths. This is useful for blog posts, presentations, exploratory notebooks, or any context where journal compliance is not required.
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+import plotstyle
+
+x = np.linspace(0, 2 * np.pi, 100)
+
+# No journal key: style.spec is None
+with plotstyle.use(["notebook"]) as style:
+    print(style.spec)   # None
+    print(repr(style))  # JournalStyle(journal=None, overlays=['notebook'], ...)
+
+    fig, ax = style.figure(columns=1)   # falls back to 6.4 in wide
+    ax.plot(x, np.sin(x), label="sin(x)")
+    ax.plot(x, np.cos(x), label="cos(x)")
+    ax.set_xlabel("Phase (rad)")
+    ax.set_ylabel("Amplitude")
+    ax.legend()
+    style.savefig(fig, "notebook_fig.pdf")   # delegates to fig.savefig()
+```
+
+```text
+None
+JournalStyle(journal=None, overlays=['notebook'], seaborn_patched=False)
+```
+
+Combine multiple overlays in the same list. They are applied in declaration order and the last overlay wins on any rcParam conflict:
+
+```python
+# Minimal axes (no top/right spines) with a subtle dashed grid
+with plotstyle.use(["minimal", "grid"]) as style:
+    fig, ax = style.figure()
+    ax.plot(x, np.sin(x))
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    style.savefig(fig, "minimal_grid.pdf")
+```
+
+For slides or posters, use the `"presentation"` overlay and create the figure with `plt.subplots()` so the overlay's larger figsize (10 x 7 in) is picked up:
+
+```python
+with plotstyle.use(["presentation"]) as style:
+    fig, ax = plt.subplots()   # uses the presentation figsize (10 x 7 in)
+    ax.plot(x, np.sin(x), label="sin(x)")
+    ax.set_xlabel("Phase (rad)")
+    ax.set_ylabel("Amplitude")
+    ax.legend()
+    style.savefig(fig, "slide_fig.pdf")
+```
+
+> In overlay-only mode, `style.palette()`, `style.validate()`, and `style.export_submission()` raise `RuntimeError` because they require a journal spec. `style.savefig()` and `style.figure()` always work.
+
+---
+
 ### Colorblind and grayscale previews
 
 Build a figure, then simulate how it looks under color vision deficiency or grayscale printing before you submit.
@@ -334,6 +395,64 @@ with plotstyle.use("nature") as style:
 <p align="center">
   <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/accessibility_grayscale.png" width="60%" alt="Grayscale simulation: original vs grayscale rendering">
 </p>
+
+---
+
+### Grayscale safety checks
+
+Use the programmatic grayscale API to check whether a set of colors will be distinguishable when printed in black and white. This works with any Matplotlib color strings and does not require a journal preset.
+
+`rgb_to_luminance(r, g, b)` returns the BT.709 luminance of a single color. `luminance_delta(colors)` returns pairwise luminance differences sorted ascending, so the weakest pair is always first. `is_grayscale_safe(colors, threshold)` returns `True` only when every pair meets the minimum delta.
+
+```python
+from plotstyle.color.grayscale import rgb_to_luminance, luminance_delta, is_grayscale_safe
+import plotstyle
+
+# Luminance of individual colors (BT.709: L = 0.2126R + 0.7152G + 0.0722B)
+print(rgb_to_luminance(1.0, 0.0, 0.0))   # 0.2126
+print(rgb_to_luminance(0.0, 1.0, 0.0))   # 0.7152
+print(rgb_to_luminance(0.0, 0.0, 1.0))   # 0.0722
+
+# Pairwise deltas for a palette
+colors = plotstyle.palette("nature", n=4)
+deltas = luminance_delta(colors)
+for i, j, delta in deltas:
+    status = "pass" if delta >= 0.10 else "fail"
+    print(f"[{status}] Color {i} vs Color {j}: delta = {delta:.4f}")
+
+# Pass/fail check
+safe = is_grayscale_safe(colors, threshold=0.10)
+print(f"Grayscale safe: {safe}")
+```
+
+```text
+0.2126
+0.7152
+0.0722
+[fail] Color 0 vs Color 1: delta = 0.0048
+[pass] Color 0 vs Color 2: delta = 0.1620
+[pass] Color 1 vs Color 2: delta = 0.1668
+[pass] Color 1 vs Color 3: delta = 0.2157
+[pass] Color 0 vs Color 3: delta = 0.2205
+[pass] Color 2 vs Color 3: delta = 0.3825
+Grayscale safe: False
+```
+
+IEEE is the only built-in journal whose default palette (`safe_grayscale`) is designed for black-and-white printing. Most colorblind-safe palettes distinguish colors by hue and are not automatically safe in grayscale.
+
+```python
+for journal in ["nature", "science", "ieee", "acs"]:
+    colors = plotstyle.palette(journal, n=6)
+    safe = is_grayscale_safe(colors, threshold=0.10)
+    print(f"  {journal:<10}: {'safe' if safe else 'not safe'}")
+```
+
+```text
+  nature    : not safe
+  science   : not safe
+  ieee      : safe
+  acs       : not safe
+```
 
 ---
 
@@ -448,6 +567,70 @@ with plotstyle.use("ieee") as style:
  PosixPath('submission/smith_figure1.pdf'),
  PosixPath('submission/smith_figure1.png')]
 ```
+
+---
+
+### Scenario: paper submission workflow
+
+A complete end-to-end workflow combining journal comparison, figure creation, validation, and batch export.
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+import plotstyle
+
+# Step 1: compare two journals before committing
+result = plotstyle.diff("nature", "science")
+print(result)
+# Nature → Science
+# Column Width (single):  89.0mm → 86.4mm
+# Min Font Size:          5.0pt → 7.0pt
+# Colorblind Required:    No → Yes
+# ... (8 fields differ)
+
+rng = np.random.default_rng(42)
+time = np.linspace(0, 5, 80)
+
+# Step 2: create all figures inside one style block
+with plotstyle.use("nature") as style:
+    colors = style.palette(n=4)
+
+    fig1, ax1 = style.figure(columns=1)
+    signal = np.exp(-time / 3) * np.sin(2 * np.pi * time)
+    ax1.plot(time, signal, color=colors[0], label="Signal")
+    ax1.fill_between(time, signal - 0.1, signal + 0.1, alpha=0.3, color=colors[0])
+    ax1.set_xlabel("Time (s)")
+    ax1.set_ylabel("Amplitude (a.u.)")
+    ax1.legend()
+
+    fig2, axes = style.subplots(nrows=1, ncols=2, columns=2)
+    xs = rng.normal(0, 1, 50)
+    ys = 0.7 * xs + rng.normal(0, 0.3, 50)
+    axes[0, 0].bar(["Control", "Treatment A", "Treatment B"], [1.0, 1.34, 0.87])
+    axes[0, 1].scatter(xs, ys, color=colors[1], s=10, alpha=0.8)
+
+    # Step 3: validate each figure
+    for label, fig in [("fig1", fig1), ("fig2", fig2)]:
+        report = style.validate(fig)
+        print(f"{label}: {'PASS' if report.passed else 'FAIL'} ({len(report.checks)} checks)")
+
+    # Step 4: export in all formats the journal requires
+    for label, fig in [("fig1", fig1), ("fig2", fig2)]:
+        paths = style.export_submission(fig, label, output_dir="submission/", quiet=True)
+        print(f"{label}: {[p.name for p in paths]}")
+
+    plt.close(fig1)
+    plt.close(fig2)
+```
+
+```text
+fig1: PASS (7 checks)
+fig2: PASS (7 checks)
+fig1: ['fig1.eps', 'fig1.pdf']
+fig2: ['fig2.eps', 'fig2.pdf']
+```
+
+> Use `plotstyle.diff()` to compare any two journals before starting. Use `style.validate()` inside the `with` block to catch problems before they reach the submission portal.
 
 ---
 
@@ -615,9 +798,12 @@ Working examples are in the [`examples/`](https://github.com/rahulkaushal04/plot
 | [`10_context_manager_patterns.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/10_context_manager_patterns.py) | Patterns for managing rcParam lifetime |
 | [`11_seaborn_integration.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/11_seaborn_integration.py) | Keep PlotStyle settings intact with Seaborn |
 | [`12_overlays.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/12_overlays.py) | Overlays: context, color, and plot-type |
+| [`13_overlay_only_mode.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/13_overlay_only_mode.py) | Style figures without a journal preset using overlays only |
 | [`14_print_size_preview.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/14_print_size_preview.py) | Preview a figure at its true physical print size |
 | [`15_matplotlib_native_styles.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/15_matplotlib_native_styles.py) | Use PlotStyle presets with `plt.style` |
 | [`16_latex_and_fonts.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/16_latex_and_fonts.py) | LaTeX modes and font availability checks |
+| [`17_grayscale_safety.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/17_grayscale_safety.py) | Programmatic luminance and grayscale safety analysis |
+| [`18_scenario_paper_workflow.py`](https://github.com/rahulkaushal04/plotstyle/blob/main/examples/18_scenario_paper_workflow.py) | Scenario: full paper submission workflow from comparison to export |
 
 Interactive Jupyter notebooks are in [`examples/notebooks/`](https://github.com/rahulkaushal04/plotstyle/tree/main/examples/notebooks/):
 
