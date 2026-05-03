@@ -18,6 +18,8 @@
 
 **PlotStyle** makes it easy to produce Matplotlib figures that meet the exact typographic, dimensional, and export requirements of major academic journals. It integrates with Seaborn, with more integrations planned.
 
+Each journal is represented as a named preset: a complete set of font, column width, colour, and export settings sourced from the journal's official author guidelines.
+
 - Apply correct font sizes, column widths, and DPI for all supported journals with one call
 - Validate figures against journal requirements before you submit
 - Export in all required file formats at once
@@ -43,7 +45,9 @@
   - [Multi-panel figures](#multi-panel-figures)
   - [Color palettes](#color-palettes)
   - [Overlays](#overlays)
+  - [Seaborn integration](#seaborn-integration)
   - [Colorblind and grayscale previews](#colorblind-and-grayscale-previews)
+  - [Grayscale safety checks](#grayscale-safety-checks)
   - [Validation and submission export](#validation-and-submission-export)
   - [Paper submission workflow](#scenario-paper-submission-workflow)
 - [Supported Journals](#supported-journals)
@@ -75,7 +79,11 @@ pip install "plotstyle[seaborn]"    # seaborn integration
 pip install "plotstyle[fonttools]"  # better PDF font subsetting
 ```
 
-If fonts look wrong after installation, run `plotstyle fonts --journal <name>` to see which fonts are required, which are installed, and which one was selected as a fallback.
+If fonts look wrong after installation, run `plotstyle fonts --journal <name>` to see which fonts are required, which are installed, and which one was selected as a fallback. If no required fonts are installed, install one from the listed names and then rebuild matplotlib's font cache:
+
+```bash
+python -c "import matplotlib; matplotlib.font_manager._rebuild()"
+```
 
 ---
 
@@ -112,7 +120,7 @@ with plotstyle.use("nature") as style:
 
 ## Examples
 
-This section covers multi-panel figures, color palettes, overlays, accessibility checks, validation, and submission export. Start with [Multi-panel figures](#multi-panel-figures) or [Color palettes](#color-palettes) if you are new to PlotStyle.
+This section covers multi-panel figures, color palettes, overlays, accessibility checks, validation, and submission export.
 
 ### Multi-panel figures
 
@@ -156,6 +164,8 @@ with plotstyle.use("science") as style:
 </p>
 
 > `axes` is always a 2-D NumPy array. Use `axes[0, 0]` to access a single panel or `axes.flat` to iterate. Pass `panels=False` to suppress the automatic labels.
+
+> Pass `aspect=<ratio>` to `style.figure()` or `style.subplots()` to override the default golden ratio width-to-height ratio.
 
 ---
 
@@ -207,6 +217,15 @@ with plotstyle.use("ieee") as style:
   <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/palette_styled_ieee.png" width="55%" alt="IEEE figure with per-series color, linestyle, and marker combinations">
 </p>
 
+To apply a named palette directly to a specific axes or globally, use `plotstyle.apply_palette()`:
+
+```python
+from plotstyle.color.palettes import apply_palette
+
+apply_palette("okabe-ito", ax=ax)   # sets the colour cycle on this axes only
+apply_palette("tol-bright")         # sets it globally for all subsequently created axes
+```
+
 ---
 
 ### Overlays
@@ -215,11 +234,13 @@ Overlays are additive patches that layer on top of a journal preset. They let yo
 
 | Category | Purpose | Examples |
 |----------|---------|---------|
-| `color` | Swap the colour cycle | `okabe-ito`, `conservative-colorblind`, `tol-bright`, `tol-rainbow-{1..23}`, `safe-grayscale` |
+| `color` | Swap the colour cycle | `okabe-ito`, `conservative-colorblind`, `tol-bright`, `tol-high-contrast`, `tol-light`, `tol-muted`, `tol-vibrant`, `tol-rainbow-{1..23}`, `safe-grayscale` |
 | `context` | Adjust scale for the medium | `notebook`, `presentation`, `minimal`, `high-vis` |
 | `rendering` | Control LaTeX and grid rendering | `no-latex`, `grid`, `latex-sans`, `pgf`, `si-units` |
 | `plot-type` | Optimise for a chart type | `bar`, `scatter` |
 | `script` | Non-Latin font support | `cjk-simplified`, `cjk-traditional`, `cjk-japanese`, `cjk-korean`, `russian`, `turkish` |
+
+> `tol-vibrant` is the default colour cycle for the `science` preset. Use it as an overlay to apply the same palette to a different journal.
 
 Pass overlay names in the same list as the journal preset:
 
@@ -296,21 +317,7 @@ plotstyle.list_overlays(category="context")
 # ['high-vis', 'minimal', 'notebook', 'presentation']
 ```
 
-When using seaborn, pass `seaborn_compatible=True` to `plotstyle.use()`. This patches `sns.set_theme` so PlotStyle's rcParams are re-applied automatically after any seaborn theme change:
-
-```python
-import seaborn as sns
-import plotstyle
-
-with plotstyle.use("nature", seaborn_compatible=True) as style:
-    sns.set_theme(style="ticks")   # PlotStyle rcParams are re-applied automatically
-    fig, ax = style.figure(columns=1)
-    # ...
-```
-
----
-
-### Overlay-only mode
+#### Overlay-only mode
 
 Pass only overlay names to `plotstyle.use()` with no journal preset. PlotStyle adjusts the requested rcParams without applying any journal-specific fonts, sizes, or column widths. This is useful for blog posts, presentations, exploratory notebooks, or any context where journal compliance is not required.
 
@@ -355,9 +362,25 @@ with plotstyle.use(["presentation"]) as style:
     style.savefig(fig, "slide_fig.pdf")
 ```
 
-> In overlay-only mode, `style.palette()`, `style.validate()`, and `style.export_submission()` raise `RuntimeError` because they require a journal preset. `style.savefig()` and `style.figure()` always work.
+> In overlay-only mode, `style.palette()`, `style.validate()`, and `style.export_submission()` raise `RuntimeError` because they require a journal preset. `style.savefig()` accepts calls in any mode, but does not apply journal DPI or font-embedding settings without a preset. `style.figure()` always creates a figure.
 >
 > `style.figure()` in overlay-only mode falls back to matplotlib's default width (6.4 in) and does not read any `figure.figsize` set by an overlay. To pick up an overlay's figsize, use `plt.subplots()` instead (see the `presentation` example above).
+
+---
+
+### Seaborn integration
+
+Pass `seaborn_compatible=True` to `plotstyle.use()` to patch `sns.set_theme` so PlotStyle's rcParams are re-applied automatically after any seaborn theme change:
+
+```python
+import seaborn as sns
+import plotstyle
+
+with plotstyle.use("nature", seaborn_compatible=True) as style:
+    sns.set_theme(style="ticks")   # PlotStyle rcParams are re-applied automatically
+    fig, ax = style.figure(columns=1)
+    # ...
+```
 
 ---
 
@@ -397,13 +420,19 @@ with plotstyle.use("nature") as style:
 
 > By default, `preview_colorblind` simulates deuteranopia, protanopia, and tritanopia. Pass a `cvd_types` list to limit the simulation to specific types: `plotstyle.preview_colorblind(fig, cvd_types=[CVDType.DEUTERANOPIA])` (import `CVDType` from `plotstyle.color.accessibility`).
 
-> `plotstyle.preview_print_size(fig, journal="nature")` displays the figure at its approximate physical column width on screen. A dimension annotation is added temporarily and removed after display.
+To preview a figure at its exact physical column width on screen, use `preview_print_size`:
+
+```python
+plotstyle.preview_print_size(fig, journal="nature")
+```
+
+A dimension annotation is added temporarily and removed after display.
 
 ---
 
 ### Grayscale safety checks
 
-Use the programmatic grayscale API to check whether a set of colors will be distinguishable when printed in black and white. This works with any Matplotlib color strings and does not require a journal preset.
+This section covers a lower-level programmatic API for checking colour contrast ratios directly. Use `preview_grayscale()` for a visual check; use these functions when you need exact luminance values or need to validate programmatically.
 
 - `rgb_to_luminance(r, g, b)` returns the BT.709 luminance of a single color.
 - `luminance_delta(colors)` returns pairwise luminance differences sorted ascending; the weakest pair is always first.
@@ -460,6 +489,7 @@ with plotstyle.use("nature") as style:
     print(report)
     print(report.passed)    # True
     print(report.failures)  # list of failed CheckResult objects; empty when all pass
+    print(report.warnings)  # list of CheckResult objects with WARN status
     print(report.to_dict()) # JSON-serialisable dict
 ```
 
@@ -501,7 +531,7 @@ with plotstyle.use("ieee") as style:
         fig,
         "figure1",
         journal="ieee",
-        author_surname="Smith",     # IEEE prepends the surname prefix to filenames
+        author_surname="Smith",     # IEEE prepends the surname prefix to filenames; ignored by other journals
         output_dir="submission/",
     )
     print(paths)
@@ -531,13 +561,14 @@ print(result)
 
 ```text
 Nature → Science
+──────────────────────────────────────────────────
 Column Width (single):  89.0mm → 86.4mm
 Min Font Size:          5.0pt → 7.0pt
 Colorblind Required:    No → Yes
-... (8 fields differ)
+...
 ```
 
-`len(result)` returns the number of differing fields. `result.to_dict()` returns a JSON-serialisable dictionary.
+`str(result)` prints all differing fields; the output above is abbreviated. `len(result)` returns the total number of differences; `bool(result)` is truthy when any field differs; `result.to_dict()` returns a JSON-serialisable dictionary.
 
 **Steps 2-4: create figures, validate, and export inside one style block**
 
@@ -617,6 +648,8 @@ plotstyle.savefig(fig1, "figure_science.pdf", journal="science")
 | `usenix` | USENIX | USENIX Association |
 | `wiley` | Wiley | Wiley |
 
+Run `plotstyle info <journal>` to see the source URL and last-verified date for any preset. Journal guidelines change over time; always confirm critical requirements against the journal's current author guidelines before submission.
+
 Need another journal? See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add a preset.
 
 Use `plotstyle.gallery("nature")` to preview any journal's style across a line plot, scatter plot, bar chart, and histogram before writing plot code.
@@ -626,6 +659,7 @@ Use `plotstyle.gallery("nature")` to preview any journal's style across a line p
 ## CLI
 
 ```
+plotstyle --help                                        # show all commands
 plotstyle list                                          # list all journal presets
 plotstyle info <journal>                                # show preset details
 plotstyle diff <journal_a> <journal_b>                  # compare two journal presets
@@ -639,7 +673,7 @@ plotstyle export <file.png|pdf> --journal <journal>     # print a Python re-expo
 
 `plotstyle validate` checks PDF files for Type 3 font embedding only. Full validation of dimensions, typography, and line weights requires a live Matplotlib figure: use `plotstyle.validate(fig, journal=...)` in Python.
 
-`plotstyle export` does not create any output file. It prints a ready-to-run Python snippet that calls `plotstyle.export_submission()` with the specified settings.
+`plotstyle export` does not create any output file. It prints a ready-to-run Python snippet that calls `plotstyle.export_submission()` with the specified settings. Re-export requires the original Matplotlib Figure object.
 
 Full output examples are in the [CLI reference](https://plotstyle.readthedocs.io/en/stable/cli.html).
 

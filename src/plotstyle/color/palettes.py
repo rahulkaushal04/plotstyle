@@ -40,6 +40,7 @@ __all__: list[str] = [
 ]
 
 JOURNAL_PALETTE_MAP: Final[dict[str, str]] = {
+    "acm": "tol_bright",
     "acs": "tol_bright",
     "cell": "okabe_ito",
     "elsevier": "tol_bright",
@@ -49,6 +50,7 @@ JOURNAL_PALETTE_MAP: Final[dict[str, str]] = {
     "prl": "tol_muted",
     "science": "tol_vibrant",
     "springer": "tol_bright",
+    "usenix": "tol_bright",
     "wiley": "tol_muted",
 }
 
