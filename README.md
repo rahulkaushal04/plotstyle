@@ -18,7 +18,7 @@
 
 **PlotStyle** makes it easy to produce Matplotlib figures that meet the exact typographic, dimensional, and export requirements of major academic journals. It integrates with Seaborn, with more integrations planned.
 
-- Apply correct font sizes, column widths, and DPI for 12 major journals with one call
+- Apply correct font sizes, column widths, and DPI for all supported journals with one call
 - Validate figures against journal requirements before you submit
 - Export in all required file formats at once
 - Simulate colorblind and grayscale rendering to catch accessibility issues early
@@ -30,7 +30,7 @@
 </p>
 
 <p align="center">
-  <em>Left: default Matplotlib. Right: <code>plotstyle.use("nature")</code> - Nature single-column width (89 mm), Helvetica, 7 pt, 300 DPI. Same data, same code.</em>
+  <em>Left: default Matplotlib. Right: <code>plotstyle.use("nature")</code> - Nature single-column width (89 mm), Helvetica, 7 pt, 300 DPI. Same data, different style.</em>
 </p>
 
 ---
@@ -40,6 +40,12 @@
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Examples](#examples)
+  - [Multi-panel figures](#multi-panel-figures)
+  - [Color palettes](#color-palettes)
+  - [Overlays](#overlays)
+  - [Colorblind and grayscale previews](#colorblind-and-grayscale-previews)
+  - [Validation and submission export](#validation-and-submission-export)
+  - [Paper submission workflow](#scenario-paper-submission-workflow)
 - [Supported Journals](#supported-journals)
 - [CLI](#cli)
 - [Documentation](#documentation)
@@ -69,7 +75,7 @@ pip install "plotstyle[seaborn]"    # seaborn integration
 pip install "plotstyle[fonttools]"  # better PDF font subsetting
 ```
 
-If fonts look wrong after installation, run `plotstyle fonts --journal <name>` to check which fonts are available and which one was selected.
+If fonts look wrong after installation, run `plotstyle fonts --journal <name>` to see which fonts are required, which are installed, and which one was selected as a fallback.
 
 ---
 
@@ -98,6 +104,10 @@ with plotstyle.use("nature") as style:
   <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/quickstart_nature.png" width="55%" alt="Quickstart output: sin and cos figure styled for Nature">
 </p>
 
+> Pass `latex="auto"` to `plotstyle.use()` to enable LaTeX rendering when a LaTeX binary is on PATH, falling back to MathText otherwise. Use `latex=True` to force LaTeX, or `latex=False` (default) to always use MathText.
+
+> Outside a `with` block, `plotstyle.savefig(fig, "figure.pdf", journal="nature")` saves with the same DPI and font settings without needing the context manager.
+
 ---
 
 ## Examples
@@ -115,7 +125,7 @@ import plotstyle
 rng = np.random.default_rng(42)
 
 with plotstyle.use("science") as style:
-    fig, axes = style.subplots(nrows=1, ncols=2, columns=2)
+    fig, axes = style.subplots(nrows=2, ncols=2, columns=2)
 
     x = np.linspace(0, 10, 100)
     axes[0, 0].plot(x, np.sin(x), label="sin")
@@ -129,6 +139,14 @@ with plotstyle.use("science") as style:
     axes[0, 1].scatter(xs, ys, s=12, alpha=0.7)
     axes[0, 1].set_xlabel("Variable X")
     axes[0, 1].set_ylabel("Variable Y")
+
+    axes[1, 0].bar(["A", "B", "C", "D"], [3.2, 5.8, 4.1, 6.5])
+    axes[1, 0].set_xlabel("Category")
+    axes[1, 0].set_ylabel("Count")
+
+    axes[1, 1].hist(rng.normal(0, 1, 500), bins=25, edgecolor="white", linewidth=0.5)
+    axes[1, 1].set_xlabel("Value")
+    axes[1, 1].set_ylabel("Frequency")
 
     style.savefig(fig, "multi_panel.pdf")
 ```
@@ -151,6 +169,8 @@ import plotstyle
 colors = plotstyle.palette("nature", n=4)
 print(colors)
 # ['#E69F00', '#56B4E9', '#009E73', '#F0E442']
+
+plotstyle.list_palettes()   # list all available palette names
 ```
 
 <p align="center">
@@ -204,14 +224,18 @@ Overlays are additive patches that layer on top of a journal preset. They let yo
 Pass overlay names in the same list as the journal preset:
 
 ```python
+import numpy as np
 import plotstyle
+
+x = np.linspace(0, 2 * np.pi, 100)
 
 # Strip top/right spines for a clean editorial look
 with plotstyle.use(["nature", "minimal"]) as style:
     fig, ax = style.figure(columns=1)
-    ax.plot([1, 2, 3], label="data")
-    ax.set_xlabel("x")
-    ax.set_ylabel("y")
+    for i in range(3):
+        ax.plot(x, np.sin(x + i * 0.5), label=f"Series {i + 1}")
+    ax.set_xlabel("Phase (rad)")
+    ax.set_ylabel("Amplitude")
     ax.legend()
     style.savefig(fig, "minimal_figure.pdf")
 ```
@@ -266,8 +290,22 @@ with plotstyle.use(["ieee", "okabe-ito"]) as style:
 ```python
 # List all available overlays
 plotstyle.list_overlays()
+
+# List overlays in a specific category
 plotstyle.list_overlays(category="context")
 # ['high-vis', 'minimal', 'notebook', 'presentation']
+```
+
+When using seaborn, pass `seaborn_compatible=True` to `plotstyle.use()`. This patches `sns.set_theme` so PlotStyle's rcParams are re-applied automatically after any seaborn theme change:
+
+```python
+import seaborn as sns
+import plotstyle
+
+with plotstyle.use("nature", seaborn_compatible=True) as style:
+    sns.set_theme(style="ticks")   # PlotStyle rcParams are re-applied automatically
+    fig, ax = style.figure(columns=1)
+    # ...
 ```
 
 ---
@@ -318,6 +356,8 @@ with plotstyle.use(["presentation"]) as style:
 ```
 
 > In overlay-only mode, `style.palette()`, `style.validate()`, and `style.export_submission()` raise `RuntimeError` because they require a journal preset. `style.savefig()` and `style.figure()` always work.
+>
+> `style.figure()` in overlay-only mode falls back to matplotlib's default width (6.4 in) and does not read any `figure.figsize` set by an overlay. To pick up an overlay's figsize, use `plt.subplots()` instead (see the `presentation` example above).
 
 ---
 
@@ -330,11 +370,10 @@ import numpy as np
 import plotstyle
 
 with plotstyle.use("nature") as style:
-    colors = style.palette(n=4)
     fig, ax = style.figure(columns=1)
     x = np.linspace(0, 5, 80)
-    for i, c in enumerate(colors):
-        ax.plot(x, np.sin(x + i), color=c, linewidth=1.5, label=f"Series {i + 1}")
+    for i in range(4):
+        ax.plot(x, np.sin(x + i), linewidth=1.5, label=f"Series {i + 1}")
     ax.set_xlabel("Time (s)")
     ax.set_ylabel("Signal")
     ax.legend()
@@ -355,6 +394,10 @@ with plotstyle.use("nature") as style:
 <p align="center">
   <img src="https://raw.githubusercontent.com/rahulkaushal04/plotstyle/main/examples/output/accessibility_grayscale.png" width="60%" alt="Grayscale simulation: original vs grayscale rendering">
 </p>
+
+> By default, `preview_colorblind` simulates deuteranopia, protanopia, and tritanopia. Pass a `cvd_types` list to limit the simulation to specific types: `plotstyle.preview_colorblind(fig, cvd_types=[CVDType.DEUTERANOPIA])` (import `CVDType` from `plotstyle.color.accessibility`).
+
+> `plotstyle.preview_print_size(fig, journal="nature")` displays the figure at its approximate physical column width on screen. A dimension annotation is added temporarily and removed after display.
 
 ---
 
@@ -394,20 +437,6 @@ Grayscale safe: False
 
 IEEE is the only built-in journal whose default palette (`safe_grayscale`) is designed for black-and-white printing. Most colorblind-safe palettes distinguish colors by hue and are not automatically safe in grayscale.
 
-```python
-for journal in ["nature", "science", "ieee", "acs"]:
-    colors = plotstyle.palette(journal, n=6)
-    safe = is_grayscale_safe(colors, threshold=0.10)
-    print(f"  {journal:<10}: {'safe' if safe else 'not safe'}")
-```
-
-```text
-  nature    : not safe
-  science   : not safe
-  ieee      : safe
-  acs       : not safe
-```
-
 ---
 
 ### Validation and submission export
@@ -429,7 +458,9 @@ with plotstyle.use("nature") as style:
 
     report = plotstyle.validate(fig, journal="nature")
     print(report)
-    print(report.passed)   # True
+    print(report.passed)    # True
+    print(report.failures)  # list of failed CheckResult objects; empty when all pass
+    print(report.to_dict()) # JSON-serialisable dict
 ```
 
 ```text
@@ -506,6 +537,8 @@ Colorblind Required:    No → Yes
 ... (8 fields differ)
 ```
 
+`len(result)` returns the number of differing fields. `result.to_dict()` returns a JSON-serialisable dictionary.
+
 **Steps 2-4: create figures, validate, and export inside one style block**
 
 ```python
@@ -553,6 +586,18 @@ fig2: ['fig2.eps', 'fig2.pdf']
 
 > Use `plotstyle.diff()` to compare any two journal presets before starting. Use `style.validate()` inside the `with` block to catch problems before they reach the submission portal.
 
+If the target journal changes after figures are already created, use `plotstyle.migrate()` to re-style them in place:
+
+```python
+import plotstyle
+
+# Re-style an existing figure for a different journal
+plotstyle.migrate(fig1, from_journal="nature", to_journal="science")
+plotstyle.savefig(fig1, "figure_science.pdf", journal="science")
+```
+
+`migrate()` resizes the figure to the target journal's column width, proportionally rescales all text, and emits warnings for font changes or DPI increases.
+
 ---
 
 ## Supported Journals
@@ -574,20 +619,27 @@ fig2: ['fig2.eps', 'fig2.pdf']
 
 Need another journal? See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add a preset.
 
+Use `plotstyle.gallery("nature")` to preview any journal's style across a line plot, scatter plot, bar chart, and histogram before writing plot code.
+
 ---
 
 ## CLI
 
 ```
-plotstyle list                                        # list all journal presets
-plotstyle info <journal>                              # show preset details
-plotstyle diff <journal_a> <journal_b>                # compare two journal presets
-plotstyle fonts --journal <journal>                   # check font availability
-plotstyle overlays [--category <category>]            # list available overlays
-plotstyle overlay-info <overlay>                      # show overlay details
-plotstyle validate <file.png|pdf> --journal <journal> # validate a saved figure
-plotstyle export <file.png|pdf> --journal <journal>   # export in all formats required by the journal
+plotstyle list                                          # list all journal presets
+plotstyle info <journal>                                # show preset details
+plotstyle diff <journal_a> <journal_b>                  # compare two journal presets
+plotstyle fonts --journal <journal>                     # check font availability for a journal
+plotstyle fonts --overlay <overlay>                     # check font availability for a script overlay
+plotstyle overlays [--category <category>]              # list available overlays
+plotstyle overlay-info <overlay>                        # show overlay details
+plotstyle validate <file.png|pdf> --journal <journal>   # check PDF font embedding
+plotstyle export <file.png|pdf> --journal <journal>     # print a Python re-export snippet
 ```
+
+`plotstyle validate` checks PDF files for Type 3 font embedding only. Full validation of dimensions, typography, and line weights requires a live Matplotlib figure: use `plotstyle.validate(fig, journal=...)` in Python.
+
+`plotstyle export` does not create any output file. It prints a ready-to-run Python snippet that calls `plotstyle.export_submission()` with the specified settings.
 
 Full output examples are in the [CLI reference](https://plotstyle.readthedocs.io/en/stable/cli.html).
 
