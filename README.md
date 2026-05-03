@@ -65,8 +65,8 @@ pip install "plotstyle[all]"
 Or install only what you need:
 
 ```bash
-pip install "plotstyle[color]"     # colorblind / grayscale previews
-pip install "plotstyle[seaborn]"   # seaborn integration
+pip install "plotstyle[seaborn]"    # seaborn integration
+pip install "plotstyle[fonttools]"  # better PDF font subsetting
 ```
 
 If fonts look wrong after installation, run `plotstyle fonts --journal <name>` to check which fonts are available and which one was selected.
