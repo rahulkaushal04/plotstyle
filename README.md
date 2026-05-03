@@ -82,7 +82,7 @@ pip install "plotstyle[fonttools]"  # better PDF font subsetting
 If fonts look wrong after installation, run `plotstyle fonts --journal <name>` to see which fonts are required, which are installed, and which one was selected as a fallback. If no required fonts are installed, install one from the listed names and then rebuild matplotlib's font cache:
 
 ```bash
-python -c "import matplotlib; matplotlib.font_manager._rebuild()"
+python -c "from matplotlib.font_manager import _load_fontmanager; _load_fontmanager(try_read_cache=False)"
 ```
 
 ---
