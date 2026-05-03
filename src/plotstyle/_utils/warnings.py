@@ -9,7 +9,6 @@ __all__: list[str] = [
     "OverlaySizeWarning",
     "PaletteColorblindWarning",
     "PlotStyleWarning",
-    "SpecAssumptionWarning",
 ]
 
 
@@ -27,12 +26,3 @@ class OverlaySizeWarning(PlotStyleWarning):
 
 class PaletteColorblindWarning(PlotStyleWarning):
     """Emitted when a non-colorblind-safe palette is used with a colorblind-required journal."""
-
-
-class SpecAssumptionWarning(PlotStyleWarning):
-    """Emitted when a journal spec uses library defaults for fields not in the official guidelines.
-
-    Check ``spec.assumed_fields`` for the full list of affected fields, or call
-    ``spec.is_official(field)`` to test a specific field.
-    Suppress with ``warnings.filterwarnings("ignore", category=SpecAssumptionWarning)``.
-    """

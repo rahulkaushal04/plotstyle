@@ -29,17 +29,14 @@ Examples
 from __future__ import annotations
 
 import os
-import warnings
 from pathlib import Path
 from typing import Final
 
 from plotstyle._utils.io import load_toml
-from plotstyle._utils.warnings import SpecAssumptionWarning
 from plotstyle.specs.schema import JournalSpec
 
 __all__: list[str] = [
     "JournalSpec",
-    "SpecAssumptionWarning",
     "SpecNotFoundError",
     "SpecRegistry",
     "registry",
@@ -127,19 +124,18 @@ class SpecRegistry:
         spec = reg.get("nature")
     """
 
-    __slots__ = ("_available_cache", "_cache", "_specs_dir", "_warned_specs")
+    __slots__ = ("_available_cache", "_cache", "_specs_dir")
 
     def __init__(self, specs_dir: Path | None = None) -> None:
         self._specs_dir: Final[Path] = specs_dir or _SPECS_DIR
         self._cache: dict[str, JournalSpec] = {}
-        self._warned_specs: set[str] = set()
         self._available_cache: list[str] | None = None
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
-    def get(self, name: str, *, _silent: bool = False) -> JournalSpec:
+    def get(self, name: str) -> JournalSpec:
         """Retrieve a journal specification by name.
 
         The *name* is normalised to lower-case before lookup, so
@@ -147,17 +143,10 @@ class SpecRegistry:
         Parsed specs are cached after the first access; subsequent calls
         for the same name are free.
 
-        A :class:`~plotstyle.specs.SpecAssumptionWarning` is emitted
-        once per spec per session when the spec contains fields whose values
-        are library defaults rather than official journal guidelines.
-
         Parameters
         ----------
         name : str
             Journal identifier (e.g. ``"nature"``).
-        _silent : bool
-            Internal flag. When ``True``, the assumption warning is deferred
-            to the next non-silent call (used by background registration).
 
         Returns
         -------
@@ -184,18 +173,7 @@ class SpecRegistry:
             raw_data = load_toml(toml_path)
             self._cache[key] = JournalSpec.from_toml(raw_data)._with_key(key)
 
-        spec = self._cache[key]
-
-        if not _silent and spec.assumed_fields and key not in self._warned_specs:
-            self._warned_specs.add(key)
-            fields_str = ", ".join(sorted(spec.assumed_fields))
-            warnings.warn(
-                f'"{spec.metadata.name}" has no official values for {fields_str}; plotstyle defaults will be used.',
-                SpecAssumptionWarning,
-                stacklevel=2,
-            )
-
-        return spec
+        return self._cache[key]
 
     def list_available(self) -> list[str]:
         """List the identifiers of every discoverable journal specification.
@@ -267,7 +245,6 @@ class SpecRegistry:
         modified at runtime.
         """
         self._cache.clear()
-        self._warned_specs.clear()
         self._available_cache = None
 
     # ------------------------------------------------------------------

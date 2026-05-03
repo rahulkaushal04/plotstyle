@@ -115,7 +115,7 @@ def register_all_styles() -> None:
     for key in registry.list_available():
         full_key = f"{_PREFIX}{key}"
         with contextlib.suppress(Exception):
-            library[full_key] = build_style_snapshot(registry.get(key, _silent=True))
+            library[full_key] = build_style_snapshot(registry.get(key))
             registered_journal_keys.add(full_key)
 
     for key in overlay_registry.list_available():

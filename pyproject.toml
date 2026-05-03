@@ -284,7 +284,6 @@ filterwarnings = [
     "error",                                       # treat warnings as errors
     "ignore::DeprecationWarning:matplotlib",       # upstream, not ours
     "ignore::PendingDeprecationWarning:matplotlib",
-    "ignore::plotstyle._utils.warnings.SpecAssumptionWarning",  # spec fixtures may omit optional fields
 ]
 markers = [
     "slow: tests that are slow to run",

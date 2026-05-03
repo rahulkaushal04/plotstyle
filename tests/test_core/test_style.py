@@ -748,7 +748,6 @@ class TestJournalStyleRestore:
 class TestUseColorCycle:
     """Verify that use() applies the journal-recommended default color cycle."""
 
-    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.SpecAssumptionWarning")
     @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
     def test_nature_gets_okabe_ito_palette(self) -> None:
         """
@@ -767,7 +766,6 @@ class TestUseColorCycle:
         finally:
             style.restore()
 
-    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.SpecAssumptionWarning")
     @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
     def test_ieee_gets_safe_grayscale_palette(self) -> None:
         """
@@ -787,7 +785,6 @@ class TestUseColorCycle:
         finally:
             style.restore()
 
-    @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.SpecAssumptionWarning")
     @pytest.mark.filterwarnings("ignore::plotstyle._utils.warnings.FontFallbackWarning")
     def test_color_overlay_overrides_default_palette(self) -> None:
         """
