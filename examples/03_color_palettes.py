@@ -92,11 +92,13 @@ with plotstyle.use("ieee") as style:
             linestyle=ls,
             marker=marker,
             markevery=15,
+            linewidth=0.8,
+            markersize=3,
             label=f"Channel {i + 1}",
         )
     ax.set_xlabel("Time (ms)")
     ax.set_ylabel("Voltage (mV)")
-    ax.legend()
+    ax.legend(fontsize=7)
     style.savefig(fig, OUTPUT_DIR / "palette_styled_ieee.pdf")
     plt.close(fig)
 

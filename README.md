@@ -201,10 +201,10 @@ with plotstyle.use("ieee") as style:
     styled = plotstyle.palette("ieee", n=4, with_markers=True)
     for i, (color, ls, marker) in enumerate(styled):
         ax.plot(x, curves[i], color=color, linestyle=ls, marker=marker,
-                markevery=20, label=f"Series {i + 1}")
+                markevery=20, linewidth=0.8, markersize=3, label=f"Series {i + 1}")
     ax.set_xlabel("x")
     ax.set_ylabel("y")
-    ax.legend()
+    ax.legend(fontsize=7)
     style.savefig(fig, "ieee_markers.pdf")
 ```
 
