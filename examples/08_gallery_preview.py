@@ -11,19 +11,14 @@ Steps:
 3. Use plotstyle.diff() to see what changes between any two journals.
 
 Output:
-    output/gallery_nature.png
-    output/gallery_science.png
-    output/gallery_ieee.png
+    gallery_nature.png
+    gallery_science.png
+    gallery_ieee.png
 """
-
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 
 import plotstyle
-
-OUTPUT_DIR = Path(__file__).parent / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
 
 # Print column widths for all journals so you can choose the right one
 print(f"{'Journal':<12} {'Single col (mm)':<18} {'Double col (mm)'}")
@@ -41,7 +36,7 @@ print()
 # Render a gallery preview for three common journals
 for journal in ["nature", "science", "ieee"]:
     fig = plotstyle.gallery(journal, columns=1)
-    out = OUTPUT_DIR / f"gallery_{journal}.png"
+    out = f"gallery_{journal}.png"
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {out}")

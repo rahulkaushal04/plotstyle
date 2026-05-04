@@ -14,21 +14,16 @@ In overlay-only mode:
   RuntimeError because they require a journal spec.
 
 Output:
-    output/overlay_only_notebook.png
-    output/overlay_only_minimal_grid.pdf
-    output/overlay_only_presentation.pdf
-    output/overlay_only_subplots.png
+    overlay_only_notebook.png
+    overlay_only_minimal_grid.pdf
+    overlay_only_presentation.pdf
+    overlay_only_subplots.png
 """
-
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import plotstyle
-
-OUTPUT_DIR = Path(__file__).parent / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
 
 x = np.linspace(0, 2 * np.pi, 100)
 
@@ -38,8 +33,7 @@ x = np.linspace(0, 2 * np.pi, 100)
 # Pass a list of overlay names with no journal key. style.spec will be None.
 
 with plotstyle.use(["notebook"]) as style:
-    print(f"Journal spec:  {style.spec}")  # None
-    print(f"Style repr:    {style!r}")
+    assert style.spec is None  # no journal spec in overlay-only mode
 
     # figure() falls back to Matplotlib's default width (6.4 in x columns)
     fig, ax = style.figure(columns=1)
@@ -50,7 +44,7 @@ with plotstyle.use(["notebook"]) as style:
     ax.legend()
 
     # savefig() delegates directly to fig.savefig() in overlay-only mode
-    style.savefig(fig, OUTPUT_DIR / "overlay_only_notebook.png", dpi=150, bbox_inches="tight")
+    style.savefig(fig, "overlay_only_notebook.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
 # ==============================================================================
@@ -65,7 +59,7 @@ with plotstyle.use(["minimal", "grid"]) as style:
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.legend()
-    style.savefig(fig, OUTPUT_DIR / "overlay_only_minimal_grid.pdf")
+    style.savefig(fig, "overlay_only_minimal_grid.pdf")
     plt.close(fig)
 
 # ==============================================================================
@@ -81,7 +75,7 @@ with plotstyle.use(["presentation"]) as style:
     ax.set_xlabel("Phase (rad)")
     ax.set_ylabel("Amplitude")
     ax.legend()
-    style.savefig(fig, OUTPUT_DIR / "overlay_only_presentation.pdf")
+    style.savefig(fig, "overlay_only_presentation.pdf")
     plt.close(fig)
 
 # ==============================================================================
@@ -99,7 +93,7 @@ with plotstyle.use(["notebook", "grid"]) as style:
     axes[1].plot(x, np.cos(x))
     axes[1].set_title("cos(x)")
     axes[1].set_xlabel("x")
-    style.savefig(fig, OUTPUT_DIR / "overlay_only_subplots.png", dpi=150, bbox_inches="tight")
+    style.savefig(fig, "overlay_only_subplots.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
 # ==============================================================================

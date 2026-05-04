@@ -22,24 +22,17 @@ Steps:
 8. List all available overlays, optionally filtered by category.
 
 Output:
-    output/overlay_minimal.pdf
-    output/overlay_notebook.png
-    output/overlay_bar.pdf
-    output/overlay_color.pdf
-    output/overlay_grid.pdf
+    overlay_minimal.pdf
+    overlay_notebook.png
+    overlay_bar.pdf
+    overlay_color.pdf
+    overlay_grid.pdf
 """
-
-import warnings
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import plotstyle
-from plotstyle._utils.warnings import PlotStyleWarning
-
-OUTPUT_DIR = Path(__file__).parent / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
 
 rng = np.random.default_rng(0)
 x = np.linspace(0, 2 * np.pi, 100)
@@ -57,7 +50,7 @@ with plotstyle.use(["nature", "minimal"]) as style:
     ax.set_xlabel("Phase (rad)")
     ax.set_ylabel("Amplitude")
     ax.legend()
-    style.savefig(fig, OUTPUT_DIR / "overlay_minimal.pdf")
+    style.savefig(fig, "overlay_minimal.pdf")
     plt.close(fig)
 
 # ==============================================================================
@@ -76,10 +69,10 @@ with plotstyle.use(["nature", "notebook"]) as style:
     ax.set_ylabel("Amplitude")
     ax.legend()
     # Save as PNG for easy embedding in notebooks
-    fig.savefig(OUTPUT_DIR / "overlay_notebook.png", dpi=150, bbox_inches="tight")
+    fig.savefig("overlay_notebook.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
-print(f"Saved overlay_notebook.png ({OUTPUT_DIR / 'overlay_notebook.png'})")
+print("Saved overlay_notebook.png")
 
 # ==============================================================================
 # 3. Plot-type overlay: bar chart optimisation
@@ -97,7 +90,7 @@ with plotstyle.use(["nature", "bar"]) as style:
     ax.bar(categories, values, yerr=errors, color=colors, capsize=3)
     ax.set_ylabel("Relative expression")
     ax.axhline(1.0, color="black", linewidth=0.5, linestyle="--")
-    style.savefig(fig, OUTPUT_DIR / "overlay_bar.pdf")
+    style.savefig(fig, "overlay_bar.pdf")
     plt.close(fig)
 
 # ==============================================================================
@@ -114,7 +107,7 @@ with plotstyle.use(["ieee", "tol-bright"]) as style:
     ax.set_xlabel("Phase (rad)")
     ax.set_ylabel("Amplitude")
     ax.legend()
-    style.savefig(fig, OUTPUT_DIR / "overlay_color.pdf")
+    style.savefig(fig, "overlay_color.pdf")
     plt.close(fig)
 
 # ==============================================================================
@@ -130,38 +123,28 @@ with plotstyle.use(["nature", "grid"]) as style:
     ax.set_xlabel("Phase (rad)")
     ax.set_ylabel("Amplitude")
     ax.legend()
-    style.savefig(fig, OUTPUT_DIR / "overlay_grid.pdf")
+    style.savefig(fig, "overlay_grid.pdf")
     plt.close(fig)
 
 # ==============================================================================
 # 6. Plot-type overlay: "scatter" and the IEEE line-style warning
 # ==============================================================================
 # "scatter" enables markers and removes connecting lines. When combined with
-# "ieee" or "safe-grayscale", PlotStyle emits a PlotStyleWarning because
-# IEEE figures rely on line style differentiation for print accessibility.
-# Use palette(with_markers=True) to preserve per-series distinction.
+# "ieee" or "safe-grayscale", PlotStyle warns that IEEE figures rely on
+# line-style differentiation for print accessibility. Use palette(with_markers=True)
+# to keep per-series distinction visible.
 
-with warnings.catch_warnings(record=True) as caught:
-    warnings.simplefilter("always")
-    with plotstyle.use(["ieee", "scatter"]) as style:
-        fig, ax = style.figure(columns=1)
-        rng_local = np.random.default_rng(42)
-        for i, (color, _ls, marker) in enumerate(style.palette(n=3, with_markers=True)):
-            xdata = rng_local.uniform(0, 10, 20)
-            ydata = rng_local.uniform(0, 5, 20)
-            ax.scatter(xdata, ydata, color=color, marker=marker, label=f"Group {i + 1}")
-        ax.set_xlabel("x")
-        ax.set_ylabel("y")
-        ax.legend()
-        plt.close(fig)
-
-scatter_warns = [
-    str(w.message)
-    for w in caught
-    if issubclass(w.category, PlotStyleWarning) and "scatter" in str(w.message).lower()
-]
-if scatter_warns:
-    print(f"\nscatter+ieee warning: {scatter_warns[0][:80]}...")
+with plotstyle.use(["ieee", "scatter"]) as style:
+    fig, ax = style.figure(columns=1)
+    rng_local = np.random.default_rng(42)
+    for i, (color, _ls, marker) in enumerate(style.palette(n=3, with_markers=True)):
+        xdata = rng_local.uniform(0, 10, 20)
+        ydata = rng_local.uniform(0, 5, 20)
+        ax.scatter(xdata, ydata, color=color, marker=marker, label=f"Group {i + 1}")
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.legend()
+    plt.close(fig)
 
 # ==============================================================================
 # 7. Inspect an overlay's rcParams programmatically

@@ -5,6 +5,14 @@ plotstyle.preview_print_size() scales a figure's DPI so it appears at its
 approximate physical dimensions on your monitor. This helps verify that text
 is readable and lines are visible at the size the journal will print.
 
+The monitor_dpi parameter should match your display:
+  - 96 dpi : Windows / most Linux (default)
+  - 144 dpi: macOS 1x logical DPI
+  - 192 dpi: macOS 2x Retina
+
+A size annotation is added temporarily; closing the window removes it and
+restores the figure's original DPI.
+
 Steps:
 1. Create a figure with plotstyle.use() and style.figure().
 2. Call plotstyle.preview_print_size() to open an interactive preview window.
@@ -36,19 +44,7 @@ with plotstyle.use("nature") as style:
     ax.set_ylabel("Amplitude (a.u.)")
     ax.legend()
 
-    # -- 2. Preview at physical print size ------------------------------------
-    # This opens a Matplotlib window where the figure appears at its actual
-    # printed size (89 mm wide for Nature single-column).
-    #
-    # The monitor_dpi parameter should match your display:
-    #   - 96  → Windows / most Linux (default)
-    #   - 144 → macOS 1x logical
-    #   - 192 → macOS 2x Retina
-    #
-    # An annotation is temporarily added showing the target width in mm.
-    # After you close the window, the annotation is removed and the figure's
-    # DPI is restored automatically.
-
+    # Opens a window at the figure's true physical size (89 mm for Nature single-column).
     plotstyle.preview_print_size(fig, journal="nature", columns=1, monitor_dpi=96)
 
     # The figure is unchanged after preview_print_size returns.

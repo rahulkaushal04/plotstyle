@@ -17,19 +17,15 @@ For validation, export, and journal-aware figure sizing, use plotstyle.use()
 instead. The native style integration is for quick exploration only.
 
 Output:
-    output/mpl_style_ieee.pdf
-    output/mpl_style_nature_context.pdf
+    mpl_style_ieee.pdf
+    mpl_style_nature_context.pdf
+    mpl_style_combined.pdf
 """
-
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import plotstyle  # noqa: F401 - triggers style registration
-
-OUTPUT_DIR = Path(__file__).parent / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
 
 x = np.linspace(0, 2 * np.pi, 100)
 
@@ -56,9 +52,9 @@ ax.plot(x, np.cos(x), label="cos(x)")
 ax.set_xlabel("Phase (rad)")
 ax.set_ylabel("Amplitude")
 ax.legend()
-fig.savefig(OUTPUT_DIR / "mpl_style_ieee.pdf")
+fig.savefig("mpl_style_ieee.pdf")
 plt.close(fig)
-print(f"\nSaved: {OUTPUT_DIR / 'mpl_style_ieee.pdf'}")
+print("\nSaved: mpl_style_ieee.pdf")
 
 # Reset to Matplotlib defaults
 plt.style.use("default")
@@ -76,10 +72,10 @@ with plt.style.context("plotstyle.nature"):
     ax.set_xlabel("Phase (rad)")
     ax.set_ylabel("Amplitude")
     ax.legend()
-    fig.savefig(OUTPUT_DIR / "mpl_style_nature_context.pdf")
+    fig.savefig("mpl_style_nature_context.pdf")
     plt.close(fig)
 
-print(f"Saved: {OUTPUT_DIR / 'mpl_style_nature_context.pdf'}")
+print("Saved: mpl_style_nature_context.pdf")
 
 # ==============================================================================
 # 4. Combine journal and overlay styles
@@ -91,7 +87,9 @@ with plt.style.context(["plotstyle.nature", "plotstyle.notebook"]):
     ax.plot(x, np.sin(x))
     ax.set_xlabel("Phase (rad)")
     ax.set_ylabel("Amplitude")
+    fig.savefig("mpl_style_combined.pdf")
     plt.close(fig)
 
+print("Saved: mpl_style_combined.pdf")
 print("\nNote: plt.style only applies rcParams. For journal-aware figure")
 print("sizing, validation, and export, use plotstyle.use() instead.")

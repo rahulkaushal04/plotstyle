@@ -7,9 +7,9 @@ Steps:
    Pass author_surname for journals (e.g. IEEE) that require author-prefix filenames.
 
 Output:
-    output/submission_nature/   (Nature preferred formats)
-    output/submission_ieee/     (IEEE with "smith_" author prefix)
-    output/submission_science/  (Science with explicit format override)
+    submission_nature/   (Nature preferred formats)
+    submission_ieee/     (IEEE with "smith_" author prefix)
+    submission_science/  (Science with explicit format override)
 """
 
 from pathlib import Path
@@ -18,9 +18,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import plotstyle
-
-OUTPUT_DIR = Path(__file__).parent / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
 
 # ==============================================================================
 # 1. Nature: uses the journal's preferred formats automatically
@@ -37,7 +34,7 @@ with plotstyle.use("nature") as style:
     paths = style.export_submission(
         fig,
         "fig1",
-        output_dir=OUTPUT_DIR / "submission_nature",
+        output_dir=Path("submission_nature"),
     )
     print("Nature submission files:")
     for p in paths:
@@ -61,7 +58,7 @@ with plotstyle.use("ieee") as style:
         fig,
         "fig2",
         author_surname="Smith",
-        output_dir=OUTPUT_DIR / "submission_ieee",
+        output_dir=Path("submission_ieee"),
     )
     print("\nIEEE submission files:")
     for p in paths:
@@ -84,7 +81,7 @@ with plotstyle.use("science") as style:
         fig,
         "supplementary_fig",
         formats=["pdf", "png"],
-        output_dir=OUTPUT_DIR / "submission_science",
+        output_dir=Path("submission_science"),
     )
     print("\nScience submission files (custom formats):")
     for p in paths:

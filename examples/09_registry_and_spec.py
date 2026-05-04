@@ -4,17 +4,14 @@ Registry inspection: list and inspect journal specifications.
 Steps:
 1. List all available journal presets.
 2. Inspect a full journal spec: dimensions, typography, export, and accessibility.
-3. Show target_font_pt and is_official / assumed_fields for incomplete specs.
+3. Show is_official / assumed_fields for incomplete specs.
 4. Preload multiple specs for batch use.
 5. Compare column widths across all journals.
 
 Output: (console only)
 """
 
-import warnings
-
 import plotstyle
-from plotstyle._utils.warnings import SpecAssumptionWarning
 
 # ==============================================================================
 # 1. List every available journal preset
@@ -64,13 +61,11 @@ print(f"  Grayscale required:  {spec.color.grayscale_required}")
 # 3. Incomplete specs: assumed_fields and is_official
 # ==============================================================================
 # Some journals do not publish complete figure guidelines. PlotStyle applies
-# library defaults for missing fields and emits SpecAssumptionWarning.
+# library defaults for missing fields.
 # Use assumed_fields and is_official() to check which fields are official.
 
 print("\n--- Wiley (incomplete spec) ---")
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", SpecAssumptionWarning)
-    wiley = plotstyle.registry.get("wiley")
+wiley = plotstyle.registry.get("wiley")
 
 print(f"Assumed fields: {sorted(wiley.assumed_fields)}")
 print(f"single_column_mm official: {wiley.is_official('dimensions.single_column_mm')}")
@@ -80,9 +75,7 @@ print(f"min_font_pt official:      {wiley.is_official('typography.min_font_pt')}
 # 4. Preload multiple specs for batch inspection (avoids per-lookup I/O)
 # ==============================================================================
 
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", SpecAssumptionWarning)
-    plotstyle.registry.preload(["nature", "ieee", "science"])
+plotstyle.registry.preload(["nature", "ieee", "science"])
 
 print("\n--- Preloaded specs ---")
 for name in ["nature", "ieee", "science"]:
@@ -95,14 +88,12 @@ for name in ["nature", "ieee", "science"]:
 
 print(f"\n{'Journal':<12} {'Single (mm)':<14} {'Double (mm)':<14}")
 print("-" * 40)
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", SpecAssumptionWarning)
-    for name in available:
-        s = plotstyle.registry.get(name)
-        single = (
-            f"{s.dimensions.single_column_mm}" if s.dimensions.single_column_mm is not None else "-"
-        )
-        double = (
-            f"{s.dimensions.double_column_mm}" if s.dimensions.double_column_mm is not None else "-"
-        )
-        print(f"{name:<12} {single:<14} {double:<14}")
+for name in available:
+    s = plotstyle.registry.get(name)
+    single = (
+        f"{s.dimensions.single_column_mm}" if s.dimensions.single_column_mm is not None else "-"
+    )
+    double = (
+        f"{s.dimensions.double_column_mm}" if s.dimensions.double_column_mm is not None else "-"
+    )
+    print(f"{name:<12} {single:<14} {double:<14}")

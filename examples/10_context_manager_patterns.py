@@ -9,20 +9,16 @@ Steps:
    restored on exit, so your customisations survive the styled block.
 
 Output:
-    output/ctx_nature.pdf
-    output/manual_ieee.pdf
+    ctx_nature.pdf
+    manual_ieee.pdf
+    ctx_science.pdf
 """
-
-from pathlib import Path
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
 import plotstyle
-
-OUTPUT_DIR = Path(__file__).parent / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
 
 x = np.linspace(0, 2 * np.pi, 100)
 
@@ -36,11 +32,11 @@ original_fontsize = mpl.rcParams["font.size"]
 
 with plotstyle.use("nature") as style:
     print(f"Inside 'nature' block, journal: {style.spec.metadata.name}")
-    fig, ax = style.figure()
+    fig, ax = style.figure(columns=1)
     ax.plot(x, np.sin(x))
     ax.set_xlabel("x")
     ax.set_ylabel("sin(x)")
-    style.savefig(fig, OUTPUT_DIR / "ctx_nature.pdf")
+    style.savefig(fig, "ctx_nature.pdf")
     plt.close(fig)
 
 # Verify that rcParams were actually restored
@@ -53,11 +49,11 @@ print(f"Font size restored: {mpl.rcParams['font.size'] == original_fontsize}")
 
 style = plotstyle.use("ieee")
 try:
-    fig, ax = style.figure()
+    fig, ax = style.figure(columns=1)
     ax.plot(x, np.cos(x))
     ax.set_xlabel("x")
     ax.set_ylabel("cos(x)")
-    style.savefig(fig, OUTPUT_DIR / "manual_ieee.pdf")
+    style.savefig(fig, "manual_ieee.pdf")
     plt.close(fig)
 finally:
     style.restore()
@@ -72,10 +68,11 @@ prev_linewidth = mpl.rcParams["lines.linewidth"]
 mpl.rcParams["lines.linewidth"] = 3.0
 
 with plotstyle.use("science") as style:
-    fig, ax = style.figure()
+    fig, ax = style.figure(columns=1)
     ax.plot(x, np.tan(np.clip(x, 0.1, 3.0)))
     ax.set_xlabel("x")
     ax.set_ylabel("f(x)")
+    style.savefig(fig, "ctx_science.pdf")
     plt.close(fig)
 
 # plotstyle restored lines.linewidth to the value it had when use() was called (3.0)

@@ -8,12 +8,11 @@ Steps:
    rescales text, and applies the target journal's rcParams in-place.
 
 Output:
-    output/before_migration_nature.pdf
-    output/after_migration_science.pdf
+    before_migration_nature.pdf
+    after_migration_science.pdf
 """
 
 import sys
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,9 +21,6 @@ import plotstyle
 
 # Arrow characters in the diff table require UTF-8 output.
 sys.stdout.reconfigure(encoding="utf-8")
-
-OUTPUT_DIR = Path(__file__).parent / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
 
 # ==============================================================================
 # 1. Compare two journal specs
@@ -56,16 +52,17 @@ with plotstyle.use("nature") as style:
     ax.legend()
 
     # Save the pre-migration version for comparison
-    style.savefig(fig, OUTPUT_DIR / "before_migration_nature.pdf")
+    style.savefig(fig, "before_migration_nature.pdf")
 
 # ==============================================================================
 # 3. Migrate the figure from Nature to Science
 # ==============================================================================
 
-# migrate() mutates the figure in-place: resizes canvas, rescales text, applies rcParams.
-# Any significant changes (font family switch, DPI increase, etc.) are printed as warnings.
+# migrate() is called outside the plotstyle.use() block intentionally: the figure
+# retains its artists and data after the context exits. migrate() then resizes the
+# canvas, rescales text, and applies the target journal's rcParams in-place.
 plotstyle.migrate(fig, from_journal="nature", to_journal="science")
 
 # Save the post-migration figure with Science-compliant settings
-plotstyle.savefig(fig, OUTPUT_DIR / "after_migration_science.pdf", journal="science")
+plotstyle.savefig(fig, "after_migration_science.pdf", journal="science")
 plt.close(fig)

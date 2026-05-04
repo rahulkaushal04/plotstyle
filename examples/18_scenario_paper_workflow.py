@@ -14,9 +14,9 @@ This example targets Nature, but the same workflow applies to any supported
 journal by changing the journal key in plotstyle.use().
 
 Output:
-    output/paper_fig1_nature.pdf
-    output/paper_fig2_nature.pdf
-    output/paper_submission/   (submission-ready files in journal formats)
+    paper_fig1_nature.pdf
+    paper_fig2_nature.pdf
+    paper_submission/   (submission-ready files in journal formats)
 """
 
 import sys
@@ -30,9 +30,7 @@ import plotstyle
 # Box-drawing characters in validation reports require UTF-8 output.
 sys.stdout.reconfigure(encoding="utf-8")
 
-OUTPUT_DIR = Path(__file__).parent / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
-SUBMISSION_DIR = OUTPUT_DIR / "paper_submission"
+SUBMISSION_DIR = Path("paper_submission")
 
 # ==============================================================================
 # Step 1: Compare journals to decide where to submit
@@ -65,7 +63,7 @@ with plotstyle.use("nature") as style:
     ax1.set_xlabel("Time (s)")
     ax1.set_ylabel("Amplitude (a.u.)")
     ax1.legend()
-    style.savefig(fig1, OUTPUT_DIR / "paper_fig1_nature.pdf")
+    style.savefig(fig1, "paper_fig1_nature.pdf")
 
     # Figure 2: double-column two-panel comparison
     fig2, axes = style.subplots(nrows=1, ncols=2, columns=2)
@@ -84,7 +82,7 @@ with plotstyle.use("nature") as style:
     axes[0, 1].scatter(xs, ys, color=colors[1], s=10, alpha=0.8)
     axes[0, 1].set_xlabel("Variable X")
     axes[0, 1].set_ylabel("Variable Y")
-    style.savefig(fig2, OUTPUT_DIR / "paper_fig2_nature.pdf")
+    style.savefig(fig2, "paper_fig2_nature.pdf")
 
     # ===========================================================================
     # Step 3: Validate both figures before export
@@ -132,11 +130,11 @@ with plotstyle.use("nature") as style:
     # Save these as supplementary checks; do not include them in the submission.
 
     cvd_fig = plotstyle.preview_colorblind(fig1)
-    cvd_fig.savefig(OUTPUT_DIR / "paper_fig1_cvd_check.png", dpi=100, bbox_inches="tight")
+    cvd_fig.savefig("paper_fig1_cvd_check.png", dpi=100, bbox_inches="tight")
     plt.close(cvd_fig)
 
     gray_fig = plotstyle.preview_grayscale(fig1)
-    gray_fig.savefig(OUTPUT_DIR / "paper_fig1_gray_check.png", dpi=100, bbox_inches="tight")
+    gray_fig.savefig("paper_fig1_gray_check.png", dpi=100, bbox_inches="tight")
     plt.close(gray_fig)
 
     print("\nAccessibility checks saved:")

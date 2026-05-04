@@ -11,18 +11,13 @@ Note: plotstyle.use("nature") automatically sets the Okabe-Ito palette as
 the default axes.prop_cycle. The ax.plot() calls below draw from it without
 any color= argument needed.
 
-Output: output/quickstart_nature.pdf
+Output: quickstart_nature.pdf
 """
-
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import plotstyle
-
-OUTPUT_DIR = Path(__file__).parent / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
 
 # The context manager restores all modified rcParams when the block exits.
 with plotstyle.use("nature") as style:
@@ -38,6 +33,6 @@ with plotstyle.use("nature") as style:
     ax.legend()
 
     # Enforces DPI >= 300 and embeds TrueType fonts
-    style.savefig(fig, OUTPUT_DIR / "quickstart_nature.pdf")
+    style.savefig(fig, "quickstart_nature.pdf")
 
 plt.close(fig)

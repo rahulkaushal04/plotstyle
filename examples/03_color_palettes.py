@@ -12,22 +12,17 @@ Steps:
 6. List all available palettes with plotstyle.list_palettes().
 
 Output:
-    output/palette_auto_cycle.pdf
-    output/palette_basic.pdf
-    output/palette_styled_ieee.pdf
-    output/palette_comparison.png
-    output/palette_apply_cycle.pdf
+    palette_auto_cycle.pdf
+    palette_basic.pdf
+    palette_styled_ieee.pdf
+    palette_comparison.png
+    palette_apply_cycle.pdf
 """
-
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import plotstyle
-
-OUTPUT_DIR = Path(__file__).parent / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
 
 # ==============================================================================
 # 1. Automatic default color cycle
@@ -48,7 +43,7 @@ with plotstyle.use("nature") as style:
     ax.set_ylabel("y")
     ax.set_title("Automatic Okabe-Ito cycle (Nature)")
     ax.legend()
-    style.savefig(fig, OUTPUT_DIR / "palette_auto_cycle.pdf")
+    style.savefig(fig, "palette_auto_cycle.pdf")
     plt.close(fig)
 
 print("Automatic color cycle: Okabe-Ito applied by use('nature')")
@@ -62,8 +57,6 @@ print("Automatic color cycle: Okabe-Ito applied by use('nature')")
 colors = plotstyle.palette("nature", n=4)
 print("Nature palette (4 colors):", colors)
 
-x = np.linspace(0, 6, 100)
-
 with plotstyle.use("nature") as style:
     fig, ax = style.figure(columns=1)
     for i, color in enumerate(colors):
@@ -71,7 +64,7 @@ with plotstyle.use("nature") as style:
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.legend()
-    style.savefig(fig, OUTPUT_DIR / "palette_basic.pdf")
+    style.savefig(fig, "palette_basic.pdf")
     plt.close(fig)
 
 # ==============================================================================
@@ -99,7 +92,7 @@ with plotstyle.use("ieee") as style:
     ax.set_xlabel("Time (ms)")
     ax.set_ylabel("Voltage (mV)")
     ax.legend(fontsize=7)
-    style.savefig(fig, OUTPUT_DIR / "palette_styled_ieee.pdf")
+    style.savefig(fig, "palette_styled_ieee.pdf")
     plt.close(fig)
 
 # ==============================================================================
@@ -118,7 +111,7 @@ for ax, journal in zip(axes_raw, journals, strict=False):
     ax.set_xticks([])
 fig.suptitle("Journal Color Palettes")
 fig.tight_layout()
-fig.savefig(OUTPUT_DIR / "palette_comparison.png", dpi=150)
+fig.savefig("palette_comparison.png", dpi=150)
 plt.close(fig)
 
 # ==============================================================================
@@ -149,7 +142,7 @@ with plotstyle.use("nature") as style:
     ax_local.set_xlabel("x")
     ax_local.legend(fontsize=5)
 
-    style.savefig(fig, OUTPUT_DIR / "palette_apply_cycle.pdf")
+    style.savefig(fig, "palette_apply_cycle.pdf")
     plt.close(fig)
 
 # ==============================================================================

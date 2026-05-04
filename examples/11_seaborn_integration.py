@@ -3,19 +3,19 @@ Seaborn integration: keep PlotStyle settings intact through sns.set_theme().
 
 Seaborn and PlotStyle both write to matplotlib.rcParams. Calling
 sns.set_theme() after plotstyle.use() resets fonts, sizes, and line widths.
-PlotStyle provides two ways to prevent this.
+PlotStyle provides three ways to prevent this.
 
 Steps:
 1. Pattern 1 (recommended): pass seaborn_compatible=True to plotstyle.use().
    PlotStyle's settings are reapplied automatically after every sns.set_theme() call.
 2. Pattern 2: use plotstyle_theme() for a one-shot combined setup.
+3. Pattern 3: use patch_seaborn() / unpatch_seaborn() for explicit manual control.
 
 Output:
-    output/seaborn_scatter_nature.pdf
-    output/seaborn_violin_ieee.pdf
+    seaborn_scatter_nature.pdf
+    seaborn_violin_ieee.pdf
+    seaborn_patched_nature.pdf
 """
-
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,9 +23,6 @@ import pandas as pd
 import seaborn as sns
 
 import plotstyle
-
-OUTPUT_DIR = Path(__file__).parent / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
 
 rng = np.random.default_rng(42)
 
@@ -56,7 +53,7 @@ with plotstyle.use("nature", seaborn_compatible=True) as style:
     ax.set_ylabel("Variable Y")
     ax.legend(title="Group")
 
-    style.savefig(fig, OUTPUT_DIR / "seaborn_scatter_nature.pdf")
+    style.savefig(fig, "seaborn_scatter_nature.pdf")
     plt.close(fig)
 
 # ==============================================================================
@@ -65,9 +62,7 @@ with plotstyle.use("nature", seaborn_compatible=True) as style:
 # plotstyle_theme() applies the seaborn theme first, then overlays PlotStyle's
 # journal rcParams on top. Use this when sns.set_theme() is called once upfront.
 
-from plotstyle.integrations.seaborn import plotstyle_theme  # noqa: E402
-
-plotstyle_theme("ieee", seaborn_style="ticks", seaborn_context="paper")
+plotstyle.plotstyle_theme("ieee", seaborn_style="ticks", seaborn_context="paper")
 
 data = pd.DataFrame(
     {
@@ -82,7 +77,28 @@ try:
     sns.violinplot(data=data, x="group", y="value", hue="group", ax=ax, legend=False, linewidth=0.8)
     ax.set_xlabel("Method")
     ax.set_ylabel("Score")
-    style.savefig(fig, OUTPUT_DIR / "seaborn_violin_ieee.pdf")
+    style.savefig(fig, "seaborn_violin_ieee.pdf")
     plt.close(fig)
 finally:
     style.restore()
+
+# ==============================================================================
+# Pattern 3: patch_seaborn() / unpatch_seaborn() for explicit manual control
+# ==============================================================================
+# patch_seaborn() is what seaborn_compatible=True calls internally.
+# Use it directly when you need to control patching outside a plotstyle.use() block,
+# for example in long scripts where sns.set_theme() is called at multiple points.
+
+plotstyle.patch_seaborn()
+
+with plotstyle.use("nature") as style:
+    sns.set_theme(style="ticks")  # plotstyle settings are preserved by the patch
+
+    fig, ax = style.figure(columns=1)
+    ax.scatter(rng.normal(0, 1, 40), rng.normal(0, 1, 40), s=10)
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    style.savefig(fig, "seaborn_patched_nature.pdf")
+    plt.close(fig)
+
+plotstyle.unpatch_seaborn()  # remove the patch; sns.set_theme() no longer triggers reapply

@@ -8,18 +8,13 @@ Steps:
 3. Plot data in each panel using standard Matplotlib calls.
 4. Save the figure.
 
-Output: output/multi_panel_science.pdf
+Output: multi_panel_science.pdf
 """
-
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import plotstyle
-
-OUTPUT_DIR = Path(__file__).parent / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
 
 rng = np.random.default_rng(42)
 
@@ -53,6 +48,6 @@ with plotstyle.use("science") as style:
     axes[1, 1].set_xlabel("Value")
     axes[1, 1].set_ylabel("Frequency")
 
-    style.savefig(fig, OUTPUT_DIR / "multi_panel_science.pdf")
+    style.savefig(fig, "multi_panel_science.pdf")
 
 plt.close(fig)
