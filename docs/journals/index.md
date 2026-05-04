@@ -58,9 +58,9 @@ the range. Nature's guidelines explicitly state 7pt as the standard text size.
 ‡ Library default or not defined: the journal's public guidelines do not specify
 this value. For dimension fields marked `-`, `style.figure()` will raise a
 `RuntimeError` directing you to set the size manually. For typography and line
-fields, PlotStyle applies conservative defaults and emits a `SpecAssumptionWarning`
-at load time. Use `spec.is_official(field)` to check any field programmatically,
-or inspect `spec.assumed_fields` for the full list.
+fields, PlotStyle applies conservative defaults silently. Use
+`spec.is_official(field)` to check any field programmatically, or inspect
+`spec.assumed_fields` for the full list.
 
 AI (Adobe Illustrator) format is listed in the spec for journals that accept it,
 but Matplotlib cannot produce `.ai` files. `export_submission()` skips AI

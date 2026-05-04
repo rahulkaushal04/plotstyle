@@ -39,21 +39,11 @@ Some journals do not publish complete figure guidelines; for example, they may
 specify column widths and export formats but leave font sizes and line weights
 undefined.
 
-When a spec is missing these fields, PlotStyle applies conservative
-**library defaults** and emits a `SpecAssumptionWarning`
-listing the affected fields:
-
-```
-SpecAssumptionWarning: "Wiley" has no official values for dimensions.max_height_mm,
-line.min_weight_pt, typography.font_family, typography.max_font_pt,
-typography.min_font_pt; plotstyle defaults will be used.
-```
-
-You can inspect which fields are library-assumed at any time:
+When a spec is missing these fields, PlotStyle silently applies conservative
+**library defaults**. You can inspect which fields use library defaults at any
+time:
 
 ```python
-import warnings
-from plotstyle._utils.warnings import SpecAssumptionWarning
 from plotstyle.specs import registry
 
 spec = registry.get("wiley")
@@ -65,9 +55,6 @@ print(spec.assumed_fields)
 # Check a specific field
 spec.is_official("typography.min_font_pt")  # False: Wiley doesn't define this
 spec.is_official("dimensions.single_column_mm")  # True: from the official guidelines
-
-# Suppress the warning if you know what you're doing
-warnings.filterwarnings("ignore", category=SpecAssumptionWarning)
 ```
 
 **Dimensions** are treated differently from typography and line fields. When a

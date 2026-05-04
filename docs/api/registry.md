@@ -16,13 +16,6 @@ Lazy-loading journal specification registry.
    :members:
 ```
 
-## `SpecAssumptionWarning`
-
-```{eval-rst}
-.. autoclass:: plotstyle.specs.SpecAssumptionWarning
-   :members:
-```
-
 ## `registry`
 
 ```{eval-rst}
